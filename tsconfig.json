@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "module": "esnext",
+    "lib": ["ES2023"], // Dropped "DOM" since this is a server/CLI tool
+    "types": [],        // Dropped "vite/client" unless you specifically need Vite env tools
+    "skipLibCheck": true,
+
+    /* Emit mode for Libraries */
+    "moduleResolution": "NodeNext", // Ensures standard Node ecosystem compatibility
+    "outDir": "./dist",             // Where the compiled files will land
+    "declaration": true,            // Generates the .d.ts type files for library consumers
+    "declarationMap": true,         // Maps types back to source files for IDE debugging
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@peg/*": ["src/peg/*"]
+    }
+  },
+  "include": ["src"]
+}
