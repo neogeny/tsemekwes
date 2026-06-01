@@ -24,6 +24,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# Linked projects
+ogopego
+
 # IA
 .corpus/
 .antigravitycli/

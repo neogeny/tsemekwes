@@ -34,7 +34,7 @@ lint: tools fmt
 #    @biome ci .
 
 # Compile the TypeScript library and CLI code for production distribution
-build: clean tools
+build: tools
     tsc
 
 # Execute a specific script file instantly through the tsx runtime engine
