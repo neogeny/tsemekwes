@@ -1,2 +1,2 @@
-# totetsu-
-TōTetSu - A PEG parser generator in TypeScript
+# TōTetSu
+**TōTetSu** A PEG parser generator in `TypeScript`

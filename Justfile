@@ -27,8 +27,13 @@ build: clean tools
 run script: tools
     tsx {{ script }}
 
-# Run the test suite (assuming a standard test framework or custom test runner script)
-test: tools
+test: test-unit test-integration
+
+# Optional: Split them up if you want to run them independently
+test-unit: tools
+    tsx --test src/**/*.test.ts
+
+test-integration: tools
     @if [ -d "tests" ]; then \
         tsx --test tests/**/*.test.ts; \
     else \
