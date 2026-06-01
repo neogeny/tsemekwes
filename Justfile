@@ -24,12 +24,14 @@ clean:
     rm -rf dist/
 
 fmt:
-    npx prettier --quiet --write "**/*.ts"
+    @#npx prettier --quiet --write "**/*.ts"
+    biome format . --write
 
 # Run both the ESLint and Biome code-quality linters
 lint: tools fmt
-    @biome check --write .
     @eslint . --fix
+    @biome lint --write .
+#    @biome ci .
 
 # Compile the TypeScript library and CLI code for production distribution
 build: clean tools
@@ -42,10 +44,10 @@ run script: tools
 test: test-unit test-integration
 
 # Optional: Split them up if you want to run them independently
-test-unit: lint
+test-unit: lint build
     tsx --test src/**/*.test.ts
 
-test-integration: lint
+test-integration: lint build
     @if [ -d "tests" ]; then \
         tsx --test tests/**/*.test.ts; \
     else \
