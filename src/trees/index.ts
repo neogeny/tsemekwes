@@ -1,7 +1,6 @@
 export {
   TreeKind,
   type Tree,
-  TreeMerge,
   Text,
   Number,
   Bool,
