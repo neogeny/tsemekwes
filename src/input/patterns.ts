@@ -1,9 +1,29 @@
 import { TokenizingPatterns } from "./cursor.js";
 import type { Cfg } from "../config/config.js";
 
-function compileRe(pattern: string, flags?: string): RegExp | null {
+const INLINE_FLAGS_RE = /^\(\?([msgi-]+)\)/;
+
+function stripInlineFlags(pattern: string): [string, string] {
+  let flags = "";
+  let rest = pattern;
+  for (;;) {
+    const m = rest.match(INLINE_FLAGS_RE);
+    if (!m) break;
+    for (const ch of m[1]) {
+      if (ch === "m") flags += "m";
+      else if (ch === "s") flags += "s";
+      else if (ch === "i") flags += "i";
+    }
+    rest = rest.slice(m[0].length);
+  }
+  return [rest, flags];
+}
+
+function compileRe(pattern: string, extraFlags?: string): RegExp | null {
   try {
-    return new RegExp(pattern, flags ?? "");
+    const [stripped, inline] = stripInlineFlags(pattern);
+    const flags = inline + (extraFlags ?? "");
+    return new RegExp(stripped, flags);
   } catch {
     return null;
   }
@@ -33,9 +53,9 @@ export function configurePatterns(
 ): void {
   patterns.nonDefault = false;
 
-  if (cfg.whitespace !== null) {
+  if (cfg.whitespace !== undefined) {
     patterns.nonDefault = true;
-    if (cfg.whitespace !== "") {
+    if (cfg.whitespace !== null && cfg.whitespace !== "") {
       const re = compileRe(cfg.whitespace);
       if (re !== null) {
         patterns.wsp = re;
@@ -46,7 +66,7 @@ export function configurePatterns(
   }
 
   patterns.cmt = null;
-  if (cfg.comments !== "") {
+  if (cfg.comments) {
     patterns.nonDefault = true;
     const re = compileRe(cfg.comments);
     if (re !== null) {
@@ -55,7 +75,7 @@ export function configurePatterns(
   }
 
   patterns.eol = null;
-  if (cfg.eolComments !== "") {
+  if (cfg.eolComments) {
     patterns.nonDefault = true;
     const re = compileRe(cfg.eolComments);
     if (re !== null) {

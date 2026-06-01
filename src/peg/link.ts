@@ -28,7 +28,10 @@ export function linkExp(exp: Exp | null, rules: Map<string, Rule>): void {
     case ExpKind.RuleInclude: {
       const ri = exp as RuleIncludeExp;
       const rule = rules.get(ri.name);
-      if (!rule) throw new LinkError(`rule include references undefined rule: ${ri.name}`);
+      if (!rule)
+        throw new LinkError(
+          `rule include references undefined rule: ${ri.name}`,
+        );
       ri.exp = rule.exp;
       return;
     }

@@ -147,7 +147,10 @@ export class MapNode implements Tree {
 
 export class Node implements Tree {
   readonly kind = TreeKind.Node;
-  constructor(public typeName: string, public tree: Tree) {}
+  constructor(
+    public typeName: string,
+    public tree: Tree,
+  ) {}
   fold(_gather: TreeMerge): Tree {
     return this;
   }
@@ -157,7 +160,10 @@ export class Node implements Tree {
 
 export class Named implements Tree {
   readonly kind = TreeKind.Named;
-  constructor(public name: string, public value: Tree) {}
+  constructor(
+    public name: string,
+    public value: Tree,
+  ) {}
   fold(gather: TreeMerge): Tree {
     const val = this.value.fold(gather);
     gather.insert(this.name, val);
@@ -167,7 +173,10 @@ export class Named implements Tree {
 
 export class NamedAsList implements Tree {
   readonly kind = TreeKind.NamedAsList;
-  constructor(public name: string, public value: Tree) {}
+  constructor(
+    public name: string,
+    public value: Tree,
+  ) {}
   fold(gather: TreeMerge): Tree {
     const val = this.value.fold(gather);
     gather.insertAsList(this.name, val);
@@ -297,7 +306,9 @@ export function treeToJSON(t: Tree): any {
     case TreeKind.Named:
       return { [(t as Named).name]: treeToJSON((t as Named).value) };
     case TreeKind.NamedAsList:
-      return { [(t as NamedAsList).name]: treeToJSON((t as NamedAsList).value) };
+      return {
+        [(t as NamedAsList).name]: treeToJSON((t as NamedAsList).value),
+      };
     case TreeKind.Override:
       return treeToJSON((t as Override).value);
     case TreeKind.OverrideAsList:
@@ -305,7 +316,11 @@ export function treeToJSON(t: Tree): any {
     case TreeKind.Node: {
       const node = t as Node;
       const child = treeToJSON(node.tree);
-      if (typeof child === "object" && child !== null && !globalThis.Array.isArray(child)) {
+      if (
+        typeof child === "object" &&
+        child !== null &&
+        !globalThis.Array.isArray(child)
+      ) {
         if (!("__class__" in child)) {
           return { __class__: node.typeName, ...child };
         }

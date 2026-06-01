@@ -79,7 +79,10 @@ describe("fold", () => {
 
   it("Named to Map", () => {
     const result = fold(new Named("x", text("hello")));
-    assert.ok(result instanceof MapNode, `expected MapNode, got ${typeof result}`);
+    assert.ok(
+      result instanceof MapNode,
+      `expected MapNode, got ${typeof result}`,
+    );
     const m = result as MapNode;
     assert.ok(m.entries.has("x"));
     assert.equal((m.entries.get("x") as Text).value, "hello");
@@ -95,7 +98,10 @@ describe("fold", () => {
     const result = fold(
       seq(new Named("a", text("1")), new Named("b", text("2"))),
     );
-    assert.ok(result instanceof MapNode, `expected MapNode, got ${typeof result}`);
+    assert.ok(
+      result instanceof MapNode,
+      `expected MapNode, got ${typeof result}`,
+    );
     const m = result as MapNode;
     assert.equal((m.entries.get("a") as Text).value, "1");
     assert.equal((m.entries.get("b") as Text).value, "2");
@@ -105,7 +111,10 @@ describe("fold", () => {
     const result = fold(
       seq(new Named("x", text("a")), new Named("x", text("b"))),
     );
-    assert.ok(result instanceof MapNode, `expected MapNode, got ${typeof result}`);
+    assert.ok(
+      result instanceof MapNode,
+      `expected MapNode, got ${typeof result}`,
+    );
     const m = result as MapNode;
     const x = m.entries.get("x") as Seq;
     assert.equal((x.items[0] as Text).value, "a");
@@ -114,7 +123,10 @@ describe("fold", () => {
 
   it("NamedAsList", () => {
     const result = fold(new NamedAsList("items", text("x")));
-    assert.ok(result instanceof MapNode, `expected MapNode, got ${typeof result}`);
+    assert.ok(
+      result instanceof MapNode,
+      `expected MapNode, got ${typeof result}`,
+    );
     const m = result as MapNode;
     const seq = m.entries.get("items") as Seq;
     assert.equal(seq.items.length, 1);
@@ -128,7 +140,10 @@ describe("fold", () => {
         new NamedAsList("items", text("b")),
       ),
     );
-    assert.ok(result instanceof MapNode, `expected MapNode, got ${typeof result}`);
+    assert.ok(
+      result instanceof MapNode,
+      `expected MapNode, got ${typeof result}`,
+    );
     const m = result as MapNode;
     const items = m.entries.get("items") as Seq;
     assert.equal(items.items.length, 2);
@@ -158,12 +173,12 @@ describe("fold", () => {
 
   it("Nested Named", () => {
     const result = fold(
-      new Named(
-        "x",
-        seq(new Named("a", text("1")), new Named("b", text("2"))),
-      ),
+      new Named("x", seq(new Named("a", text("1")), new Named("b", text("2")))),
     );
-    assert.ok(result instanceof MapNode, `expected MapNode, got ${typeof result}`);
+    assert.ok(
+      result instanceof MapNode,
+      `expected MapNode, got ${typeof result}`,
+    );
     const m = result as MapNode;
     assert.ok(m.entries.has("x"));
     assert.ok(m.entries.has("a"));

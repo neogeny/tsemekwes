@@ -8,8 +8,10 @@ default:
 # Check for non-default dependencies and install them globally if missing
 [private]
 tools:
-    @command -v tsx >/dev/null 2>&1 || (echo "Installing 'tsx' for fast TS execution..." && npm install -g tsx)
-    @command -v tsc >/dev/null 2>&1 || (echo "Installing TypeScript compiler..." && npm install -g typescript)
+    @command -v bun >/dev/null 2>&1 || (echo "Installing Bun ..." && npm install -g bun)
+    @command -v tsx >/dev/null 2>&1 || (echo "Installing 'tsx' for fast TS execution..." && bun install -g tsx)
+    @command -v tsc >/dev/null 2>&1 || (echo "Installing TypeScript compiler..." && bun install -g typescript)
+    @command -v prettier >/dev/null 2>&1 || (echo "Installing Bun ..." && npm install -g prettier)
 
 # Start development file-watcher mode for your CLI entry point
 dev path="src/cli.ts": tools

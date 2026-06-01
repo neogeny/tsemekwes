@@ -1,13 +1,8 @@
-import { Cfg } from "../config/config.js";
+import { Cfg, defaultCfg } from "../config/config.js";
 import type { Cursor } from "../input/cursor.js";
 import { Text, Number, Bool, NIL, type Tree } from "../trees/tree.js";
 import { type MemoKey, type Memo, pruneMemoCache } from "./memo.js";
-import {
-  type CallStack,
-  type Tracer,
-  type Ctx,
-  ParseFailure,
-} from "./ctx.js";
+import { type CallStack, type Tracer, type Ctx, ParseFailure } from "./ctx.js";
 
 export class CoreCtx implements Ctx {
   private _cursor: Cursor;
@@ -26,14 +21,14 @@ export class CoreCtx implements Ctx {
 
   constructor(cursor: Cursor, cfg?: Cfg) {
     this._cursor = cursor;
-    this.cfg = (cfg ?? new Cfg()).new_();
+    this.cfg = cfg ? defaultCfg().override(cfg) : defaultCfg();
     this._cursor.configure(this.cfg);
   }
 
   configure(cfg: Cfg): void {
     this.cfg = this.cfg.override(cfg);
     this._cursor.configure(cfg);
-    this.setKeywords(cfg.keywords);
+    this.setKeywords(cfg.keywords ?? []);
     if (cfg.trace) {
       this.tracer_ = new ConsoleTracer();
     } else {
@@ -65,12 +60,24 @@ export class CoreCtx implements Ctx {
     this.furthest = other.furthestFailure();
   }
 
-  cursor(): Cursor { return this._cursor; }
-  callStack(): CallStack { return [...this._callStack]; }
-  tracer(): Tracer { return this.tracer_; }
-  mark(): number { return this._cursor.mark(); }
-  reset(mark: number): void { this._cursor.reset(mark); }
-  atEnd(): boolean { return this._cursor.atEnd(); }
+  cursor(): Cursor {
+    return this._cursor;
+  }
+  callStack(): CallStack {
+    return [...this._callStack];
+  }
+  tracer(): Tracer {
+    return this.tracer_;
+  }
+  mark(): number {
+    return this._cursor.mark();
+  }
+  reset(mark: number): void {
+    this._cursor.reset(mark);
+  }
+  atEnd(): boolean {
+    return this._cursor.atEnd();
+  }
 
   next(): [string, boolean] {
     const ch = this._cursor.next();
@@ -92,8 +99,12 @@ export class CoreCtx implements Ctx {
     return [ch, true];
   }
 
-  nextToken(): void { this._cursor.nextToken(); }
-  matchEOL(): boolean { return this._cursor.matchEOL(); }
+  nextToken(): void {
+    this._cursor.nextToken();
+  }
+  matchEOL(): boolean {
+    return this._cursor.matchEOL();
+  }
 
   matchToken(token: string): boolean {
     this.nextToken();
@@ -112,16 +123,26 @@ export class CoreCtx implements Ctx {
     return matched;
   }
 
-  void_(): void { this.nextToken(); }
-  inLookahead(): boolean { return this.lookaheadDepth > 0; }
-  enterLookahead(): void { this.lookaheadDepth++; }
-  leaveLookahead(): void { this.lookaheadDepth--; }
+  void_(): void {
+    this.nextToken();
+  }
+  inLookahead(): boolean {
+    return this.lookaheadDepth > 0;
+  }
+  enterLookahead(): void {
+    this.lookaheadDepth++;
+  }
+  leaveLookahead(): void {
+    this.lookaheadDepth--;
+  }
 
   fail(): void {
     this.failure(this._cursor.mark(), "fail");
   }
 
-  eof(): boolean { return this._cursor.atEnd(); }
+  eof(): boolean {
+    return this._cursor.atEnd();
+  }
 
   eofCheck(): void {
     const mark = this._cursor.mark();
@@ -158,12 +179,7 @@ export class CoreCtx implements Ctx {
 
   failure(start: number, msg: string): ParseFailure {
     this._cursor.reset(start);
-    const err = new ParseFailure(
-      start,
-      this._cursor.mark(),
-      msg,
-      this._callStack,
-    );
+    const err = new ParseFailure(start, msg, this._cursor, this._callStack);
     if (this.furthest == null || this.furthest.mark <= this._cursor.mark()) {
       this.setFurthestFailure(err);
     }
@@ -182,7 +198,9 @@ export class CoreCtx implements Ctx {
     return this.keywords.has(name);
   }
 
-  intern(s: string): string { return s; }
+  intern(s: string): string {
+    return s;
+  }
 
   parseEOF(): boolean {
     this.enter("__eof__");
@@ -213,9 +231,11 @@ export class CoreCtx implements Ctx {
   }
 
   trackRecursionDepth(key: MemoKey): boolean {
-    if (this.recursionKey != null &&
-        this.recursionKey.mark === key.mark &&
-        this.recursionKey.name === key.name) {
+    if (
+      this.recursionKey != null &&
+      this.recursionKey.mark === key.mark &&
+      this.recursionKey.name === key.name
+    ) {
       this.recursionDepth++;
     } else {
       this.recursionKey = key;
@@ -228,9 +248,11 @@ export class CoreCtx implements Ctx {
   }
 
   untrack(key: MemoKey): void {
-    if (this.recursionKey != null &&
-        this.recursionKey.mark === key.mark &&
-        this.recursionKey.name === key.name) {
+    if (
+      this.recursionKey != null &&
+      this.recursionKey.mark === key.mark &&
+      this.recursionKey.name === key.name
+    ) {
       this.recursionDepth--;
       if (this.recursionDepth <= 0) {
         this.recursionKey = null;
@@ -265,7 +287,11 @@ export class CoreCtx implements Ctx {
     return seen;
   }
 
-  applySemantics(node: Tree, _ruleName: string, _params: string[]): [Tree, boolean] {
+  applySemantics(
+    node: Tree,
+    _ruleName: string,
+    _params: string[],
+  ): [Tree, boolean] {
     if (this.cfg.semantics) {
       return this.cfg.semantics(node, _ruleName, _params);
     }
@@ -283,18 +309,40 @@ class NullTracer implements Tracer {
   traceFailure(_ctx: Ctx, _err: string): void {}
   traceRecursion(_ctx: Ctx): void {}
   traceCut(_ctx: Ctx): void {}
-  traceMatch(_ctx: Ctx, _token: string, _name: string): boolean { return true; }
-  traceNoMatch(_ctx: Ctx, _token: string, _name: string): boolean { return true; }
+  traceMatch(_ctx: Ctx, _token: string, _name: string): boolean {
+    return true;
+  }
+  traceNoMatch(_ctx: Ctx, _token: string, _name: string): boolean {
+    return true;
+  }
 }
 
 class ConsoleTracer implements Tracer {
-  trace(_ctx: Ctx, msg: string): void { console.error(msg); }
-  traceEvent(_ctx: Ctx, _event: number, msg: string): void { console.error(`[${_event}] ${msg}`); }
-  traceEntry(ctx: Ctx): void { console.error(`→ ${ctx.callStack().join(" > ")}`); }
-  traceSuccess(ctx: Ctx): void { console.error(`✓ ${ctx.callStack().join(" > ")}`); }
-  traceFailure(_ctx: Ctx, err: string): void { console.error(`✗ ${err}`); }
-  traceRecursion(ctx: Ctx): void { console.error(`↻ ${ctx.callStack().join(" > ")}`); }
-  traceCut(ctx: Ctx): void { console.error(`✂ ${ctx.callStack().join(" > ")}`); }
-  traceMatch(_ctx: Ctx, _token: string, _name: string): boolean { return true; }
-  traceNoMatch(_ctx: Ctx, _token: string, _name: string): boolean { return true; }
+  trace(_ctx: Ctx, msg: string): void {
+    console.error(msg);
+  }
+  traceEvent(_ctx: Ctx, _event: number, msg: string): void {
+    console.error(`[${_event}] ${msg}`);
+  }
+  traceEntry(ctx: Ctx): void {
+    console.error(`→ ${ctx.callStack().join(" > ")}`);
+  }
+  traceSuccess(ctx: Ctx): void {
+    console.error(`✓ ${ctx.callStack().join(" > ")}`);
+  }
+  traceFailure(_ctx: Ctx, err: string): void {
+    console.error(`✗ ${err}`);
+  }
+  traceRecursion(ctx: Ctx): void {
+    console.error(`↻ ${ctx.callStack().join(" > ")}`);
+  }
+  traceCut(ctx: Ctx): void {
+    console.error(`✂ ${ctx.callStack().join(" > ")}`);
+  }
+  traceMatch(_ctx: Ctx, _token: string, _name: string): boolean {
+    return true;
+  }
+  traceNoMatch(_ctx: Ctx, _token: string, _name: string): boolean {
+    return true;
+  }
 }

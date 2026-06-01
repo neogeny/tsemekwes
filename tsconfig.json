@@ -2,8 +2,9 @@
   "compilerOptions": {
     "target": "es2023",
     "module": "NodeNext",
-    "lib": ["ES2023", "DOM"], // Dropped "DOM" since this is a server/CLI tool
-    "types": [],        // Dropped "vite/client" unless you specifically need Vite env tools
+    "lib": ["ES2023"],   // Server/CLI tool — no DOM
+    "types": ["node"],  // Node.js API (process, Buffer, etc.)
+    "resolveJsonModule": true,
     "skipLibCheck": true,
 
     /* Emit mode for Libraries */
@@ -18,7 +19,14 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@peg/*": ["./src/peg/*"]
+      "@totetsu/*": ["./src/*"],
+      "@config/*": ["./src/config/*"],
+      "@input/*": ["./src/input/*"],
+      "@trees/*": ["./src/trees/*"],
+      "@context/*": ["./src/context/*"],
+      "@peg/*": ["./src/peg/*"],
+      "@json/*": ["./src/json/*"],
+      "@api/*": ["./src/api/*"]
     }
   },
   "include": ["src"],

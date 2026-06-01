@@ -3,16 +3,24 @@ import { describe, it } from "node:test";
 import { Cfg, defaultCfg } from "./config.js";
 
 describe("Cfg", () => {
-  it("defaultCfg returns empty Cfg", () => {
+  it("defaultCfg returns Cfg with defaults", () => {
     const cfg = defaultCfg();
     assert.ok(cfg instanceof Cfg);
-    assert.equal(cfg.source, "");
+    assert.equal(cfg.name, undefined);
+    assert.equal(cfg.start, undefined);
     assert.equal(cfg.ignoreCase, false);
-    assert.equal(cfg.nameChars, "");
+    assert.equal(cfg.concurrency, undefined);
+    assert.equal(cfg.noMemo, false);
+    assert.equal(cfg.noPruneMemosOnCut, false);
+    assert.equal(cfg.perLineMemos, 8);
+    assert.equal(cfg.trace, false);
+    assert.equal(cfg.colorize, false);
+    assert.equal(cfg.noLeftRecursion, false);
     assert.equal(cfg.nameGuard, null);
     assert.equal(cfg.whitespace, null);
-    assert.equal(cfg.comments, "");
-    assert.equal(cfg.eolComments, "");
+    assert.deepEqual(cfg.keywords, []);
+    assert.equal(cfg.parseInfo, false);
+    assert.equal(cfg.semantics, undefined);
   });
 
   it("fields can be set", () => {

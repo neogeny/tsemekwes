@@ -1,4 +1,6 @@
+import type { Ctx } from "../context/ctx.js";
 import type { Exp } from "./exp.js";
+import { fold, Node as NodeTree, type Tree } from "../trees/tree.js";
 
 export class Rule {
   constructor(
@@ -15,6 +17,32 @@ export class Rule {
     public isMemo: boolean = false,
     public isLrec: boolean = false,
   ) {}
+
+  parse(ctx: Ctx): Tree | null {
+    const mark = ctx.mark();
+    const result = this.exp.parseAt(ctx);
+    if (result == null) {
+      ctx.reset(mark);
+      return null;
+    }
+
+    const folded = fold(result);
+
+    const [newTree, overridden] = ctx.applySemantics(
+      folded,
+      this.name,
+      this.params,
+    );
+    if (overridden) {
+      return newTree;
+    }
+
+    if (this.params.length === 0 || this.params[0] === "bool") {
+      return folded;
+    }
+
+    return new NodeTree(this.params[0], folded);
+  }
 
   isToken(): boolean {
     if (this.isTokn) return true;

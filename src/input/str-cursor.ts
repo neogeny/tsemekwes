@@ -1,5 +1,9 @@
 import { Location, TokenizingPatterns, type Cursor } from "./cursor.js";
-import { defaultPatterns, configurePatterns, resetPatterns } from "./patterns.js";
+import {
+  defaultPatterns,
+  configurePatterns,
+  resetPatterns,
+} from "./patterns.js";
 import type { Cfg } from "../config/config.js";
 
 const nameCharRe = /^[\p{L}\p{N}_]$/u;
@@ -14,8 +18,8 @@ export class CursorHeavy {
 }
 
 export class StrCursor implements Cursor {
-  private text: string;
-  private offset: number;
+  private readonly text: string;
+  private offset: number = 0;
   private heavy: CursorHeavy;
 
   constructor(text: string);
@@ -26,36 +30,37 @@ export class StrCursor implements Cursor {
 
     if (source !== undefined) {
       this.heavy.source = source;
-      if (start !== undefined) {
-        if (start > text.length) {
-          start = text.length;
-        }
-        while (start < text.length && !isRuneStart(text, start)) {
-          start++;
-        }
-        this.offset = start;
-      } else {
-        this.offset = 0;
+    } else {
+      this.offset = 0;
+    }
+    if (start !== undefined) {
+      if (start > text.length) {
+        start = text.length;
       }
+      while (start < text.length && !isRuneStart(text, start)) {
+        start++;
+      }
+      this.offset = start;
     } else {
       this.offset = 0;
     }
   }
 
   configure(cfg: Cfg): void {
-    if (cfg.source !== "") {
+    if (cfg.source) {
       this.heavy.source = cfg.source;
     }
 
-    this.heavy.ignoreCase = cfg.ignoreCase;
-    this.heavy.nameChars = cfg.nameChars;
+    this.heavy.ignoreCase = cfg.ignoreCase ?? false;
+    this.heavy.nameChars = cfg.nameChars ?? "";
     configurePatterns(this.heavy.patterns, cfg);
 
-    if (cfg.nameGuard !== null) {
-      this.heavy.nameGuard = cfg.nameGuard || this.heavy.nameChars !== "";
+    const nc = cfg.nameChars ?? "";
+    if (cfg.nameGuard !== undefined && cfg.nameGuard !== null) {
+      this.heavy.nameGuard = cfg.nameGuard;
     } else {
       this.heavy.nameGuard =
-        cfg.nameChars !== "" ||
+        nc !== "" ||
         (this.heavy.patterns.nonDefault &&
           this.heavy.patterns.wsp !== null &&
           !this.heavy.patterns.wsp.test(""));
@@ -127,10 +132,7 @@ export class StrCursor implements Cursor {
       }
     }
     if (lineno >= start && lineno < end) {
-      if (
-        this.text.length > 0 &&
-        this.text[this.text.length - 1] !== "\n"
-      ) {
+      if (this.text.length > 0 && this.text[this.text.length - 1] !== "\n") {
         out.push(this.text.slice(lineStart));
       }
     }
@@ -207,7 +209,11 @@ export class StrCursor implements Cursor {
     }
     const cp = token.codePointAt(0)!;
     const first = String.fromCodePoint(cp);
-    if (first !== "_" && !/^\p{L}$/u.test(first) && !this.heavy.nameChars.includes(first)) {
+    if (
+      first !== "_" &&
+      !/^\p{L}$/u.test(first) &&
+      !this.heavy.nameChars.includes(first)
+    ) {
       return false;
     }
     let i = first.length;

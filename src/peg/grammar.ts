@@ -1,7 +1,12 @@
-import { Cfg } from "../config/config.js";
+import { Cfg, defaultCfg } from "../config/config.js";
 import type { Tree } from "../trees/tree.js";
 import type { Ctx } from "../context/ctx.js";
 import { Rule } from "./rule.js";
+import { linkGrammar } from "./link.js";
+import { Exp, CallExp } from "./exp.js";
+import { markLeftRecursion } from "./leftrec.js";
+import { prettyPrintGrammar } from "./pretty.js";
+import { modelToJSONStr as _modelToJSONStr } from "./export.js";
 
 export class Grammar {
   constructor(
@@ -10,7 +15,11 @@ export class Grammar {
     public directives: string[][] = [],
     public keywords: string[] = [],
     public analyzed: boolean = false,
-    public semantics?: (node: Tree, ruleName: string, params: string[]) => [Tree, boolean],
+    public semantics?: (
+      node: Tree,
+      ruleName: string,
+      params: string[],
+    ) => [Tree, boolean],
   ) {}
 
   ruleMap(): Map<string, Rule> {
@@ -31,73 +40,112 @@ export class Grammar {
     }
   }
 
-  cfgFromDirectives(): Partial<Cfg> {
-    const c: Partial<Cfg> = {};
+  initialize(): void {
+    this.normalize();
+    const rules = this.ruleMap();
+    linkGrammar(this, rules);
+    this.validateLinked();
+    markLeftRecursion(this.rules);
+    this.analyzed = true;
+  }
+
+  private validateLinked(): void {
+    for (const rule of this.rules) {
+      this.validateExpLinked(rule.exp);
+    }
+  }
+
+  private validateExpLinked(exp: Exp): void {
+    if (exp instanceof CallExp && exp.rule == null) {
+      throw new Error(`unresolved call to rule: ${exp.name}`);
+    }
+    for (const child of exp.children()) {
+      this.validateExpLinked(child);
+    }
+  }
+
+  prettyPrint(): string {
+    return prettyPrintGrammar(this);
+  }
+
+  modelToJSONStr(): string {
+    return _modelToJSONStr(this);
+  }
+
+  cfgFromDirectives(): Cfg {
+    const c = new Cfg();
     for (const d of this.directives) {
       const name = d[0];
       const s = d[1];
       switch (name) {
-        case "name":          c.name = s; break;
-        case "source":        c.source = s; break;
-        case "start":         c.start = s; break;
-        case "grammar":       c.grammar = s; break;
+        case "name":
+          c.name = s;
+          break;
+        case "source":
+          c.source = s;
+          break;
+        case "start":
+          c.start = s;
+          break;
+        case "grammar":
+          c.grammar = s;
+          break;
         case "whitespace":
-          c.whitespace = (s === "" || s === "None" || s === "False") ? "" : s;
+          c.whitespace = s === "" || s === "None" || s === "False" ? null : s;
           break;
-        case "comments":      c.comments = s; break;
-        case "eol_comments":  c.eolComments = s; break;
+        case "comments":
+          c.comments = s;
+          break;
+        case "eol_comments":
+          c.eolComments = s;
+          break;
         case "ignorecase":
-          c.ignoreCase = s === "True" || s === "true" || s === "1";
+          if (s === "True" || s === "true" || s === "1") c.ignoreCase = true;
           break;
-        case "namechars":     c.nameChars = s; break;
+        case "namechars":
+          c.nameChars = s;
+          break;
         case "nameguard":
           c.nameGuard = !["False", "false", "0", "None", "null"].includes(s);
           break;
         case "parseinfo":
-          c.parseInfo = s === "True" || s === "true" || s === "1";
+          if (s === "True" || s === "true" || s === "1") c.parseInfo = true;
           break;
         case "trace":
-          c.trace = s === "True" || s === "true" || s === "1";
+          if (s === "True" || s === "true" || s === "1") c.trace = true;
           break;
         case "left_recursion":
-          c.noLeftRecursion = s !== "True" && s !== "true" && s !== "1";
+          if (s !== "True" && s !== "true" && s !== "1")
+            c.noLeftRecursion = true;
           break;
         case "nomemo":
-          c.noMemo = s === "True" || s === "true" || s === "1";
+          if (s === "True" || s === "true" || s === "1") c.noMemo = true;
           break;
         case "noprunememosoncut":
-          c.noPruneMemosOnCut = s === "True" || s === "true" || s === "1";
+          if (s === "True" || s === "true" || s === "1")
+            c.noPruneMemosOnCut = true;
           break;
       }
     }
     if (this.semantics) {
-      c.semantics = (...args) => this.semantics!(...args);
+      c.semantics = this.semantics;
     }
     return c;
   }
 
   parseAt(ctx: Ctx, extraCfg?: Partial<Cfg>): Tree | null {
-    const cfg = new Cfg();
-    Object.assign(cfg, this.cfgFromDirectives(), extraCfg);
-    cfg.keywords = this.keywords;
-    ctx.configure(cfg);
+    let acfg = defaultCfg();
+    acfg = acfg.override(this.cfgFromDirectives());
+    acfg = acfg.override(extraCfg ?? {});
+    acfg.keywords = this.keywords;
+    ctx.configure(acfg);
 
-    const start = cfg.start || "start";
+    const start = acfg.start || "start";
     const rule = this.getRule(start) || this.rules[0];
     if (!rule) {
       ctx.failure(ctx.mark(), "no rules in grammar");
       return null;
     }
-    return this.ruleCall(ctx, rule);
-  }
-
-  private ruleCall(ctx: Ctx, rule: Rule): Tree | null {
-    const mark = ctx.mark();
-    const result = rule.exp.parseAt(ctx);
-    if (result == null) {
-      ctx.reset(mark);
-      return null;
-    }
-    return result;
+    return rule.parse(ctx);
   }
 }

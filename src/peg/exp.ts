@@ -86,7 +86,10 @@ export abstract class Exp {
       case ExpKind.PositiveJoin:
       case ExpKind.Gather:
       case ExpKind.PositiveGather:
-        return [(this as unknown as JoinExp).exp, (this as unknown as JoinExp).sep];
+        return [
+          (this as unknown as JoinExp).exp,
+          (this as unknown as JoinExp).sep,
+        ];
       case ExpKind.Sequence:
       case ExpKind.Choice:
         return (this as unknown as SeqExp).items;
@@ -125,6 +128,7 @@ export abstract class Exp {
 
       case ExpKind.Eof: {
         if (ctx.parseEOF()) return NIL;
+        ctx.failure(ctx.mark(), "expected end of input");
         return null;
       }
 
@@ -137,6 +141,7 @@ export abstract class Exp {
       case ExpKind.Token: {
         const exp = this as unknown as TokenExp;
         if (ctx.matchToken(exp.value)) return new TextTree(exp.value);
+        ctx.failure(ctx.mark(), `expected token "${exp.value}"`);
         return null;
       }
 
@@ -163,50 +168,50 @@ export abstract class Exp {
       }
 
       case ExpKind.Named: {
-        const exp = this as unknown as NamedExp;
-        const result = exp.exp.parseAt(ctx);
+        const named = this as unknown as NamedExp;
+        const result = named.exp.parseAt(ctx);
         if (result == null) return null;
-        return new NamedTree(exp.name, result);
+        return new NamedTree(named.name, result);
       }
 
       case ExpKind.NamedList: {
-        const exp = this as unknown as NamedListExp;
-        const result = exp.exp.parseAt(ctx);
+        const named = this as unknown as NamedListExp;
+        const result = named.exp.parseAt(ctx);
         if (result == null) return null;
-        return new NamedAsListTree(exp.name, result);
+        return new NamedAsListTree(named.name, result);
       }
 
       case ExpKind.Override: {
-        const exp = this as unknown as OverrideExp;
-        const result = exp.exp.parseAt(ctx);
+        const ovr = this as unknown as OverrideExp;
+        const result = ovr.exp.parseAt(ctx);
         if (result == null) return null;
         return new OverrideTree(result);
       }
 
       case ExpKind.OverrideList: {
-        const exp = this as unknown as OverrideListExp;
-        const result = exp.exp.parseAt(ctx);
+        const ovr = this as unknown as OverrideListExp;
+        const result = ovr.exp.parseAt(ctx);
         if (result == null) return null;
         return new OverrideAsListTree(result);
       }
 
       case ExpKind.Group: {
-        const exp = this as unknown as GroupExp;
-        return exp.exp.parseAt(ctx);
+        const group = this as unknown as GroupExp;
+        return group.exp.parseAt(ctx);
       }
 
       case ExpKind.SkipGroup: {
-        const exp = this as unknown as SkipGroupExp;
-        const result = exp.exp.parseAt(ctx);
+        const skip = this as unknown as SkipGroupExp;
+        const result = skip.exp.parseAt(ctx);
         if (result == null) return null;
         return NIL;
       }
 
       case ExpKind.Lookahead: {
-        const exp = this as unknown as LookaheadExp;
+        const la = this as unknown as LookaheadExp;
         const branch = ctx.mark();
         ctx.enterLookahead();
-        const result = exp.exp.parseAt(ctx);
+        const result = la.exp.parseAt(ctx);
         ctx.reset(branch);
         ctx.leaveLookahead();
         if (result == null) return null;
@@ -214,10 +219,10 @@ export abstract class Exp {
       }
 
       case ExpKind.NegativeLookahead: {
-        const exp = this as unknown as NegativeLookaheadExp;
+        const la = this as unknown as NegativeLookaheadExp;
         const branch = ctx.mark();
         ctx.enterLookahead();
-        const result = exp.exp.parseAt(ctx);
+        const result = la.exp.parseAt(ctx);
         ctx.reset(branch);
         ctx.leaveLookahead();
         if (result != null) {
@@ -228,10 +233,10 @@ export abstract class Exp {
       }
 
       case ExpKind.SkipTo: {
-        const exp = this as unknown as SkipToExp;
+        const skip = this as unknown as SkipToExp;
         while (true) {
           const branch = ctx.mark();
-          const result = exp.exp.parseAt(ctx);
+          const result = skip.exp.parseAt(ctx);
           if (result != null) return result;
           ctx.reset(branch);
           const [_, ok] = ctx.next();
@@ -243,27 +248,27 @@ export abstract class Exp {
       }
 
       case ExpKind.Alt: {
-        const exp = this as unknown as AltExp;
-        return exp.exp.parseAt(ctx);
+        const alt = this as unknown as AltExp;
+        return alt.exp.parseAt(ctx);
       }
 
       case ExpKind.Optional: {
-        const exp = this as unknown as OptionalExp;
+        const opt = this as unknown as OptionalExp;
         const branch = ctx.mark();
-        const result = exp.exp.parseAt(ctx);
+        const result = opt.exp.parseAt(ctx);
         if (result != null) return result;
         ctx.reset(branch);
         return NIL;
       }
 
       case ExpKind.Closure: {
-        const exp = this as unknown as ClosureExp;
-        return this.repeat(ctx, exp.exp, false);
+        const clo = this as unknown as ClosureExp;
+        return this.repeat(ctx, clo.exp, false);
       }
 
       case ExpKind.PositiveClosure: {
-        const exp = this as unknown as PositiveClosureExp;
-        return this.repeat(ctx, exp.exp, true);
+        const clo = this as unknown as PositiveClosureExp;
+        return this.repeat(ctx, clo.exp, true);
       }
 
       case ExpKind.Sequence: {
@@ -295,32 +300,32 @@ export abstract class Exp {
       }
 
       case ExpKind.Join: {
-        const exp = this as unknown as JoinExp;
-        return this.repeatWithSep(ctx, exp.exp, exp.sep, false, true);
+        const join = this as unknown as JoinExp;
+        return this.repeatWithSep(ctx, join.exp, join.sep, false, true);
       }
 
       case ExpKind.PositiveJoin: {
-        const exp = this as unknown as PositiveJoinExp;
-        return this.repeatWithSep(ctx, exp.exp, exp.sep, true, true);
+        const join = this as unknown as PositiveJoinExp;
+        return this.repeatWithSep(ctx, join.exp, join.sep, true, true);
       }
 
       case ExpKind.Gather: {
-        const exp = this as unknown as GatherExp;
-        return this.repeatWithSep(ctx, exp.exp, exp.sep, false, false);
+        const gather = this as unknown as GatherExp;
+        return this.repeatWithSep(ctx, gather.exp, gather.sep, false, false);
       }
 
       case ExpKind.PositiveGather: {
-        const exp = this as unknown as PositiveGatherExp;
-        return this.repeatWithSep(ctx, exp.exp, exp.sep, true, false);
+        const gather = this as unknown as PositiveGatherExp;
+        return this.repeatWithSep(ctx, gather.exp, gather.sep, true, false);
       }
 
       case ExpKind.RuleInclude: {
-        const exp = this as unknown as RuleIncludeExp;
-        if (exp.exp == null) {
-          ctx.failure(ctx.mark(), `rule not linked: ${exp.name}`);
+        const include = this as unknown as RuleIncludeExp;
+        if (include.exp == null) {
+          ctx.failure(ctx.mark(), `rule not linked: ${include.name}`);
           return null;
         }
-        return exp.exp.parseAt(ctx);
+        return include.exp.parseAt(ctx);
       }
 
       default:
@@ -337,7 +342,16 @@ export abstract class Exp {
     }
     // TODO: memo, left recursion, call stack
     ctx.enter(name);
-    const result = rule.exp.parseAt(ctx);
+    let result: Tree | null;
+    if (rule.isToken()) {
+      // Token rules: skip rule parse machinery, evaluate expression directly
+      result = rule.exp.parseAt(ctx);
+    } else {
+      // Non-token rules: skip leading whitespace, then go through Rule.parse()
+      // which handles fold + semantics + Node wrapping
+      ctx.nextToken();
+      result = rule.parse(ctx);
+    }
     ctx.leave();
     return result;
   }
@@ -465,188 +479,213 @@ export class EmptyClosureExp extends Exp {
 // Leaf: one data field
 export class TokenExp extends Exp {
   readonly kind = ExpKind.Token;
-  constructor(public value: string) { super(); }
+  constructor(public value: string) {
+    super();
+  }
 }
 
 export class PatternExp extends Exp {
   readonly kind = ExpKind.Pattern;
-  constructor(public value: string) { super(); }
+  constructor(public value: string) {
+    super();
+  }
 }
 
 export class ConstantExp extends Exp {
   readonly kind = ExpKind.Constant;
-  constructor(public value: any) { super(); }
+  constructor(public value: any) {
+    super();
+  }
 }
 
 export class AlertExp extends Exp {
   readonly kind = ExpKind.Alert;
-  constructor(public value: string, public level: number) { super(); }
+  constructor(
+    public value: string,
+    public level: number,
+  ) {
+    super();
+  }
 }
 
 export class CallExp extends Exp {
   readonly kind = ExpKind.Call;
-  constructor(public name: string, public rule: Rule | null = null) { super(); }
+  constructor(
+    public name: string,
+    public rule: Rule | null = null,
+  ) {
+    super();
+  }
 }
 
 // Unary: one child
 export class NamedExp extends Exp {
   readonly kind = ExpKind.Named;
-  constructor(public name: string, public exp: Exp) { super(); }
+  constructor(
+    public name: string,
+    public exp: Exp,
+  ) {
+    super();
+  }
 }
 
 export class NamedListExp extends Exp {
   readonly kind = ExpKind.NamedList;
-  constructor(public name: string, public exp: Exp) { super(); }
+  constructor(
+    public name: string,
+    public exp: Exp,
+  ) {
+    super();
+  }
 }
 
 export class UnaryExp extends Exp {
   readonly kind = ExpKind.Override; // placeholder, set in subclasses
-  constructor(public exp: Exp) { super(); }
+  constructor(public exp: Exp) {
+    super();
+  }
 }
 
 export class OverrideExp extends Exp {
   readonly kind = ExpKind.Override;
-  constructor(public exp: Exp) { super(); }
+  constructor(public exp: Exp) {
+    super();
+  }
 }
 
 export class OverrideListExp extends Exp {
   readonly kind = ExpKind.OverrideList;
-  constructor(public exp: Exp) { super(); }
+  constructor(public exp: Exp) {
+    super();
+  }
 }
 
 export class GroupExp extends Exp {
   readonly kind = ExpKind.Group;
-  constructor(public exp: Exp) { super(); }
+  constructor(public exp: Exp) {
+    super();
+  }
 }
 
 export class SkipGroupExp extends Exp {
   readonly kind = ExpKind.SkipGroup;
-  constructor(public exp: Exp) { super(); }
+  constructor(public exp: Exp) {
+    super();
+  }
 }
 
 export class LookaheadExp extends Exp {
   readonly kind = ExpKind.Lookahead;
-  constructor(public exp: Exp) { super(); }
+  constructor(public exp: Exp) {
+    super();
+  }
 }
 
 export class NegativeLookaheadExp extends Exp {
   readonly kind = ExpKind.NegativeLookahead;
-  constructor(public exp: Exp) { super(); }
+  constructor(public exp: Exp) {
+    super();
+  }
 }
 
 export class SkipToExp extends Exp {
   readonly kind = ExpKind.SkipTo;
-  constructor(public exp: Exp) { super(); }
+  constructor(public exp: Exp) {
+    super();
+  }
 }
 
 export class AltExp extends Exp {
   readonly kind = ExpKind.Alt;
-  constructor(public exp: Exp) { super(); }
+  constructor(public exp: Exp) {
+    super();
+  }
 }
 
 export class OptionalExp extends Exp {
   readonly kind = ExpKind.Optional;
-  constructor(public exp: Exp) { super(); }
+  constructor(public exp: Exp) {
+    super();
+  }
 }
 
 export class ClosureExp extends Exp {
   readonly kind = ExpKind.Closure;
-  constructor(public exp: Exp) { super(); }
+  constructor(public exp: Exp) {
+    super();
+  }
 }
 
 export class PositiveClosureExp extends Exp {
   readonly kind = ExpKind.PositiveClosure;
-  constructor(public exp: Exp) { super(); }
+  constructor(public exp: Exp) {
+    super();
+  }
 }
 
 // Binary: two children
 export class JoinExp extends Exp {
   readonly kind = ExpKind.Join;
-  constructor(public exp: Exp, public sep: Exp) { super(); }
+  constructor(
+    public exp: Exp,
+    public sep: Exp,
+  ) {
+    super();
+  }
 }
 
 export class PositiveJoinExp extends Exp {
   readonly kind = ExpKind.PositiveJoin;
-  constructor(public exp: Exp, public sep: Exp) { super(); }
+  constructor(
+    public exp: Exp,
+    public sep: Exp,
+  ) {
+    super();
+  }
 }
 
 export class GatherExp extends Exp {
   readonly kind = ExpKind.Gather;
-  constructor(public exp: Exp, public sep: Exp) { super(); }
+  constructor(
+    public exp: Exp,
+    public sep: Exp,
+  ) {
+    super();
+  }
 }
 
 export class PositiveGatherExp extends Exp {
   readonly kind = ExpKind.PositiveGather;
-  constructor(public exp: Exp, public sep: Exp) { super(); }
+  constructor(
+    public exp: Exp,
+    public sep: Exp,
+  ) {
+    super();
+  }
 }
 
 // Collection: array of children
 export class SeqExp extends Exp {
   readonly kind = ExpKind.Sequence;
-  constructor(public items: Exp[]) { super(); }
+  constructor(public items: Exp[]) {
+    super();
+  }
 }
 
 export class ChoiceExp extends Exp {
   readonly kind = ExpKind.Choice;
-  constructor(public items: Exp[]) { super(); }
+  constructor(public items: Exp[]) {
+    super();
+  }
 }
 
 // Include
 export class RuleIncludeExp extends Exp {
   readonly kind = ExpKind.RuleInclude;
-  constructor(public name: string, public exp: Exp | null = null) { super(); }
-}
-
-// --- Factory helpers ---
-
-export function expToken(value: string): TokenExp {
-  return new TokenExp(value);
-}
-
-export function expPattern(value: string): PatternExp {
-  return new PatternExp(value);
-}
-
-export function expSeq(...items: Exp[]): SeqExp {
-  return new SeqExp(items);
-}
-
-export function expChoice(...items: Exp[]): ChoiceExp {
-  return new ChoiceExp(items);
-}
-
-export function expClosure(exp: Exp): ClosureExp {
-  return new ClosureExp(exp);
-}
-
-export function expNamed(name: string, exp: Exp): NamedExp {
-  return new NamedExp(name, exp);
-}
-
-export function expCall(name: string): CallExp {
-  return new CallExp(name);
-}
-
-export function expJoin(exp: Exp, sep: Exp): JoinExp {
-  return new JoinExp(exp, sep);
-}
-
-export function expGather(exp: Exp, sep: Exp): GatherExp {
-  return new GatherExp(exp, sep);
-}
-
-export function expOptional(exp: Exp): OptionalExp {
-  return new OptionalExp(exp);
-}
-
-export function expAnd(exp: Exp): LookaheadExp {
-  return new LookaheadExp(exp);
-}
-
-export function expNot(exp: Exp): NegativeLookaheadExp {
-  return new NegativeLookaheadExp(exp);
-}
-
-export function expPosClosure(exp: Exp): PositiveClosureExp {
-  return new PositiveClosureExp(exp);
+  constructor(
+    public name: string,
+    public exp: Exp | null = null,
+  ) {
+    super();
+  }
 }

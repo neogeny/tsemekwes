@@ -2,18 +2,26 @@ import type { Cfg } from "../config/config.js";
 import type { Cursor } from "../input/cursor.js";
 import type { Tree } from "../trees/tree.js";
 import type { MemoKey, Memo } from "./memo.js";
+import { Memento } from "./memento.js";
 
 export type CallStack = string[];
 
 export class ParseFailure extends Error {
+  public readonly memento: Memento;
+
   constructor(
     public readonly start: number,
-    public readonly mark: number,
     msg: string,
-    public readonly callStack: CallStack,
+    cursor: Cursor,
+    callStack: CallStack,
   ) {
     super(msg);
     this.name = "ParseFailure";
+    this.memento = new Memento(start, msg, cursor, callStack);
+  }
+
+  get mark(): number {
+    return this.memento.mark;
   }
 }
 
@@ -73,5 +81,9 @@ export interface Ctx {
   isCutSeen(): boolean;
   cutStackPush(): void;
   cutStackPop(): boolean;
-  applySemantics(node: Tree, ruleName: string, params: string[]): [Tree, boolean];
+  applySemantics(
+    node: Tree,
+    ruleName: string,
+    params: string[],
+  ): [Tree, boolean];
 }

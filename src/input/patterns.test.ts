@@ -1,11 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { TokenizingPatterns } from "./cursor.js";
-import {
-  newPatterns,
-  defaultPatterns,
-  configurePatterns,
-} from "./patterns.js";
+import { newPatterns, defaultPatterns, configurePatterns } from "./patterns.js";
 import { Cfg } from "../config/config.js";
 
 describe("patterns", () => {

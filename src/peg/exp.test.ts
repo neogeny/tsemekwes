@@ -141,7 +141,11 @@ describe("children()", () => {
       new CallExp("name"),
     ];
     for (const exp of leafKinds) {
-      assert.equal(exp.children().length, 0, `${exp.kind} should have no children`);
+      assert.equal(
+        exp.children().length,
+        0,
+        `${exp.kind} should have no children`,
+      );
     }
   });
 
