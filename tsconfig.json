@@ -2,19 +2,17 @@
 	"compilerOptions": {
 		"target": "es2023",
 		"module": "NodeNext",
-		"lib": ["ES2023"], // Server/CLI tool — no DOM
-		"types": ["node"], // Node.js API (process, Buffer, etc.)
+		"lib": ["ES2023"],
+		"types": ["node"],
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 
-		/* Emit mode for Libraries */
-		"moduleResolution": "NodeNext", // Ensures standard Node ecosystem compatibility
+		"moduleResolution": "NodeNext",
 		"rootDir": "./src",
-		"outDir": "./dist", // Where the compiled files will land
-		"declaration": true, // Generates the .d.ts type files for library consumers
-		"declarationMap": true, // Maps types back to source files for IDE debugging
+		"outDir": "./dist",
+		"declaration": true,
+		"declarationMap": true,
 
-		/* Linting */
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
@@ -30,8 +28,5 @@
 		}
 	},
 	"include": ["src"],
-	"exclude": [
-		"src/**/*.test.ts", // Exclude internal tests from the final build
-		"tests/**/*" // Exclude the outer integration directory
-	]
+	"exclude": ["src/**/*.test.ts", "tests/**/*"]
 }

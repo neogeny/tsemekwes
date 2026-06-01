@@ -24,12 +24,12 @@ clean:
     rm -rf dist/
 
 fmt:
-    #npx prettier --quiet --write "**/*.ts"
+    npx prettier --quiet --write "**/*.ts"
 
 # Run both the ESLint and Biome code-quality linters
 lint: tools fmt
-#    @eslint . --fix
-#    @biome check --write .
+    @biome check --write .
+    @eslint . --fix
 
 # Compile the TypeScript library and CLI code for production distribution
 build: clean tools

@@ -7,41 +7,57 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
-  {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
-    plugins: { js },
-    extends: ["js/recommended"],
-    languageOptions: { globals: { ...globals.browser, ...globals.node } },
-  },
-  tseslint.configs.recommended,
-  {
-    files: ["**/*.json"],
-    plugins: { json },
-    language: "json/json",
-    extends: ["json/recommended"],
-  },
-  {
-    files: ["**/*.jsonc"],
-    plugins: { json },
-    language: "json/jsonc",
-    extends: ["json/recommended"],
-  },
-  {
-    files: ["**/*.json5"],
-    plugins: { json },
-    language: "json/json5",
-    extends: ["json/recommended"],
-  },
-  {
-    files: ["**/*.md"],
-    plugins: { markdown },
-    language: "markdown/gfm",
-    extends: ["markdown/recommended"],
-  },
-  {
-    files: ["**/*.css"],
-    plugins: { css },
-    language: "css/css",
-    extends: ["css/recommended"],
-  },
+	{
+		ignores: ["dist/**", "package-lock.json", "**/*.md", "src/style.css"],
+	},
+	{
+		files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
+		plugins: { js },
+		extends: ["js/recommended"],
+		languageOptions: { globals: { ...globals.browser, ...globals.node } },
+	},
+	tseslint.configs.recommended,
+	{
+		files: ["**/*.{ts,mts,cts}"],
+		rules: {
+			"@typescript-eslint/no-unused-vars": [
+				"error",
+				{
+					argsIgnorePattern: "^_",
+					varsIgnorePattern: "^_",
+					caughtErrorsIgnorePattern: "^_",
+				},
+			],
+		},
+	},
+	{
+		files: ["**/*.json"],
+		plugins: { json },
+		language: "json/json",
+		extends: ["json/recommended"],
+	},
+	{
+		files: ["**/*.jsonc"],
+		plugins: { json },
+		language: "json/jsonc",
+		extends: ["json/recommended"],
+	},
+	{
+		files: ["**/*.json5"],
+		plugins: { json },
+		language: "json/json5",
+		extends: ["json/recommended"],
+	},
+	{
+		files: ["**/*.md"],
+		plugins: { markdown },
+		language: "markdown/gfm",
+		extends: ["markdown/recommended"],
+	},
+	{
+		files: ["**/*.css"],
+		plugins: { css },
+		language: "css/css",
+		extends: ["css/recommended"],
+	},
 ]);
