@@ -17,10 +17,19 @@
     "formatWithErrors": false,
     "indentStyle": "space",
     "lineWidth": 80
+    "ignore": [
+      "**/grammar/*"
+    ]
   },
   "javascript": {
     "formatter": {
       "semicolons": "asNeeded"
     }
+  },
+  "linter": {
+    "enabled": true,
+    "ignore": [
+      "**/grammar/*"
+    ]
   }
 }

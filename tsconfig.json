@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
     "target": "es2023",
-    "module": "NodeNext",
+    "module": "esnext",
     "lib": ["ES2023"],
-    "types": ["node"],
+    "types": ["node", "bun-types"],
     "resolveJsonModule": true,
     "skipLibCheck": true,
 
-    "moduleResolution": "NodeNext",
+    "preserveSymlinks": true,
+
+    "moduleResolution": "bundler",
     "rootDir": "./src",
     "outDir": "./dist",
     "declaration": true,
