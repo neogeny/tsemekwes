@@ -44,10 +44,10 @@ run script: tools
 test: test-unit test-integration
 
 # Optional: Split them up if you want to run them independently
-test-unit: lint build
+test-unit: build
     tsx --test src/**/*.test.ts
 
-test-integration: lint build
+test-integration: build
     @if [ -d "tests" ]; then \
         tsx --test tests/**/*.test.ts; \
     else \

@@ -1,32 +1,33 @@
 {
-	"compilerOptions": {
-		"target": "es2023",
-		"module": "NodeNext",
-		"lib": ["ES2023"],
-		"types": ["node"],
-		"resolveJsonModule": true,
-		"skipLibCheck": true,
+  "compilerOptions": {
+    "target": "es2023",
+    "module": "NodeNext",
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
 
-		"moduleResolution": "NodeNext",
-		"rootDir": "./src",
-		"outDir": "./dist",
-		"declaration": true,
-		"declarationMap": true,
+    "moduleResolution": "NodeNext",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "declaration": true,
+    "declarationMap": true,
 
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"noFallthroughCasesInSwitch": true,
-		"paths": {
-			"@totetsu/*": ["./src/*"],
-			"@config/*": ["./src/config/*"],
-			"@input/*": ["./src/input/*"],
-			"@trees/*": ["./src/trees/*"],
-			"@context/*": ["./src/context/*"],
-			"@peg/*": ["./src/peg/*"],
-			"@json/*": ["./src/json/*"],
-			"@api/*": ["./src/api/*"]
-		}
-	},
-	"include": ["src"],
-	"exclude": ["src/**/*.test.ts", "tests/**/*"]
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@totetsu/*": ["./src/*"],
+      "@api/*": ["./src/api/*"],
+      "@config/*": ["./src/config/*"],
+      "@input/*": ["./src/input/*"],
+      "@trees/*": ["./src/trees/*"],
+      "@context/*": ["./src/context/*"],
+      "@peg/*": ["./src/peg/*"],
+      "@json/*": ["./src/json/*"],
+      "@util/*": ["./src/util/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "tests/**/*"]
 }

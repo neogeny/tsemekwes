@@ -1,6 +1,6 @@
 export class LinkError extends Error {
-	constructor(msg: string) {
-		super(msg);
-		this.name = "LinkError";
-	}
+  constructor(msg: string) {
+    super(msg)
+    this.name = "LinkError"
+  }
 }
