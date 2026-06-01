@@ -5,51 +5,31 @@ set shell := ["bash", "-uc"]
 default:
     @just --list
 
-# Check for non-default dependencies and install them globally if missing
-[private]
-tools:
-    @command -v bun >/dev/null 2>&1 || (echo "Installing Bun..." && npm install -g bun)
-    @command -v tsx >/dev/null 2>&1 || (echo "Installing 'tsx'..." && npm install -g tsx)
-    @command -v tsc >/dev/null 2>&1 || (echo "Installing TypeScript..." && npm install -g typescript)
-    @command -v prettier >/dev/null 2>&1 || (echo "Installing Prettier..." && npm install -g prettier)
-    @command -v eslint >/dev/null 2>&1 || (echo "Installing ESLint..." && npm install -g eslint)
-    @command -v biome >/dev/null 2>&1 || (echo "Installing Biome linter/formatter..." && npm install -g @biomejs/biome)
-
 # Start development file-watcher mode for your CLI entry point
-dev path="src/cli.ts": tools
-    tsx watch {{ path }}
+dev path="src/cmd/cli.ts":
+    bun --watch run {{ path }}
 
 # Clean build artifacts
 clean:
     rm -rf dist/
 
+# Format code with Biome
 fmt:
-    @#npx prettier --quiet --write "**/*.ts"
-    biome format . --write
+    biome format --write .
 
-# Run both the ESLint and Biome code-quality linters
-lint: tools fmt
-    @eslint . --fix
-    @biome lint --write .
-#    @biome ci .
+# Check both structural code metrics and type definitions
+lint: fmt
+    biome lint --write .
+    bun x tsc --noEmit
 
-# Compile the TypeScript library and CLI code for production distribution
-build: tools
-    tsc
+# Compile the TypeScript codebase down into a single high-performance binary artifact
+build: clean
+    bun build ./src/index.ts --outdir ./dist
 
-# Execute a specific script file instantly through the tsx runtime engine
-run script: tools
-    tsx {{ script }}
+# Execute a specific script file instantly through the native bun runtime engine
+run script:
+    bun run {{ script }}
 
-test: test-unit test-integration
-
-# Optional: Split them up if you want to run them independently
-test-unit: build
-    tsx --test src/**/*.test.ts
-
-test-integration: build
-    @if [ -d "tests" ]; then \
-        tsx --test tests/**/*.test.ts; \
-    else \
-        echo "No tests directory found. Create tests/ to run verification pipelines."; \
-    fi
+# Run the entire test pipeline directly using Bun
+test:
+    bun test src/**/*.test.ts src/**/__tests__/*.test.ts
