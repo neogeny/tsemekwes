@@ -19,7 +19,9 @@ export function ext(path: string): string {
 
 export function newCfg(opts: { trace?: boolean; start?: string }): Cfg {
 	const c = defaultCfg();
-	if (opts.trace) c.trace = true;
+	if (opts.trace) {
+		c.trace = true;
+	}
 	if (opts.start) c.start = opts.start;
 	return c;
 }

@@ -17,9 +17,11 @@ program
 	.description("execute a grammar against one or more input files")
 	.option("-j, --json", "output the parse tree in JSON format")
 	.option("-s, --start <rule>", "name of the start rule", "start")
-	.action(async (grammarPath, inputPaths, options) => {
+	.action(async (grammarPath, inputPaths, options, command) => {
+		const parentOpts = command.parent?.opts?.() ?? {};
+		const combinedOpts = { ...parentOpts, ...options };
 		try {
-			await cmdRun(grammarPath, inputPaths, options);
+			await cmdRun(grammarPath, inputPaths, combinedOpts);
 		} catch (e) {
 			console.error(`Error: ${(e as Error).message}`);
 			process.exit(1);
@@ -45,9 +47,11 @@ program
 	.description("compile and inspect a grammar")
 	.option("-j, --json", "print the grammar in JSON format")
 	.option("-p, --pretty", "pretty-print the grammar (default)", true)
-	.action(async (grammarPath, options) => {
+	.action(async (grammarPath, options, command) => {
+		const parentOpts = command.parent?.opts?.() ?? {};
+		const combinedOpts = { ...parentOpts, ...options };
 		try {
-			await cmdGrammar(grammarPath, options);
+			await cmdGrammar(grammarPath, combinedOpts);
 		} catch (e) {
 			console.error(`Error: ${(e as Error).message}`);
 			process.exit(1);
