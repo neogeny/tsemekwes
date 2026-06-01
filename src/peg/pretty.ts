@@ -224,7 +224,7 @@ export function prettyPrintExp(exp: Exp): string {
 		case ExpKind.Sequence: {
 			const e = exp as SeqExp;
 			const items: string[] = [];
-			for (const item of e.items) {
+			for (const item of e.sequence) {
 				if (item.kind === ExpKind.Eof) continue;
 				items.push(prettyPrintExp(item));
 			}
@@ -242,7 +242,7 @@ export function prettyPrintExp(exp: Exp): string {
 
 		case ExpKind.Choice: {
 			const e = exp as ChoiceExp;
-			const opts = e.items.map((item) => prettyPrintExp(item));
+			const opts = e.options.map((item) => prettyPrintExp(item));
 			const hasMulti = opts.some((s) => s.includes("\n"));
 			const singleLine = opts.join(" | ");
 			if (!hasMulti && singleLine.length <= pep8llen) {

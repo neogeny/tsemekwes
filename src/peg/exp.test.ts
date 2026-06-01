@@ -92,15 +92,15 @@ describe("Exp subclasses", () => {
 		const items = [new TokenExp("a"), new TokenExp("b")];
 		const exp = new SeqExp(items);
 		assert.equal(exp.kind, ExpKind.Sequence);
-		assert.equal(exp.items.length, 2);
-		assert.equal(exp.items[0], items[0]);
+		assert.equal(exp.sequence.length, 2);
+		assert.equal(exp.sequence[0], items[0]);
 	});
 
 	it("ChoiceExp stores items", () => {
 		const items = [new TokenExp("a"), new TokenExp("b")];
 		const exp = new ChoiceExp(items);
 		assert.equal(exp.kind, ExpKind.Choice);
-		assert.equal(exp.items.length, 2);
+		assert.equal(exp.options.length, 2);
 	});
 
 	it("JoinExp stores exp and sep", () => {

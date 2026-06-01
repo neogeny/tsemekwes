@@ -37,7 +37,7 @@ function mapClass(cls: string, ...kv: unknown[]): Record<string, unknown> {
 	return out;
 }
 
-export function modelToJSON(exp: Exp): Record<string, unknown> {
+export function expToJSON(exp: Exp): Record<string, unknown> {
 	switch (exp.kind) {
 		case ExpKind.Token:
 			return mapClass("Token", "token", (exp as TokenExp).value);
@@ -74,46 +74,38 @@ export function modelToJSON(exp: Exp): Record<string, unknown> {
 		case ExpKind.RuleInclude:
 			return mapClass("RuleInclude", "name", (exp as RuleIncludeExp).name);
 		case ExpKind.Group:
-			return mapClass("Group", "exp", modelToJSON((exp as GroupExp).exp));
+			return mapClass("Group", "exp", expToJSON((exp as GroupExp).exp));
 		case ExpKind.SkipGroup:
-			return mapClass(
-				"SkipGroup",
-				"exp",
-				modelToJSON((exp as SkipGroupExp).exp),
-			);
+			return mapClass("SkipGroup", "exp", expToJSON((exp as SkipGroupExp).exp));
 		case ExpKind.Lookahead:
-			return mapClass(
-				"Lookahead",
-				"exp",
-				modelToJSON((exp as LookaheadExp).exp),
-			);
+			return mapClass("Lookahead", "exp", expToJSON((exp as LookaheadExp).exp));
 		case ExpKind.NegativeLookahead:
 			return mapClass(
 				"NegativeLookahead",
 				"exp",
-				modelToJSON((exp as NegativeLookaheadExp).exp),
+				expToJSON((exp as NegativeLookaheadExp).exp),
 			);
 		case ExpKind.SkipTo:
-			return mapClass("SkipTo", "exp", modelToJSON((exp as SkipToExp).exp));
+			return mapClass("SkipTo", "exp", expToJSON((exp as SkipToExp).exp));
 		case ExpKind.Alt:
-			return mapClass("Option", "exp", modelToJSON((exp as OverrideExp).exp));
+			return mapClass("Option", "exp", expToJSON((exp as OverrideExp).exp));
 		case ExpKind.Optional:
-			return mapClass("Optional", "exp", modelToJSON((exp as OptionalExp).exp));
+			return mapClass("Optional", "exp", expToJSON((exp as OptionalExp).exp));
 		case ExpKind.Closure:
-			return mapClass("Closure", "exp", modelToJSON((exp as ClosureExp).exp));
+			return mapClass("Closure", "exp", expToJSON((exp as ClosureExp).exp));
 		case ExpKind.PositiveClosure:
 			return mapClass(
 				"PositiveClosure",
 				"exp",
-				modelToJSON((exp as PositiveClosureExp).exp),
+				expToJSON((exp as PositiveClosureExp).exp),
 			);
 		case ExpKind.Override:
-			return mapClass("Override", "exp", modelToJSON((exp as OverrideExp).exp));
+			return mapClass("Override", "exp", expToJSON((exp as OverrideExp).exp));
 		case ExpKind.OverrideList:
 			return mapClass(
 				"OverrideList",
 				"exp",
-				modelToJSON((exp as OverrideListExp).exp),
+				expToJSON((exp as OverrideListExp).exp),
 			);
 		case ExpKind.Named:
 			return mapClass(
@@ -121,7 +113,7 @@ export function modelToJSON(exp: Exp): Record<string, unknown> {
 				"name",
 				(exp as NamedExp).name,
 				"exp",
-				modelToJSON((exp as NamedExp).exp),
+				expToJSON((exp as NamedExp).exp),
 			);
 		case ExpKind.NamedList:
 			return mapClass(
@@ -129,51 +121,51 @@ export function modelToJSON(exp: Exp): Record<string, unknown> {
 				"name",
 				(exp as NamedListExp).name,
 				"exp",
-				modelToJSON((exp as NamedListExp).exp),
+				expToJSON((exp as NamedListExp).exp),
 			);
 		case ExpKind.Join:
 			return mapClass(
 				"Join",
 				"exp",
-				modelToJSON((exp as JoinExp).exp),
+				expToJSON((exp as JoinExp).exp),
 				"sep",
-				modelToJSON((exp as JoinExp).sep),
+				expToJSON((exp as JoinExp).sep),
 			);
 		case ExpKind.PositiveJoin:
 			return mapClass(
 				"PositiveJoin",
 				"exp",
-				modelToJSON((exp as PositiveJoinExp).exp),
+				expToJSON((exp as PositiveJoinExp).exp),
 				"sep",
-				modelToJSON((exp as PositiveJoinExp).sep),
+				expToJSON((exp as PositiveJoinExp).sep),
 			);
 		case ExpKind.Gather:
 			return mapClass(
 				"Gather",
 				"exp",
-				modelToJSON((exp as GatherExp).exp),
+				expToJSON((exp as GatherExp).exp),
 				"sep",
-				modelToJSON((exp as GatherExp).sep),
+				expToJSON((exp as GatherExp).sep),
 			);
 		case ExpKind.PositiveGather:
 			return mapClass(
 				"PositiveGather",
 				"exp",
-				modelToJSON((exp as PositiveGatherExp).exp),
+				expToJSON((exp as PositiveGatherExp).exp),
 				"sep",
-				modelToJSON((exp as PositiveGatherExp).sep),
+				expToJSON((exp as PositiveGatherExp).sep),
 			);
 		case ExpKind.Sequence:
 			return mapClass(
 				"Sequence",
 				"sequence",
-				(exp as SeqExp).items.map((item) => modelToJSON(item)),
+				(exp as SeqExp).sequence.map((item) => expToJSON(item)),
 			);
 		case ExpKind.Choice:
 			return mapClass(
 				"Choice",
 				"options",
-				(exp as ChoiceExp).items.map((item) => modelToJSON(item)),
+				(exp as ChoiceExp).options.map((item) => expToJSON(item)),
 			);
 		default:
 			throw new Error(`modelToJSON: unhandled ExpKind: ${exp.kind}`);
@@ -188,7 +180,7 @@ function serializeRule(rule: Rule): Record<string, unknown> {
 	return {
 		__class__: "Rule",
 		name: rule.name,
-		exp: modelToJSON(rule.exp),
+		exp: expToJSON(rule.exp),
 		params: [...rule.params],
 		kwparams: kwp,
 		decorators: [...rule.decorators],

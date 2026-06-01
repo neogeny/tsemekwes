@@ -1,14 +1,14 @@
 import { Cfg, defaultCfg } from "../config/config.js";
 import type { Ctx } from "../context/ctx.js";
 import type { Tree } from "../trees/tree.js";
-import { CallExp, type Exp } from "./exp.js";
+import { CallExp, Exp, ExpKind } from "./exp.js";
 import { modelToJSONStr as _modelToJSONStr } from "./export.js";
 import { markLeftRecursion } from "./leftrec.js";
-import { linkGrammar } from "./link.js";
 import { prettyPrintGrammar } from "./pretty.js";
 import type { Rule } from "./rule.js";
 
-export class Grammar {
+export class Grammar extends Exp {
+	readonly kind = ExpKind.Grammar;
 	constructor(
 		public name: string,
 		public rules: Rule[] = [],
@@ -20,7 +20,16 @@ export class Grammar {
 			ruleName: string,
 			params: string[],
 		) => [Tree, boolean],
-	) {}
+	) {
+		super();
+	}
+
+	override link(rules: Map<string, Rule>) {
+		super.link(rules);
+		for (const rule of this.rules) {
+			rule.link(rules);
+		}
+	}
 
 	ruleMap(): Map<string, Rule> {
 		const m = new Map<string, Rule>();
@@ -42,8 +51,7 @@ export class Grammar {
 
 	initialize(): void {
 		this.normalize();
-		const rules = this.ruleMap();
-		linkGrammar(this, rules);
+		this.link(this.ruleMap());
 		this.validateLinked();
 		markLeftRecursion(this.rules);
 		this.analyzed = true;
@@ -64,11 +72,11 @@ export class Grammar {
 		}
 	}
 
-	prettyPrint(): string {
+	pretty(): string {
 		return prettyPrintGrammar(this);
 	}
 
-	modelToJSONStr(): string {
+	asjsons(): string {
 		return _modelToJSONStr(this);
 	}
 
@@ -146,6 +154,6 @@ export class Grammar {
 			ctx.failure(ctx.mark(), "no rules in grammar");
 			return null;
 		}
-		return rule.parse(ctx);
+		return rule.parseAt(ctx);
 	}
 }

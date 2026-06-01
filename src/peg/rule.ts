@@ -1,8 +1,9 @@
 import type { Ctx } from "../context/ctx.js";
 import { fold, Node as NodeTree, type Tree } from "../trees/tree.js";
-import type { Exp } from "./exp.js";
+import { BoxExp, type Exp, ExpKind } from "./exp.js";
 
-export class Rule {
+export class Rule extends BoxExp {
+	readonly kind = ExpKind.Rule;
 	constructor(
 		public name: string,
 		public exp: Exp,
@@ -16,9 +17,11 @@ export class Rule {
 		public noStak: boolean = false,
 		public isMemo: boolean = false,
 		public isLrec: boolean = false,
-	) {}
+	) {
+		super(exp);
+	}
 
-	parse(ctx: Ctx): Tree | null {
+	parseAt(ctx: Ctx): Tree | null {
 		const mark = ctx.mark();
 		const result = this.exp.parseAt(ctx);
 		if (result == null) {

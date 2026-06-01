@@ -38,7 +38,6 @@ import {
 	VoidExp,
 } from "./exp.js";
 import { markLeftRecursion } from "./leftrec.js";
-import { linkExp } from "./link.js";
 import { isNullable } from "./nullability.js";
 import { Rule } from "./rule.js";
 
@@ -192,7 +191,7 @@ describe("markLeftRecursion", () => {
 	function linkRules(rules: Rule[]): void {
 		const m = new Map(rules.map((r) => [r.name, r]));
 		for (const r of rules) {
-			linkExp(r.exp, m);
+			r.link(m);
 		}
 	}
 

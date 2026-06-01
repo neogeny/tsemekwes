@@ -1,16 +1,22 @@
 import type { Ctx } from "../context/ctx.js";
+import { ruleCall } from "./parsing/call.js";
+
 import {
 	NamedAsList as NamedAsListTree,
 	Named as NamedTree,
 	NIL,
 	OverrideAsList as OverrideAsListTree,
 	Override as OverrideTree,
-	Seq as SeqTree,
 	Text as TextTree,
 	type Tree,
 } from "../trees/tree.js";
-import { linkExp } from "./link.js";
 import type { Rule } from "./rule.js";
+import { closure, closureWithSep } from "@peg/parsing/closure.js";
+import { LinkError } from "@peg/error.js";
+import { prettyPrintExp } from "@peg/pretty.js";
+import { expToJSON } from "@peg/export.js";
+import { parseChoice } from "@peg/parsing/choice.js";
+import { sequence } from "@peg/parsing/sequence.js";
 
 export enum ExpKind {
 	Nil = "Nil",
@@ -46,6 +52,8 @@ export enum ExpKind {
 	Gather = "Gather",
 	PositiveGather = "PositiveGather",
 	RuleInclude = "RuleInclude",
+	Rule = "Rule",
+	Grammar = "Grammar",
 }
 
 export abstract class Exp {
@@ -67,9 +75,9 @@ export abstract class Exp {
 			case ExpKind.Alert:
 			case ExpKind.Call:
 				return [];
+
 			case ExpKind.Named:
 			case ExpKind.NamedList:
-				return [(this as unknown as NamedExp).exp];
 			case ExpKind.Override:
 			case ExpKind.OverrideList:
 			case ExpKind.Group:
@@ -81,18 +89,19 @@ export abstract class Exp {
 			case ExpKind.Optional:
 			case ExpKind.Closure:
 			case ExpKind.PositiveClosure:
-				return [(this as unknown as UnaryExp).exp];
+				return [(this as unknown as BoxExp).exp];
+
 			case ExpKind.Join:
 			case ExpKind.PositiveJoin:
 			case ExpKind.Gather:
 			case ExpKind.PositiveGather:
 				return [
-					(this as unknown as JoinExp).exp,
-					(this as unknown as JoinExp).sep,
+					(this as unknown as SepBoxExp).exp,
+					(this as unknown as SepBoxExp).sep,
 				];
 			case ExpKind.Sequence:
 			case ExpKind.Choice:
-				return (this as unknown as SeqExp).items;
+				return (this as unknown as SeqExp).sequence;
 			case ExpKind.RuleInclude: {
 				const innerExp = (this as unknown as RuleIncludeExp).exp;
 				return innerExp != null ? [innerExp] : [];
@@ -164,7 +173,7 @@ export abstract class Exp {
 
 			case ExpKind.Call: {
 				const exp = this as unknown as CallExp;
-				return this.ruleCall(ctx, exp.name, exp.rule);
+				return ruleCall(ctx, exp.name, exp.rule);
 			}
 
 			case ExpKind.Named: {
@@ -234,18 +243,17 @@ export abstract class Exp {
 
 			case ExpKind.SkipTo: {
 				const skip = this as unknown as SkipToExp;
-				while (true) {
-					const branch = ctx.mark();
+                const mark = ctx.mark();
+				while (!ctx.atEnd()) {
 					const result = skip.exp.parseAt(ctx);
-					if (result != null) return result;
-					ctx.reset(branch);
+					if (result != null) return NIL;
+
 					const [_, ok] = ctx.next();
-					if (!ok) {
-						ctx.failure(branch, "skipTo failed");
-						return null;
-					}
+					if (!ok) break;
 				}
-				break;
+                ctx.reset(mark);
+                ctx.failure(mark, "skipTo failed");
+                return null
 			}
 
 			case ExpKind.Alt: {
@@ -264,60 +272,42 @@ export abstract class Exp {
 
 			case ExpKind.Closure: {
 				const clo = this as unknown as ClosureExp;
-				return this.repeat(ctx, clo.exp, false);
+				return closure(ctx, clo.exp, false);
 			}
 
 			case ExpKind.PositiveClosure: {
 				const clo = this as unknown as PositiveClosureExp;
-				return this.repeat(ctx, clo.exp, true);
+				return closure(ctx, clo.exp, true);
 			}
 
 			case ExpKind.Sequence: {
-				const exp = this as unknown as SeqExp;
-				const start = ctx.mark();
-				const results: Tree[] = [];
-				for (const item of exp.items) {
-					if (item.kind === ExpKind.Cut) {
-						ctx.cut();
-						continue;
-					}
-					const result = item.parseAt(ctx);
-					if (result == null) {
-						ctx.reset(start);
-						return null;
-					}
-					if (result !== NIL) {
-						results.push(result);
-					}
-				}
-				if (results.length === 0) return NIL;
-				if (results.length === 1) return results[0];
-				return new SeqTree(results);
+				const seq = this as unknown as SeqExp;
+				return sequence(ctx, seq.sequence);
 			}
 
 			case ExpKind.Choice: {
 				const exp = this as unknown as ChoiceExp;
-				return this.parseChoice(ctx, exp.items);
+				return parseChoice(ctx, exp.options);
 			}
 
 			case ExpKind.Join: {
 				const join = this as unknown as JoinExp;
-				return this.repeatWithSep(ctx, join.exp, join.sep, false, true);
+				return closureWithSep(ctx, join.exp, join.sep, false, true);
 			}
 
 			case ExpKind.PositiveJoin: {
 				const join = this as unknown as PositiveJoinExp;
-				return this.repeatWithSep(ctx, join.exp, join.sep, true, true);
+				return closureWithSep(ctx, join.exp, join.sep, true, true);
 			}
 
 			case ExpKind.Gather: {
 				const gather = this as unknown as GatherExp;
-				return this.repeatWithSep(ctx, gather.exp, gather.sep, false, false);
+				return closureWithSep(ctx, gather.exp, gather.sep, false, false);
 			}
 
 			case ExpKind.PositiveGather: {
 				const gather = this as unknown as PositiveGatherExp;
-				return this.repeatWithSep(ctx, gather.exp, gather.sep, true, false);
+				return closureWithSep(ctx, gather.exp, gather.sep, true, false);
 			}
 
 			case ExpKind.RuleInclude: {
@@ -334,117 +324,54 @@ export abstract class Exp {
 		}
 	}
 
-	// --- Helpers extracted for clarity, may become overrides ---
+	link(_rules: Map<string, Rule>): void {}
 
-	private ruleCall(ctx: Ctx, name: string, rule: Rule | null): Tree | null {
-		if (rule == null) {
-			ctx.failure(ctx.mark(), `rule not linked: ${name}`);
-			return null;
-		}
-		// TODO: memo, left recursion, call stack
-		ctx.enter(name);
-		let result: Tree | null;
-		if (rule.isToken()) {
-			// Token rules: skip rule parse machinery, evaluate expression directly
-			result = rule.exp.parseAt(ctx);
-		} else {
-			// Non-token rules: skip leading whitespace, then go through Rule.parse()
-			// which handles fold + semantics + Node wrapping
-			ctx.nextToken();
-			result = rule.parse(ctx);
-		}
-		ctx.leave();
-		return result;
+	pretty(): string {
+		return prettyPrintExp(this);
 	}
 
-	private repeat(ctx: Ctx, exp: Exp, positive: boolean): Tree | null {
-		const results: Tree[] = [];
-		while (true) {
-			const branch = ctx.mark();
-			const result = exp.parseAt(ctx);
-			if (result == null) {
-				ctx.reset(branch);
-				break;
-			}
-			if (result !== NIL) {
-				results.push(result);
-			}
-		}
-		if (positive && results.length === 0) {
-			ctx.failure(ctx.mark(), "positive closure requires at least one match");
-			return null;
-		}
-		if (results.length === 0) return NIL;
-		if (results.length === 1) return results[0];
-		return new SeqTree(results);
+	asjson(): object {
+		return expToJSON(this);
 	}
 
-	private repeatWithSep(
-		ctx: Ctx,
-		exp: Exp,
-		sep: Exp,
-		positive: boolean,
-		keepSep: boolean,
-	): Tree | null {
-		const results: Tree[] = [];
-		const first = exp.parseAt(ctx);
-		if (first == null) {
-			if (positive) {
-				ctx.failure(ctx.mark(), "join requires at least one match");
-				return null;
-			}
-			return NIL;
-		}
-		if (first !== NIL) results.push(first);
-		while (true) {
-			const branch = ctx.mark();
-			const sepResult = sep.parseAt(ctx);
-			if (sepResult == null) {
-				ctx.reset(branch);
-				break;
-			}
-			if (keepSep && sepResult !== NIL) {
-				results.push(sepResult);
-			}
-			const expResult = exp.parseAt(ctx);
-			if (expResult == null) {
-				ctx.reset(branch);
-				break;
-			}
-			if (expResult !== NIL) {
-				results.push(expResult);
-			}
-		}
-		if (results.length === 0) return NIL;
-		if (results.length === 1) return results[0];
-		return new SeqTree(results);
-	}
-
-	private parseChoice(ctx: Ctx, options: Exp[]): Tree | null {
-		for (const opt of options) {
-			const branch = ctx.mark();
-			ctx.cutStackPush();
-			const result = opt.parseAt(ctx);
-			const cutSeen = ctx.cutStackPop();
-			if (result != null) {
-				if (cutSeen) {
-					ctx.cut();
-				}
-				return result;
-			}
-			ctx.reset(branch);
-		}
-		return null;
-	}
-
-	link(rules: Map<string, Rule>): void {
-		linkExp(this, rules);
+	asjsons(): string {
+		return JSON.stringify(this.asjson());
 	}
 }
 
-// --- Concrete subclasses ---
+export abstract class BoxExp extends Exp {
+	constructor(public exp: Exp) {
+		super();
+	}
 
-// Leaf: no children, no data
+	override link(rules: Map<string, Rule>) {
+		this.exp.link(rules);
+	}
+}
+
+export abstract class NamedBoxExp extends BoxExp {
+	constructor(
+		public name: string,
+		public exp: Exp,
+	) {
+		super(exp);
+	}
+}
+
+export abstract class SepBoxExp extends BoxExp {
+	constructor(
+		public exp: Exp,
+		public sep: Exp,
+	) {
+		super(exp);
+	}
+
+	override link(rules: Map<string, Rule>) {
+		super.link(rules);
+		this.sep.link(rules);
+	}
+}
+
 export class NilExp extends Exp {
 	readonly kind = ExpKind.Nil;
 }
@@ -517,170 +444,117 @@ export class CallExp extends Exp {
 	) {
 		super();
 	}
+	override link(rules: Map<string, Rule>) {
+		// Implementation for linking call expressions
+		const rule = rules.get(this.name);
+		if (!rule) throw new LinkError(`call to undefined rule: ${this.name}`);
+		this.rule = rule;
+	}
 }
 
 // Unary: one child
-export class NamedExp extends Exp {
+export class NamedExp extends NamedBoxExp {
 	readonly kind = ExpKind.Named;
-	constructor(
-		public name: string,
-		public exp: Exp,
-	) {
-		super();
-	}
 }
 
-export class NamedListExp extends Exp {
+export class NamedListExp extends NamedBoxExp {
 	readonly kind = ExpKind.NamedList;
-	constructor(
-		public name: string,
-		public exp: Exp,
-	) {
-		super();
-	}
 }
 
-export class UnaryExp extends Exp {
-	readonly kind = ExpKind.Override; // placeholder, set in subclasses
-	constructor(public exp: Exp) {
-		super();
-	}
-}
-
-export class OverrideExp extends Exp {
+export class OverrideExp extends BoxExp {
 	readonly kind = ExpKind.Override;
-	constructor(public exp: Exp) {
-		super();
-	}
 }
 
-export class OverrideListExp extends Exp {
+export class OverrideListExp extends BoxExp {
 	readonly kind = ExpKind.OverrideList;
-	constructor(public exp: Exp) {
-		super();
-	}
 }
 
-export class GroupExp extends Exp {
+export class GroupExp extends BoxExp {
 	readonly kind = ExpKind.Group;
-	constructor(public exp: Exp) {
-		super();
-	}
 }
 
-export class SkipGroupExp extends Exp {
+export class SkipGroupExp extends BoxExp {
 	readonly kind = ExpKind.SkipGroup;
-	constructor(public exp: Exp) {
-		super();
-	}
 }
 
-export class LookaheadExp extends Exp {
+export class LookaheadExp extends BoxExp {
 	readonly kind = ExpKind.Lookahead;
-	constructor(public exp: Exp) {
-		super();
-	}
 }
 
-export class NegativeLookaheadExp extends Exp {
+export class NegativeLookaheadExp extends BoxExp {
 	readonly kind = ExpKind.NegativeLookahead;
-	constructor(public exp: Exp) {
-		super();
-	}
 }
 
-export class SkipToExp extends Exp {
+export class SkipToExp extends BoxExp {
 	readonly kind = ExpKind.SkipTo;
-	constructor(public exp: Exp) {
-		super();
-	}
 }
 
-export class AltExp extends Exp {
+export class AltExp extends BoxExp {
 	readonly kind = ExpKind.Alt;
-	constructor(public exp: Exp) {
-		super();
-	}
 }
 
-export class OptionalExp extends Exp {
+export class OptionalExp extends BoxExp {
 	readonly kind = ExpKind.Optional;
-	constructor(public exp: Exp) {
-		super();
-	}
 }
 
-export class ClosureExp extends Exp {
+export class ClosureExp extends BoxExp {
 	readonly kind = ExpKind.Closure;
 	constructor(public exp: Exp) {
-		super();
+		super(exp);
 	}
 }
 
-export class PositiveClosureExp extends Exp {
+export class PositiveClosureExp extends BoxExp {
 	readonly kind = ExpKind.PositiveClosure;
 	constructor(public exp: Exp) {
-		super();
+		super(exp);
 	}
 }
 
 // Binary: two children
-export class JoinExp extends Exp {
+export class JoinExp extends SepBoxExp {
 	readonly kind = ExpKind.Join;
-	constructor(
-		public exp: Exp,
-		public sep: Exp,
-	) {
-		super();
-	}
 }
 
-export class PositiveJoinExp extends Exp {
+export class PositiveJoinExp extends SepBoxExp {
 	readonly kind = ExpKind.PositiveJoin;
-	constructor(
-		public exp: Exp,
-		public sep: Exp,
-	) {
-		super();
-	}
 }
 
-export class GatherExp extends Exp {
+export class GatherExp extends SepBoxExp {
 	readonly kind = ExpKind.Gather;
-	constructor(
-		public exp: Exp,
-		public sep: Exp,
-	) {
-		super();
-	}
 }
 
-export class PositiveGatherExp extends Exp {
+export class PositiveGatherExp extends SepBoxExp {
 	readonly kind = ExpKind.PositiveGather;
-	constructor(
-		public exp: Exp,
-		public sep: Exp,
-	) {
-		super();
-	}
 }
 
-// Collection: array of children
 export class SeqExp extends Exp {
 	readonly kind = ExpKind.Sequence;
-	constructor(public items: Exp[]) {
+	constructor(public sequence: Exp[]) {
 		super();
+	}
+	override link(rules: Map<string, Rule>) {
+		super.link(rules);
+		for (const item of this.sequence) {
+			item.link(rules);
+		}
 	}
 }
 
 export class ChoiceExp extends Exp {
 	readonly kind = ExpKind.Choice;
-	constructor(public items: Exp[]) {
+	constructor(public options: Exp[]) {
 		super();
+	}
+
+	override link(rules: Map<string, Rule>) {
+		super.link(rules);
+		for (const opt of this.options) {
+			opt.link(rules);
+		}
 	}
 }
 
-// Include
 export class RuleIncludeExp extends Exp {
 	readonly kind = ExpKind.RuleInclude;
 	constructor(
@@ -688,5 +562,15 @@ export class RuleIncludeExp extends Exp {
 		public exp: Exp | null = null,
 	) {
 		super();
+	}
+
+	override link(rules: Map<string, Rule>) {
+		super.link(rules);
+		const rule = rules.get(this.name);
+		if (!rule)
+			throw new LinkError(
+				`rule include references undefined rule: ${this.name}`,
+			);
+		this.exp = rule.exp;
 	}
 }

@@ -20,7 +20,7 @@ export class Core implements Ctx {
 
 	private cfg: Cfg;
 	private memoCache = new Map<string, Memo>();
-	private tracer_: Tracer = new NullTracer();
+	private _tracer: Tracer = new NullTracer();
 	private keywords = new Set<string>();
 
 	constructor(cursor: Cursor, cfg?: Cfg) {
@@ -34,9 +34,9 @@ export class Core implements Ctx {
 		this._cursor.configure(cfg);
 		this.setKeywords(cfg.keywords ?? []);
 		if (cfg.trace) {
-			this.tracer_ = new ConsoleTracer();
+			this._tracer = new ConsoleTracer();
 		} else {
-			this.tracer_ = new NullTracer();
+			this._tracer = new NullTracer();
 		}
 	}
 
@@ -54,7 +54,7 @@ export class Core implements Ctx {
 		c.lastCutMark = this.lastCutMark;
 		c.furthest = this.furthest;
 		c.memoCache = this.memoCache;
-		c.tracer_ = this.tracer_;
+		c._tracer = this._tracer;
 		c.keywords = this.keywords;
 		return c;
 	}
@@ -71,7 +71,7 @@ export class Core implements Ctx {
 		return [...this._callStack];
 	}
 	tracer(): Tracer {
-		return this.tracer_;
+		return this._tracer;
 	}
 	mark(): number {
 		return this._cursor.mark();
@@ -113,7 +113,7 @@ export class Core implements Ctx {
 	matchToken(token: string): boolean {
 		this.nextToken();
 		const result = this._cursor.matchToken(token);
-		this.tracer_.traceMatch(this, token, "");
+		this._tracer.traceMatch(this, token, "");
 		return result;
 	}
 
@@ -245,10 +245,7 @@ export class Core implements Ctx {
 			this.recursionKey = key;
 			this.recursionDepth = 1;
 		}
-		if (this.recursionDepth > 64) {
-			return false;
-		}
-		return true;
+		return this.recursionDepth <= 64;
 	}
 
 	untrack(key: MemoKey): void {
@@ -267,7 +264,7 @@ export class Core implements Ctx {
 
 	cut(): void {
 		this.cutStack[this.cutStack.length - 1] = true;
-		this.tracer_.traceCut(this);
+		this._tracer.traceCut(this);
 		const mark = this._cursor.mark();
 		if (!this.cfg.noPruneMemosOnCut && !this.inLookahead()) {
 			if (mark > this.lastCutMark) {

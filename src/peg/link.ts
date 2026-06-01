@@ -7,13 +7,7 @@ import {
 	type SeqExp,
 } from "./exp.js";
 import type { Rule } from "./rule.js";
-
-export class LinkError extends Error {
-	constructor(msg: string) {
-		super(msg);
-		this.name = "LinkError";
-	}
-}
+import { LinkError } from "@peg/error.js";
 
 export function linkExp(exp: Exp | null, rules: Map<string, Rule>): void {
 	if (exp == null) return;
@@ -63,13 +57,14 @@ export function linkExp(exp: Exp | null, rules: Map<string, Rule>): void {
 		case ExpKind.Optional:
 		case ExpKind.Closure:
 		case ExpKind.PositiveClosure:
-			linkExp((exp as unknown as { exp: Exp }).exp, rules);
+			exp.link(rules);
 			return;
 		// Binary — recurse into both
 		case ExpKind.Join:
 		case ExpKind.PositiveJoin:
 		case ExpKind.Gather:
 		case ExpKind.PositiveGather: {
+			exp.link(rules);
 			const join = exp as unknown as JoinExp;
 			linkExp(join.exp, rules);
 			linkExp(join.sep, rules);
@@ -78,7 +73,7 @@ export function linkExp(exp: Exp | null, rules: Map<string, Rule>): void {
 		// Collection — recurse into all
 		case ExpKind.Sequence:
 		case ExpKind.Choice: {
-			for (const child of (exp as SeqExp).items) {
+			for (const child of (exp as SeqExp).sequence) {
 				linkExp(child, rules);
 			}
 			return;
