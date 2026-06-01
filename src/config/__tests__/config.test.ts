@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { Cfg, defaultCfg } from "./config.js"
+import { Cfg, defaultCfg } from "../config.js"
 
 describe("Cfg", () => {
   it("defaultCfg returns Cfg with defaults", () => {

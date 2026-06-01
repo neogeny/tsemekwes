@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from "commander"
-import { cmdBoot, cmdGrammar, cmdInfo, cmdRun } from "./cmd.js"
+import { cmdBoot, cmdGrammar, cmdInfo, cmdRun } from "./cmd"
 
 const program = new Command()
 

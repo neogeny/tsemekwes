@@ -26,7 +26,7 @@ import {
   SeqExp,
   TokenExp,
   VoidExp,
-} from "./exp.js"
+} from "../exp.js"
 
 describe("ExpKind", () => {
   it("has 33 variants", () => {

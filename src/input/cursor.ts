@@ -1,5 +1,5 @@
 import type { TokenizingPatterns } from "@input/patterns.js"
-import type { Configurable } from "../config/config.js"
+import type { Configurable } from "@config/config"
 
 export class Location {
   constructor(

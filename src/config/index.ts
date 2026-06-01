@@ -1,1 +1,2 @@
-export { Cfg, Configurable, defaultCfg } from "./config.js"
+export { Cfg, defaultCfg } from "./config"
+export type { Configurable } from "./config"

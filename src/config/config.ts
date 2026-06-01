@@ -1,4 +1,4 @@
-import type { Tree } from "../trees/tree.js"
+import type { Tree } from "@trees/tree"
 
 export interface Configurable {
   configure(cfg: Cfg): void

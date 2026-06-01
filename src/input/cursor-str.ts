@@ -1,6 +1,6 @@
 import type { Cfg } from "../config/config.js"
 import { type Cursor, Location } from "./cursor.js"
-import {splitlines, stripRight} from "@util/index.js";
+import { splitlines, stripRight } from "@util/index.js"
 
 import {
   configurePatterns,
@@ -325,13 +325,13 @@ export class StrCursor implements Cursor {
       mark = text.length
     }
     const prefix = text.slice(0, mark)
-    const lines = splitlines(prefix)
+    const lines = splitlines(prefix, true)
     const line = lines[lines.length - 1]
 
     let lineno = lines.length
-    let colno =  stripRight(line).length
+    let colno = stripRight(line).length
 
-    if (colno <= line.length) {
+    if (colno < line.length) {
       lineno += 1
       colno = 1
     } else if (colno <= 0) {

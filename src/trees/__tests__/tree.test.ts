@@ -17,7 +17,7 @@ import {
   Text,
   type Tree,
   treeToJSONStr,
-} from "./tree.js"
+} from "../tree.js"
 
 function text(s: string): Text {
   return new Text(s)

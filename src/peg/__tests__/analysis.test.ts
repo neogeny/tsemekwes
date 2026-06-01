@@ -36,10 +36,10 @@ import {
   SkipToExp,
   TokenExp,
   VoidExp,
-} from "./exp.js"
-import { markLeftRecursion } from "./leftrec.js"
-import { isNullable } from "./nullability.js"
-import { Rule } from "./rule.js"
+} from "../exp.js"
+import { markLeftRecursion } from "../leftrec.js"
+import { isNullable } from "../nullability.js"
+import { Rule } from "../rule.js"
 
 function wrap(exp: Exp, kind: ExpKind): Exp {
   switch (kind) {

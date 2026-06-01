@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { StrCursor } from "../input/cursor-str.js"
-import { Memento } from "./memento.js"
+import { StrCursor } from "../../input/cursor-str.js"
+import { Memento } from "../memento.js"
 
 describe("Memento", () => {
   it("captures start, mark, msg, callstack", () => {

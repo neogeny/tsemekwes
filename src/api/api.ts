@@ -1,21 +1,22 @@
 import { readFile } from "node:fs/promises"
 import { ext, readText } from "@totetsu/cmd/helpers.js"
-import { type Cfg, defaultCfg } from "../config/config.js"
-import { newCtx } from "../context/index.js"
+import { type Cfg, defaultCfg } from "@config/config"
+import { newCtx } from "@context/core"
 import { StrCursor } from "@input/cursor-str.js"
 import { bootGrammar as boot } from "../json/boot.js"
 import { loadGrammarFromJSON as loadJSON } from "../json/import.js"
-import { compileGrammar } from "../peg/compile.js"
-import type { Grammar } from "../peg/grammar.js"
-import type { Tree } from "../trees/tree.js"
+import { compileGrammar } from "@totetsu/peg"
+import type { Grammar } from "@totetsu/peg"
+import type { Tree } from "@trees/tree"
 
 export class ApiError extends Error {
   constructor(
     msg: string,
-    public readonly cause?: unknown,
+    public readonly _cause?: unknown,
   ) {
     super(msg)
     this.name = "ApiError"
+    this._cause = _cause
   }
 }
 
@@ -40,8 +41,7 @@ export function parseGrammar(grammar: string, cfg?: Cfg): Tree {
 export function compile(grammar: string, cfg?: Cfg): Grammar {
   try {
     const tree = parseGrammar(grammar, cfg)
-    const compiled = compileGrammar(tree)
-    return compiled
+    return compileGrammar(tree)
   } catch (e) {
     throw e
     // if (e instanceof ApiError) throw e

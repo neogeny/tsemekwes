@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { Cfg } from "../../config/config.js"
+import { Cfg } from "../../config"
 import { TokenizingPatterns } from "../patterns"
 import { StrCursor } from "../cursor-str.js"
 
@@ -108,27 +108,25 @@ describe("StrCursor", () => {
 
   it("PosAt returns position at given mark", () => {
     const s = new StrCursor("hello\nworld\nfoo")
-    const cases: [number, number, number][] = [
-      [0, 1, 1],
-      [5, 1, 5],
-      [3, 1, 3],
-      [6, 2, 1],
-      [11, 2, 5],
-      [12, 3, 1],
-      [15, 3, 3],
+    const cases: [number, [number, number]][] = [
+      [0, [1, 1]],
+      [5, [1, 5]],
+      [3, [1, 3]],
+      [6, [2, 1]],
+      [11, [2, 5]],
+      [12, [3, 1]],
+      [15, [3, 3]],
     ]
-    for (const [pos, eline, ecol] of cases) {
-      const [line, col] = s.posAt(pos)
-      assert.equal(line, eline, `posAt(${pos}) line`)
-      assert.equal(col, ecol, `posAt(${pos}) col`)
+    for (const [mark, epos] of cases) {
+      const pos = s.posAt(mark)
+      assert.deepEqual(pos, epos, `posAt(${mark}) ${pos} wanting ${epos}`)
     }
   })
 
   it("PosAt past end clamps to last position", () => {
     const s = new StrCursor("hi")
-    const [line, col] = s.posAt(100)
-    assert.equal(line, 1)
-    assert.equal(col, 2)
+    const pos = s.posAt(100)
+    assert.deepEqual(pos, [1, 2])
   })
 
   it("Location returns source, line, col", () => {

@@ -1,5 +1,5 @@
-import { sprintf } from "sprintf-js";
-import type { Cursor } from "../input/cursor.js"
+import { sprintf } from "sprintf-js"
+import type { Cursor } from "@input/cursor"
 import type { CallStack } from "./ctx.js"
 
 export class Memento {
