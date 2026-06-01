@@ -1,8 +1,8 @@
 import type { Cfg } from "../config/config.js";
 import type { Cursor } from "../input/cursor.js";
 import type { Tree } from "../trees/tree.js";
-import type { MemoKey, Memo } from "./memo.js";
 import { Memento } from "./memento.js";
+import type { Memo, MemoKey } from "./memo.js";
 
 export type CallStack = string[];
 

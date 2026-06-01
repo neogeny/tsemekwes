@@ -1,6 +1,6 @@
-import { Exp, ExpKind } from "./exp.js";
-import type { Rule } from "./rule.js";
+import { type Exp, ExpKind } from "./exp.js";
 import { isNullable, unboxExp } from "./nullability.js";
+import type { Rule } from "./rule.js";
 
 function callableRuleIDs(exp: Exp, ruleIndex: Map<Rule, number>): number[] {
   switch (exp.kind) {

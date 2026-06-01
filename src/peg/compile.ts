@@ -1,48 +1,48 @@
 import {
-  Node as NodeTree,
+  ArrayValue as ArrayTree,
   MapNode,
+  Node as NodeTree,
   Seq,
-  Array as ArrayTree,
   Text,
   type Tree,
 } from "../trees/tree.js";
-import { Grammar } from "./grammar.js";
-import { Rule } from "./rule.js";
 import {
-  type Exp,
-  NilExp,
-  CutExp,
-  VoidExp,
-  FailExp,
-  DotExp,
-  EofExp,
-  EolExp,
-  EmptyClosureExp,
-  TokenExp,
-  PatternExp,
-  ConstantExp,
   AlertExp,
   CallExp,
+  ChoiceExp,
+  ClosureExp,
+  ConstantExp,
+  CutExp,
+  DotExp,
+  EmptyClosureExp,
+  EofExp,
+  EolExp,
+  type Exp,
+  FailExp,
+  GatherExp,
+  GroupExp,
+  JoinExp,
+  LookaheadExp,
   NamedExp,
   NamedListExp,
+  NegativeLookaheadExp,
+  NilExp,
+  OptionalExp,
   OverrideExp,
   OverrideListExp,
-  GroupExp,
-  SkipGroupExp,
-  LookaheadExp,
-  NegativeLookaheadExp,
-  SkipToExp,
-  OptionalExp,
-  ClosureExp,
+  PatternExp,
   PositiveClosureExp,
-  SeqExp,
-  ChoiceExp,
-  JoinExp,
-  PositiveJoinExp,
-  GatherExp,
   PositiveGatherExp,
+  PositiveJoinExp,
   RuleIncludeExp,
+  SeqExp,
+  SkipGroupExp,
+  SkipToExp,
+  TokenExp,
+  VoidExp,
 } from "./exp.js";
+import { Grammar } from "./grammar.js";
+import { Rule } from "./rule.js";
 
 class CompileError extends Error {
   constructor(msg: string) {
@@ -187,7 +187,7 @@ function compileRule(tree: Tree): Rule {
     throw new CompileError("rule has no name");
   }
 
-  let expTree = mapGet(inner, "exp");
+  const expTree = mapGet(inner, "exp");
   if (expTree == null) {
     throw new CompileError("rule has no exp");
   }

@@ -1,6 +1,6 @@
 import type { Ctx } from "../context/ctx.js";
-import type { Exp } from "./exp.js";
 import { fold, Node as NodeTree, type Tree } from "../trees/tree.js";
+import type { Exp } from "./exp.js";
 
 export class Rule {
   constructor(

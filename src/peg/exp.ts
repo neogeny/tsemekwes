@@ -1,16 +1,16 @@
 import type { Ctx } from "../context/ctx.js";
 import {
-  NIL,
-  Text as TextTree,
-  Seq as SeqTree,
-  Named as NamedTree,
   NamedAsList as NamedAsListTree,
-  Override as OverrideTree,
+  Named as NamedTree,
+  NIL,
   OverrideAsList as OverrideAsListTree,
+  Override as OverrideTree,
+  Seq as SeqTree,
+  Text as TextTree,
   type Tree,
 } from "../trees/tree.js";
-import type { Rule } from "./rule.js";
 import { linkExp } from "./link.js";
+import type { Rule } from "./rule.js";
 
 export enum ExpKind {
   Nil = "Nil",

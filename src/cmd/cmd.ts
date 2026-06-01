@@ -1,7 +1,7 @@
-import { newCfg, readText } from "@totetsu/cmd/helpers.js";
 import { loadGrammar, parseInput } from "@api/api.js";
-import { treeToJSONStr } from "@trees/tree.js";
 import { bootGrammar } from "@json/boot.js";
+import { newCfg, readText } from "@totetsu/cmd/helpers.js";
+import { treeToJSONStr } from "@trees/tree.js";
 
 export async function cmdRun(
   grammarPath: string,

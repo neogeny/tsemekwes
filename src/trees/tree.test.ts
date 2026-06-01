@@ -1,21 +1,21 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  type Tree,
-  Text,
-  Number,
+  ArrayValue,
   Bool,
-  Nil,
   Bottom,
-  Seq,
-  Array,
+  fold,
   MapNode,
-  Node,
   Named,
   NamedAsList,
+  Nil,
+  Node,
+  NumberValue,
   Override,
   OverrideAsList,
-  fold,
+  Seq,
+  Text,
+  type Tree,
   treeToJSONStr,
 } from "./tree.js";
 
@@ -25,8 +25,8 @@ function text(s: string): Text {
 function seq(...items: Tree[]): Seq {
   return new Seq(items);
 }
-function list(...items: Tree[]): Array {
-  return new Array(items);
+function list(...items: Tree[]): ArrayValue {
+  return new ArrayValue(items);
 }
 
 describe("fold", () => {
@@ -58,23 +58,29 @@ describe("fold", () => {
   });
 
   it("Number", () => {
-    const result = fold(new Number(42.5));
-    assert.ok(result instanceof Number);
-    assert.equal((result as Number).value, 42.5);
+    const result = fold(new NumberValue(42.5));
+    assert.ok(result instanceof NumberValue);
+    assert.equal((result as NumberValue).value, 42.5);
   });
 
   it("Seq to Array", () => {
     const result = fold(seq(text("a"), text("b"), text("c")));
-    assert.ok(result instanceof Array, `expected Array, got ${typeof result}`);
-    assert.equal((result as Array).items.length, 3);
-    assert.equal(((result as Array).items[0] as Text).value, "a");
+    assert.ok(
+      result instanceof ArrayValue,
+      `expected Array, got ${typeof result}`,
+    );
+    assert.equal((result as ArrayValue).items.length, 3);
+    assert.equal(((result as ArrayValue).items[0] as Text).value, "a");
   });
 
   it("List to Array", () => {
     const result = fold(list(text("a"), text("b"), text("c")));
-    assert.ok(result instanceof Array, `expected Array, got ${typeof result}`);
-    assert.equal((result as Array).items.length, 3);
-    assert.equal(((result as Array).items[0] as Text).value, "a");
+    assert.ok(
+      result instanceof ArrayValue,
+      `expected Array, got ${typeof result}`,
+    );
+    assert.equal((result as ArrayValue).items.length, 3);
+    assert.equal(((result as ArrayValue).items[0] as Text).value, "a");
   });
 
   it("Named to Map", () => {
@@ -167,8 +173,11 @@ describe("fold", () => {
     const result = fold(
       seq(new OverrideAsList(text("a")), new OverrideAsList(text("b"))),
     );
-    assert.ok(result instanceof Array, `expected Array, got ${typeof result}`);
-    assert.equal((result as Array).items.length, 2);
+    assert.ok(
+      result instanceof ArrayValue,
+      `expected Array, got ${typeof result}`,
+    );
+    assert.equal((result as ArrayValue).items.length, 2);
   });
 
   it("Nested Named", () => {
@@ -187,8 +196,11 @@ describe("fold", () => {
 
   it("Seq with Nil", () => {
     const result = fold(seq(text("a"), new Nil(), text("b")));
-    assert.ok(result instanceof Array, `expected Array, got ${typeof result}`);
-    assert.equal((result as Array).items.length, 2);
+    assert.ok(
+      result instanceof ArrayValue,
+      `expected Array, got ${typeof result}`,
+    );
+    assert.equal((result as ArrayValue).items.length, 2);
   });
 
   it("Rule node", () => {
@@ -205,7 +217,7 @@ describe("treeToJSONStr", () => {
   });
 
   it("Number", () => {
-    assert.equal(treeToJSONStr(new Number(42.5)), "42.5");
+    assert.equal(treeToJSONStr(new NumberValue(42.5)), "42.5");
   });
 
   it("Node with tree", () => {

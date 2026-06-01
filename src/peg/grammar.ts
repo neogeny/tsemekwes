@@ -1,12 +1,12 @@
 import { Cfg, defaultCfg } from "../config/config.js";
-import type { Tree } from "../trees/tree.js";
 import type { Ctx } from "../context/ctx.js";
-import { Rule } from "./rule.js";
-import { linkGrammar } from "./link.js";
-import { Exp, CallExp } from "./exp.js";
-import { markLeftRecursion } from "./leftrec.js";
-import { prettyPrintGrammar } from "./pretty.js";
+import type { Tree } from "../trees/tree.js";
+import { CallExp, type Exp } from "./exp.js";
 import { modelToJSONStr as _modelToJSONStr } from "./export.js";
+import { markLeftRecursion } from "./leftrec.js";
+import { linkGrammar } from "./link.js";
+import { prettyPrintGrammar } from "./pretty.js";
+import type { Rule } from "./rule.js";
 
 export class Grammar {
   constructor(

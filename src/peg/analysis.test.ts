@@ -1,46 +1,46 @@
-import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { isNullable } from "./nullability.js";
-import { markLeftRecursion } from "./leftrec.js";
-import { Rule } from "./rule.js";
+import { describe, it } from "node:test";
 import {
-  ExpKind,
-  Exp,
-  TokenExp,
-  PatternExp,
+  AlertExp,
+  AltExp,
+  CallExp,
+  ChoiceExp,
+  ClosureExp,
+  ConstantExp,
+  CutExp,
   DotExp,
+  EmptyClosureExp,
   EofExp,
   EolExp,
-  VoidExp,
-  NilExp,
-  CutExp,
+  type Exp,
+  ExpKind,
   FailExp,
-  EmptyClosureExp,
-  ConstantExp,
-  AlertExp,
-  CallExp,
-  RuleIncludeExp,
+  GatherExp,
   GroupExp,
-  SkipGroupExp,
+  JoinExp,
   LookaheadExp,
-  NegativeLookaheadExp,
-  OverrideExp,
-  OverrideListExp,
   NamedExp,
   NamedListExp,
-  SkipToExp,
-  AltExp,
+  NegativeLookaheadExp,
+  NilExp,
   OptionalExp,
-  ClosureExp,
+  OverrideExp,
+  OverrideListExp,
+  PatternExp,
   PositiveClosureExp,
-  SeqExp,
-  ChoiceExp,
-  JoinExp,
-  PositiveJoinExp,
-  GatherExp,
   PositiveGatherExp,
+  PositiveJoinExp,
+  RuleIncludeExp,
+  SeqExp,
+  SkipGroupExp,
+  SkipToExp,
+  TokenExp,
+  VoidExp,
 } from "./exp.js";
+import { markLeftRecursion } from "./leftrec.js";
 import { linkExp } from "./link.js";
+import { isNullable } from "./nullability.js";
+import { Rule } from "./rule.js";
 
 function wrap(exp: Exp, kind: ExpKind): Exp {
   switch (kind) {

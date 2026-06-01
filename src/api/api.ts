@@ -1,13 +1,13 @@
-import { Cfg, defaultCfg } from "../config/config.js";
-import { Grammar } from "../peg/grammar.js";
-import { StrCursor } from "../input/str-cursor.js";
+import { readFile } from "node:fs/promises";
+import { ext, readText } from "@totetsu/cmd/helpers.js";
+import { type Cfg, defaultCfg } from "../config/config.js";
 import { newCtx } from "../context/index.js";
-import { compileGrammar } from "../peg/compile.js";
-import type { Tree } from "../trees/tree.js";
+import { StrCursor } from "../input/str-cursor.js";
 import { bootGrammar as boot } from "../json/boot.js";
 import { loadGrammarFromJSON as loadJSON } from "../json/import.js";
-import { ext, readText } from "@totetsu/cmd/helpers.js";
-import { readFile } from "node:fs/promises";
+import { compileGrammar } from "../peg/compile.js";
+import type { Grammar } from "../peg/grammar.js";
+import type { Tree } from "../trees/tree.js";
 
 export class ApiError extends Error {
   constructor(

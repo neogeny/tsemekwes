@@ -1,6 +1,6 @@
 export enum TreeKind {
   Text = "Text",
-  Number = "Number",
+  NumberValue = "NumberValue",
   Bool = "Bool",
   Nil = "Nil",
   Bottom = "Bottom",
@@ -8,7 +8,7 @@ export enum TreeKind {
   FalseValue = "FalseValue",
   NullValue = "NullValue",
   Seq = "Seq",
-  Array = "Array",
+  ArrayValue = "ArrayValue",
   MapNode = "MapNode",
   Node = "Node",
   Named = "Named",
@@ -55,8 +55,8 @@ export class Text implements Tree {
   }
 }
 
-export class Number implements Tree {
-  readonly kind = TreeKind.Number;
+export class NumberValue implements Tree {
+  readonly kind = TreeKind.NumberValue;
   constructor(public value: number) {}
   fold(_gather: TreeMerge): Tree {
     return this;
@@ -128,12 +128,12 @@ export class Seq implements Tree {
   }
 }
 
-export class Array implements Tree {
-  readonly kind = TreeKind.Array;
+export class ArrayValue implements Tree {
+  readonly kind = TreeKind.ArrayValue;
   constructor(public items: Tree[]) {}
   fold(gather: TreeMerge): Tree {
     const items = this.items.map((item) => item.fold(gather));
-    return new Array(items);
+    return new ArrayValue(items);
   }
 }
 
@@ -250,7 +250,7 @@ function appendAsList(a: Tree | null, b: Tree): Tree {
 
 function closed(t: Tree): Tree {
   if (t.kind === TreeKind.Seq) {
-    return new Array((t as Seq).items);
+    return new ArrayValue((t as Seq).items);
   }
   return t;
 }
@@ -280,8 +280,8 @@ export function treeToJSON(t: Tree): any {
   switch (t.kind) {
     case TreeKind.Text:
       return (t as Text).value;
-    case TreeKind.Number:
-      return (t as Number).value;
+    case TreeKind.NumberValue:
+      return (t as NumberValue).value;
     case TreeKind.Bool:
       return (t as Bool).value;
     case TreeKind.Nil:
@@ -294,8 +294,8 @@ export function treeToJSON(t: Tree): any {
       return false;
     case TreeKind.Seq:
       return (t as Seq).items.map(treeToJSON);
-    case TreeKind.Array:
-      return (t as Array).items.map(treeToJSON);
+    case TreeKind.ArrayValue:
+      return (t as ArrayValue).items.map(treeToJSON);
     case TreeKind.MapNode: {
       const out: Record<string, any> = {};
       for (const [key, val] of (t as MapNode).entries) {

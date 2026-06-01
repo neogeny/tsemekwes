@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { Cfg } from "../config/config.js";
-import { StrCursor } from "./str-cursor.js";
 import { TokenizingPatterns } from "./cursor.js";
+import { StrCursor } from "./str-cursor.js";
 
 describe("StrCursor", () => {
   it("MatchPattern returns false when pattern does not match at position", () => {
@@ -99,7 +99,7 @@ describe("StrCursor", () => {
   });
 
   it("MatchEOL skips whitespace before newline", () => {
-    const wsp = new RegExp(`[ \\t]+`);
+    const wsp = /[ \t]+/;
     const s = new StrCursor("   \nnext");
     s.setPatterns(new TokenizingPatterns(wsp, null, null));
     assert.equal(s.matchEOL(), true);
@@ -203,9 +203,9 @@ describe("StrCursor", () => {
   });
 
   it("SetPatterns and NextToken skip whitespace and comments", () => {
-    const wsp = new RegExp(`[ \\t]+`);
-    const cmt = new RegExp(`#[^\\n]*`);
-    const eol = new RegExp(`\\r?\\n`);
+    const wsp = /[ \t]+/;
+    const cmt = /#[^\n]*/;
+    const eol = /\r?\n/;
     const s = new StrCursor("  # comment \n  hello");
     s.setPatterns(new TokenizingPatterns(wsp, cmt, eol));
     s.nextToken();

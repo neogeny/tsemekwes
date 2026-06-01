@@ -1,8 +1,8 @@
-import { Cfg, defaultCfg } from "../config/config.js";
+import { type Cfg, defaultCfg } from "../config/config.js";
 import type { Cursor } from "../input/cursor.js";
-import { Text, Number, Bool, NIL, type Tree } from "../trees/tree.js";
-import { type MemoKey, type Memo, pruneMemoCache } from "./memo.js";
-import { type CallStack, type Tracer, type Ctx, ParseFailure } from "./ctx.js";
+import { Bool, NIL, NumberValue, Text, type Tree } from "../trees/tree.js";
+import { type CallStack, type Ctx, ParseFailure, type Tracer } from "./ctx.js";
+import { type Memo, type MemoKey, pruneMemoCache } from "./memo.js";
 
 export class CoreCtx implements Ctx {
   private _cursor: Cursor;
@@ -161,7 +161,7 @@ export class CoreCtx implements Ctx {
 
   constant(literal: any): Tree {
     if (typeof literal === "string") return new Text(literal);
-    if (typeof literal === "number") return new Number(literal);
+    if (typeof literal === "number") return new NumberValue(literal);
     if (typeof literal === "boolean") return new Bool(literal);
     if (literal == null) return NIL;
     return new Text(String(literal));

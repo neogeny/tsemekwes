@@ -1,5 +1,5 @@
-import { TokenizingPatterns } from "./cursor.js";
 import type { Cfg } from "../config/config.js";
+import { TokenizingPatterns } from "./cursor.js";
 
 const INLINE_FLAGS_RE = /^\(\?([msgi-]+)\)/;
 

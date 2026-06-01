@@ -1,10 +1,10 @@
 import {
-  Exp,
+  type CallExp,
+  type Exp,
   ExpKind,
-  CallExp,
-  RuleIncludeExp,
-  JoinExp,
-  SeqExp,
+  type JoinExp,
+  type RuleIncludeExp,
+  type SeqExp,
 } from "./exp.js";
 import type { Rule } from "./rule.js";
 

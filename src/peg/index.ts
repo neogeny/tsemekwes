@@ -1,8 +1,7 @@
-export { ExpKind, Exp } from "./exp.js";
-
-export { Rule } from "./rule.js";
-export { Grammar } from "./grammar.js";
 export { compileGrammar } from "./compile.js";
-export { linkExp, linkRule, linkGrammar } from "./link.js";
-export { isNullable } from "./nullability.js";
+export { Exp, ExpKind } from "./exp.js";
+export { Grammar } from "./grammar.js";
 export { markLeftRecursion } from "./leftrec.js";
+export { linkExp, linkGrammar, linkRule } from "./link.js";
+export { isNullable } from "./nullability.js";
+export { Rule } from "./rule.js";

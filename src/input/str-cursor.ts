@@ -1,10 +1,10 @@
-import { Location, TokenizingPatterns, type Cursor } from "./cursor.js";
+import type { Cfg } from "../config/config.js";
+import { type Cursor, Location, type TokenizingPatterns } from "./cursor.js";
 import {
-  defaultPatterns,
   configurePatterns,
+  defaultPatterns,
   resetPatterns,
 } from "./patterns.js";
-import type { Cfg } from "../config/config.js";
 
 const nameCharRe = /^[\p{L}\p{N}_]$/u;
 

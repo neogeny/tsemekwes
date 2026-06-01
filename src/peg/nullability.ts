@@ -1,4 +1,4 @@
-import { Exp, ExpKind } from "./exp.js";
+import { type Exp, ExpKind } from "./exp.js";
 
 export function isNullable(exp: Exp): boolean {
   switch (exp.kind) {
