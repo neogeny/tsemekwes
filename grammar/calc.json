@@ -101,9 +101,7 @@
       "is_memo": false,
       "is_lrec": false,
       "decorators": [],
-      "params": [
-        "Add"
-      ],
+      "params": ["Add"],
       "base": null,
       "name": "addition"
     },
@@ -143,9 +141,7 @@
       "is_memo": false,
       "is_lrec": false,
       "decorators": [],
-      "params": [
-        "Subtract"
-      ],
+      "params": ["Subtract"],
       "base": null,
       "name": "subtraction"
     },
@@ -223,9 +219,7 @@
       "is_memo": false,
       "is_lrec": false,
       "decorators": [],
-      "params": [
-        "Multiply"
-      ],
+      "params": ["Multiply"],
       "base": null,
       "name": "multiplication"
     },
@@ -265,9 +259,7 @@
       "is_memo": false,
       "is_lrec": false,
       "decorators": [],
-      "params": [
-        "Divide"
-      ],
+      "params": ["Divide"],
       "base": null,
       "name": "division"
     },
@@ -333,9 +325,7 @@
       "is_memo": true,
       "is_lrec": false,
       "decorators": [],
-      "params": [
-        "int"
-      ],
+      "params": ["int"],
       "base": null,
       "name": "number"
     }
