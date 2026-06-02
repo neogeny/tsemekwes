@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { compile, parse, parseInput, bootGrammar, ApiError } from "../src/api/index.js"
-import { treeToJSON, fold, type Tree } from "../src/trees/tree.js"
+import { compile, parse, parseInput, ApiError } from "../src/api/index.js"
+import { treeToJSON, type Tree } from "../src/trees/tree.js"
 
 function json(tree: Tree): unknown {
   return treeToJSON(tree)

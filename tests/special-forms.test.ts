@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { parse, ApiError } from "../src/api/index.js"
-import { treeToJSON, type Tree } from "../src/trees/tree.js"
+import { parse } from "#api/api"
+import { treeToJSON, type Tree } from "../src/trees"
 
 function json(tree: Tree): unknown {
   return treeToJSON(tree)
@@ -11,7 +11,10 @@ describe("special forms", () => {
   it("group", () => {
     const grammar = `start: ('a' 'b')*`
     const result = parse(grammar, "abab")
-    assert.deepStrictEqual(json(result), [["a", "b"], ["a", "b"]])
+    assert.deepStrictEqual(json(result), [
+      ["a", "b"],
+      ["a", "b"],
+    ])
   })
 
   it("skip group", () => {

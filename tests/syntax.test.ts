@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { compile, parse, parseInput, ApiError } from "../src/api/index.js"
-import { treeToJSON, type Tree } from "../src/trees/tree.js"
+import { parse, ApiError } from "../src/api/index.js"
+import { treeToJSON, type Tree } from "@trees"
 
 function json(tree: Tree): unknown {
   return treeToJSON(tree)
@@ -98,7 +98,10 @@ inner: 'content'`
   it("no default comments", () => {
     const grammar = `@@eol_comments :: /@@@@@@/
 start = 'a' $;`
-    const result = parse(grammar, "        # no comments are valid\n        a\n    ")
+    const result = parse(
+      grammar,
+      "        # no comments are valid\n        a\n    ",
+    )
     assert.equal(json(result), "a")
   })
 
