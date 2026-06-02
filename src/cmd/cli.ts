@@ -36,8 +36,8 @@ const colorOption = new Option(
   .default("auto")
 
 program
-  .description("怪TōTetSu — PEG parser generator")
-  .name("tote")
+  .description("꘩TS’emekwes — A PEG parser generator for TypeScript")
+  .name("emekwes")
   .version(await getProjectGitVersion())
   .option("-o, --output <path>", "write output to file instead of stdout")
   .option("--trace", "display a detailed trace of the parsing process")

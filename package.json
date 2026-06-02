@@ -1,14 +1,14 @@
 {
-  "name": "totetsu",
+  "name": "tsemekwes",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "totetsu": "./dist/totetsu.js",
-  "types": "./dist/totetsu.d.ts",
+  "tsemekwes": "./dist/tsemekwes.js",
+  "types": "./dist/tsemekwes.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/totetsu.d.ts",
-      "default": "./dist/totetsu.js"
+      "types": "./dist/tsemekwes.d.ts",
+      "default": "./dist/tsemekwes.js"
     }
   },
   "imports": {
@@ -16,7 +16,7 @@
     "#api/*": "./src/api/*"
   },
   "bin": {
-    "totetsu": "./src/cli"
+    "tsemekwes": "./src/cli"
   },
   "files": [
     "dist/*"

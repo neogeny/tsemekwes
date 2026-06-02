@@ -6,20 +6,20 @@ apply: always
 
 ## Project Overview
 
-This directory is home to the **ToTetSu** project, a PEG parser Generator writen 
+This directory is home to the **꘩TS’emekwes** project, a PEG parser Generator writen 
 in `TypeScript`.  The project is in the family of of projects **TatSu** (Python), 
 **TieXiu** (Rust), and **OGoPEGo** (Go). The sibling projects can be found in the 
-symlinked directories. The semantics of *ToTetSu* will be the same as that 
-of its siblings, but implemented in the style of `TypeScript.
+symlinked directories. The semantics of **TS’emekwes** will be the same as that 
+of its siblings, but implemented in the style of `TypeScript`.
 
 ## Core Operational Rules
 
 * **Research Phase:** Study the following:
     * [README.md](README.md), 
     * [SYNTAX.md](SYNTAX.md), 
-    * [tatsu/README.rst](./x/tatsu/README.rst) 
-    * [tiexiu/README.md](./x/tiexiu/README.md)
-    * All the documents in [tatsu/docs/](./x/tatsu/docs/)
+    * [tatsu/README.rst](./tatsu/README.rst) 
+    * [tiexiu/README.md](./tiexiu/README.md)
+    * All the documents in [tatsu/docs/](./tatsu/docs/)
   
   to establish PEG domain context.
 

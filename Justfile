@@ -24,7 +24,7 @@ lint: fmt
 
 # Compile the TypeScript codebase down into a single high-performance binary artifact
 build: clean
-    #bun build ./src/cmd/cli.ts ./src/totetsu.ts --outdir ./dist --target bun
+    #bun build ./src/cmd/cli.ts ./src/tsemekwes.ts --outdir ./dist --target bun
     #tsc --declaration --emitDeclarationOnly --outDir ./dist
     tsc --declaration
 

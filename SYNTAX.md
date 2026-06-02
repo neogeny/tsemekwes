@@ -1,7 +1,3 @@
-orphan
-
-:
-
 # Grammar Syntax
 
 **铁修 TieXiu** grammars use an extension of

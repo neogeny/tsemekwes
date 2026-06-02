@@ -120,9 +120,9 @@ export function cmdInfo(): void {
     ["grammarToJSON", "❌ stub", "Grammar.toJSON()"],
     ["grammarPretty", "❌ stub", "Grammar.prettyPrint()"],
   ]
-  console.log("TōTetSu v0.0.0 — Feature Status\n")
+  console.log("TS’emekwes v0.0.0 — Feature Status\n")
   for (const row of features) {
     console.log(`  ${row[0].padEnd(25)} ${row[1].padEnd(12)} ${row[2]}`)
   }
-  console.log("\nUse `tote <command> --help` for command details.")
+  console.log("\nUse `emekwes <command> --help` for command details.")
 }

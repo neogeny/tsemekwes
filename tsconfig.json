@@ -19,8 +19,8 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@totetsu": ["./src"],
-      "@totetsu/*": ["./src/*"],
+      "@tsemekwes": ["./src"],
+      "@tsemekwes/*": ["./src/*"],
       "@api": ["./src/api"],
       "@config": ["./src/config"],
       "@config/*": ["./src/config/*"],

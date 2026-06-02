@@ -1,7 +1,7 @@
-# 怪TōTetSu
-**怪TōTetSu** A PEG parser generator in `TypeScript`
+# ꘩TS’emekwes
+**꘩TS’emekwes** A PEG parser generator in `TypeScript`
 
-**怪TōTetSu** is the Go sibling of [竜TatSu] (Python), [⻰OGoPEGo] (Go), and [铁修TieXiu] (Rust). It is functionally complete and passes the same test suite as its siblings.
+**꘩TS’emekwes** is the Go sibling of [竜TatSu] (Python), [⻰OGoPEGo] (Go), and [铁修TieXiu] (Rust). It is functionally complete and passes the same test suite as its siblings.
 
 [竜TatSu]: https://github.com/neogeny/tatsu
 [铁修TieXiu]: https://github.com/neogeny/tiexiu
@@ -14,7 +14,7 @@ Refer to the [竜TatSu documentation] for grammar syntax, semantics, and usage. 
 The CLI tool is a great way to explored the features offered by the library:
 
 ```bash
-$ tote --help
+$ emekwes --help
 ```
 
 
