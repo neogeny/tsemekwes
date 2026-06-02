@@ -1,16 +1,44 @@
 #!/usr/bin/env node
 
-import { Command } from "commander"
+import {Command, Help, Option} from "commander"
 import { cmdBoot, cmdGrammar, cmdInfo, cmdRun } from "./cmd"
+import {getProjectGitVersion} from "@util/misc"
+import pc from "picocolors";
 
 const program = new Command()
 
+process.env.FORCE_COLOR = "1";
+const colors = pc.createColors(true); // Hard-forces colors, or use your auto/always flag logic
+
+const baseHelp = new Help();
+program.configureHelp({
+  commandDescription: (cmd) => colors.dim(cmd.description()),
+  optionDescription: (option) => colors.dim(option.description),
+
+  // 2. Use the clean base instance here instead of the recursive 'helper'
+  formatHelp: (cmd) => {
+    const regularHelp = baseHelp.formatHelp(cmd, baseHelp);
+
+    return regularHelp
+        .replace(/^Usage:/gm, colors.bold(colors.cyan('Usage:')))
+        .replace(/^Commands:/gm, colors.bold(colors.cyan('Commands:')))
+        .replace(/^Options:/gm, colors.bold(colors.cyan('Options:')))
+        .replace(/(-\w|--\w[\w-]+)/g, colors.yellow('$1'))
+        .replace(/(<[^>]+>|\[[^\]]+])/g, colors.green('$1'));
+  }
+});
+
+const colorOption = new Option('-c, --color <when>', 'control terminal color output')
+  .choices(['auto', 'always', 'never'])
+  .default('auto');
+
 program
-  .name("tote")
   .description("怪TōTetSu — PEG parser generator")
-  .version("0.0.0")
+  .name("tote")
+  .version(await getProjectGitVersion())
   .option("-o, --output <path>", "write output to file instead of stdout")
   .option("--trace", "display a detailed trace of the parsing process")
+  .addOption(colorOption)
 
 program
   .command("run <grammar> [inputs...]")

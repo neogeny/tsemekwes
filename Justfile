@@ -28,7 +28,7 @@ build: clean
 
 # Execute a specific script file instantly through the native bun runtime engine
 run script:
-    bun run {{ script }}
+    bun run -- {{ script }}
 
 # Run the entire test pipeline directly using Bun
 test:

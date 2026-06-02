@@ -1,5 +1,6 @@
 import type { Ctx } from "@context/ctx.js"
-import pc from "picocolors"
+import {Colors} from "picocolors/types";
+import color from "picocolors";
 
 export enum Event {
   Entry = 0,
@@ -58,7 +59,7 @@ export class NullTracer implements Tracer {
   }
 }
 
-function eventSymbol(event: Event): string {
+function eventSymbol(pc: Colors, event: Event): string {
   switch (event) {
     case Event.Entry:
       return pc.yellow("↙")
@@ -79,7 +80,7 @@ function eventSymbol(event: Event): string {
   }
 }
 
-function stackSymbol(event: Event): string {
+function stackSymbol(pc:Colors, event: Event): string {
   switch (event) {
     case Event.Success:
       return pc.green("→")
@@ -101,8 +102,10 @@ export class ConsoleTracer implements Tracer {
   }
 
   traceEvent(ctx: Ctx, event: Event, msg: string): void {
-    const esym = eventSymbol(event)
-    const ssym = stackSymbol(event)
+    const pc = color.createColors(ctx.cfg().colorize)
+
+    const esym = eventSymbol(pc, event)
+    const ssym = stackSymbol(pc, event)
 
     const lookahead = pc.bold(
       pc.black(ctx.cursor().lookahead(ctx.mark()).replace(/ /g, "·")),
@@ -119,8 +122,9 @@ export class ConsoleTracer implements Tracer {
       }
     }
 
+    const mark = ctx.cursor().mark()
     const [line, col] = ctx.cursor().pos()
-    const pos = pc.bold(pc.black(`[${line}:${col}]→`))
+    const pos = pc.bold(pc.black(`[${line}:${col}]@${mark} →`))
 
     const lineMsg = `${esym}${msg} ${cs}•\n${pos}${lookahead}`
 
@@ -136,7 +140,7 @@ export class ConsoleTracer implements Tracer {
   }
 
   traceFailure(ctx: Ctx, err: string): void {
-    const errStr = ` ${pc.red(err)}`
+    const errStr = ` ${color.red(err)}`
     this.traceEvent(ctx, Event.Failure, errStr)
   }
 
@@ -153,13 +157,15 @@ export class ConsoleTracer implements Tracer {
     if (name !== "") {
       tag = `/${name}/`
     }
-    const msg = pc.green(`'${token}'${tag}`)
+    const msg = color.green(`'${token}'${tag}`)
     this.traceEvent(ctx, Event.Match, msg)
     return true
   }
 
   traceNoMatch(ctx: Ctx, token: string, name: string): boolean {
-    const msg = token !== "" ? pc.red(` '${token}'`) : pc.red(` /${name}/`)
+    const msg = token !== "" ?
+        color.red(` '${token}'`)
+        : color.red(` /${name}/`)
     this.traceEvent(ctx, Event.NoMatch, msg)
     return false
   }
