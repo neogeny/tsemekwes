@@ -24,7 +24,9 @@ lint: fmt
 
 # Compile the TypeScript codebase down into a single high-performance binary artifact
 build: clean
-    bun build ./src/cmd/cli.ts --outdir ./dist --target bun
+    #bun build ./src/cmd/cli.ts ./src/totetsu.ts --outdir ./dist --target bun
+    #tsc --declaration --emitDeclarationOnly --outDir ./dist
+    tsc --declaration
 
 # Execute a specific script file instantly through the native bun runtime engine
 run script:
@@ -33,3 +35,7 @@ run script:
 # Run the entire test pipeline directly using Bun
 test:
     bun test src/**/*.test.ts src/**/__tests__/*.test.ts
+
+prof script:
+    node --prof --cpu-prof {{script}}
+

@@ -3,12 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "main": "./dist/main.js",
-  "types": "./dist/main.d.ts",
+  "totetsu": "./dist/totetsu.js",
+  "types": "./dist/totetsu.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/main.d.ts",
-      "default": "./dist/main.js"
+      "types": "./dist/totetsu.d.ts",
+      "default": "./dist/totetsu.js"
     }
   },
   "imports": {
@@ -16,10 +16,10 @@
     "#api/*": "./src/api/*"
   },
   "bin": {
-    "totetsu": "./bin/totetsu"
+    "totetsu": "./src/cli"
   },
   "files": [
-    "dist"
+    "dist/*"
   ],
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist",
@@ -39,6 +39,7 @@
     "typescript-eslint": "^8.60.0"
   },
   "dependencies": {
+    "cli-progress": "^3.12.0",
     "commander": "^15.0.0",
     "isomorphic-git": "^1.38.3",
     "picocolors": "^1.1.1",

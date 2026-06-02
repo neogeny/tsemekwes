@@ -34,6 +34,10 @@
       "@util/*": ["./src/util/*"]
     }
   },
-  "include": ["src"]
-  //  "exclude": ["src/**/*.test.ts", "tests/**/*"]
+  "include": ["src"],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/__tests__/*",
+    "tests/**/*",
+  ]
 }
