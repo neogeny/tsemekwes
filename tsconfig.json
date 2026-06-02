@@ -19,17 +19,21 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
+      "@totetsu": ["./src"],
       "@totetsu/*": ["./src/*"],
-      "@api/*": ["./src/api/*"],
+      "@api": ["./src/api"],
+      "@config": ["./src/config"],
       "@config/*": ["./src/config/*"],
-      "@input/*": ["./src/input/*"],
-      "@trees/*": ["./src/trees/*"],
-      "@context/*": ["./src/context/*"],
+      "@input": ["./src/input"],
+      "@trees": ["./src/trees"],
+      "@context": ["./src/context"],
+      "@peg": ["./src/peg"],
       "@peg/*": ["./src/peg/*"],
-      "@json/*": ["./src/json/*"],
+      "@json": ["./src/json"],
+      "@util": ["./src/util"],
       "@util/*": ["./src/util/*"]
     }
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.test.ts", "tests/**/*"]
+  "include": ["src"]
+  //  "exclude": ["src/**/*.test.ts", "tests/**/*"]
 }

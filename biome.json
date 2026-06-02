@@ -17,9 +17,6 @@
     "formatWithErrors": false,
     "indentStyle": "space",
     "lineWidth": 80
-    "ignore": [
-      "**/grammar/*"
-    ]
   },
   "javascript": {
     "formatter": {
@@ -27,9 +24,6 @@
     }
   },
   "linter": {
-    "enabled": true,
-    "ignore": [
-      "**/grammar/*"
-    ]
+    "enabled": true
   }
 }

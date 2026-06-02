@@ -24,7 +24,7 @@ lint: fmt
 
 # Compile the TypeScript codebase down into a single high-performance binary artifact
 build: clean
-    bun build ./src/index.ts --outdir ./dist
+    bun build ./src/cmd/cli.ts --outdir ./dist --target bun
 
 # Execute a specific script file instantly through the native bun runtime engine
 run script:
