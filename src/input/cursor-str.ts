@@ -1,4 +1,4 @@
-import type { Cfg } from "../config/config.js"
+import type { Cfg } from "@config/config"
 import { type Cursor, Location } from "./cursor.js"
 import { splitlines, stripRight } from "@util/index.js"
 
@@ -299,7 +299,7 @@ export class StrCursor implements Cursor {
     const eol = this.heavy.patterns.eol
     const cmt = this.heavy.patterns.cmt
 
-    for (;;) {
+    while (true) {
       const prev = this.offset
       this.eatPattern(wsp)
       if (this.eatPattern(eol)) {

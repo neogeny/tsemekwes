@@ -6,7 +6,7 @@ import {
   WHITESPACE_PATTERN,
   COMMENT_PATTERN,
   EOL_COMMENT_PATTERN,
-} from "../grammarDirectives.js"
+} from "../directives-patterns.js"
 
 import { expect } from "bun:test"
 

@@ -1,9 +1,9 @@
-import { ConsoleTracer, NullTracer, type Tracer } from "@context/tracer.js"
-import { type Cfg, defaultCfg } from "../config/config.js"
-import type { Cursor } from "../input/cursor.js"
-import { Bool, NIL, NumberValue, Text, type Tree } from "../trees/tree.js"
-import { type CallStack, type Ctx, ParseFailure } from "./ctx.js"
-import { type Memo, type MemoKey, pruneMemoCache } from "./memo.js"
+import { ConsoleTracer, NullTracer, type Tracer } from "@context/tracer"
+import { type Cfg, defaultCfg } from "@config/config"
+import type { Cursor } from "@input/cursor"
+import { Bool, NIL, NumberValue, Text, type Tree } from "@trees/tree"
+import { type CallStack, type Ctx, ParseFailure } from "./ctx"
+import { type Memo, type MemoKey, pruneMemoCache } from "./memo"
 
 export function newCtx(cursor: Cursor, cfg?: Cfg): Core {
   return new Core(cursor, cfg)
@@ -18,19 +18,23 @@ export class Core implements Ctx {
   private lastCutMark = 0
   private furthest: ParseFailure | null = null
 
-  private cfg: Cfg
+  private _cfg: Cfg
   private memoCache = new Map<string, Memo>()
   private _tracer: Tracer = new NullTracer()
   private keywords = new Set<string>()
 
   constructor(cursor: Cursor, cfg?: Cfg) {
     this._cursor = cursor
-    this.cfg = cfg ? defaultCfg().override(cfg) : defaultCfg()
-    this._cursor.configure(this.cfg)
+    this._cfg = cfg ? defaultCfg().override(cfg) : defaultCfg()
+    this._cursor.configure(this._cfg)
+  }
+
+  cfg(): Cfg {
+    return this._cfg
   }
 
   configure(cfg: Cfg): void {
-    this.cfg = this.cfg.override(cfg)
+    this._cfg = this._cfg.override(cfg)
     this._cursor.configure(cfg)
     this.setKeywords(cfg.keywords ?? [])
     if (cfg.trace) {
@@ -45,7 +49,7 @@ export class Core implements Ctx {
   }
 
   clone(): Ctx {
-    const c = new Core(this._cursor.clone(), this.cfg)
+    const c = new Core(this._cursor.clone(), this._cfg)
     c._callStack = [...this._callStack]
     c.cutStack = [...this.cutStack]
     c.recursionKey = this.recursionKey
@@ -270,7 +274,7 @@ export class Core implements Ctx {
     this.cutStack[this.cutStack.length - 1] = true
     this._tracer.traceCut(this)
     const mark = this._cursor.mark()
-    if (!this.cfg.noPruneMemosOnCut && !this.inLookahead()) {
+    if (!this.cfg().noPruneMemosOnCut && !this.inLookahead()) {
       if (mark > this.lastCutMark) {
         pruneMemoCache(this.memoCache, this.lastCutMark)
         this.lastCutMark = mark
@@ -297,8 +301,8 @@ export class Core implements Ctx {
     _ruleName: string,
     _params: string[],
   ): [Tree, boolean] {
-    if (this.cfg.semantics) {
-      return this.cfg.semantics(node, _ruleName, _params)
+    if (this.cfg().semantics) {
+      return this.cfg().semantics?.(node, _ruleName, _params) || [node, false]
     }
     return [node, false]
   }

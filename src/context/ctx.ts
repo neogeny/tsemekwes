@@ -27,6 +27,7 @@ export class ParseFailure extends Error {
 }
 
 export interface Ctx {
+  cfg(): Cfg
   configure(cfg: Cfg): void
   clone(): Ctx
   merge(other: Ctx): void

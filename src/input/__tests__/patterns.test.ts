@@ -28,6 +28,7 @@ describe("patterns", () => {
     const p = defaultPatterns()
     assert.ok(p.wsp?.test(" "))
     assert.ok(p.wsp?.test("\t"))
+    assert.ok(p.wsp?.test("\r\n \t \n"))
     assert.ok(!p.wsp?.test("a"))
   })
 

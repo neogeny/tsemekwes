@@ -4,13 +4,13 @@ import {
   WHITESPACE_REGEX,
   COMMENT_REGEX,
   EOL_COMMENT_REGEX,
-} from "../grammarDirectives"
+} from "./directives-patterns"
 
 /**
  * Remove all whitespace, block comments, and end‑of‑line comments from the
  * supplied source string according to the TatSu grammar directives.
  */
-export function stripDirectives(source: string): string {
+export function directivesStrip(source: string): string {
   // Remove block comments (/* … */ or (* … *)). The regex is global and
   // multi‑line, so a simple replace works.
   let result = source.replace(COMMENT_REGEX, "")
