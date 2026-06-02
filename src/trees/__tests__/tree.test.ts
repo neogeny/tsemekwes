@@ -9,7 +9,7 @@ import {
   Named,
   NamedAsList,
   Nil,
-  Node,
+  NodeTree,
   NumberValue,
   Override,
   OverrideAsList,
@@ -204,9 +204,9 @@ describe("fold", () => {
   })
 
   it("Rule node", () => {
-    const result = fold(new Node("expr", text("42")))
-    assert.ok(result instanceof Node)
-    const r = result as Node
+    const result = fold(new NodeTree("expr", text("42")))
+    assert.ok(result instanceof NodeTree)
+    const r = result as NodeTree
     assert.equal(r.typeName, "expr")
   })
 })
@@ -221,7 +221,7 @@ describe("treeToJSONStr", () => {
   })
 
   it("Node with tree", () => {
-    const got = treeToJSONStr(new Node("expr", text("42")))
+    const got = treeToJSONStr(new NodeTree("expr", text("42")))
     const want = JSON.stringify({ __class__: "expr", ast: "42" }, null, 2)
     assert.equal(got, want)
   })

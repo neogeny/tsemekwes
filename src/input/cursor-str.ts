@@ -1,6 +1,6 @@
-import type { Cfg } from "@config/config"
+import type { Cfg } from "@config"
 import { type Cursor, Location } from "./cursor.js"
-import {lines, splitlines, stripRight} from "@util/index.js"
+import { lines, splitlines, stripRight } from "@util"
 import XRegExp from "xregexp"
 
 import {
@@ -115,9 +115,9 @@ export class StrCursor implements Cursor {
       return []
     }
 
-    let out: string[] = []
+    const out: string[] = []
     let i = 0
-    for (let line of lines(this.text)) {
+    for (const line of lines(this.text)) {
       if (i >= end) {
         break
       }

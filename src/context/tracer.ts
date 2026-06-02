@@ -1,6 +1,6 @@
-import type { Ctx } from "@context/ctx.js"
-import {Colors} from "picocolors/types";
-import color from "picocolors";
+import type { Ctx } from "@context"
+import type { Colors } from "picocolors/types"
+import color from "picocolors"
 
 export enum Event {
   Entry = 0,
@@ -80,7 +80,7 @@ function eventSymbol(pc: Colors, event: Event): string {
   }
 }
 
-function stackSymbol(pc:Colors, event: Event): string {
+function stackSymbol(pc: Colors, event: Event): string {
   switch (event) {
     case Event.Success:
       return pc.green("→")
@@ -163,9 +163,8 @@ export class ConsoleTracer implements Tracer {
   }
 
   traceNoMatch(ctx: Ctx, token: string, name: string): boolean {
-    const msg = token !== "" ?
-        color.red(` '${token}'`)
-        : color.red(` /${name}/`)
+    const msg =
+      token !== "" ? color.red(` '${token}'`) : color.red(` /${name}/`)
     this.traceEvent(ctx, Event.NoMatch, msg)
     return false
   }

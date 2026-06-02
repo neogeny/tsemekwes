@@ -1,4 +1,4 @@
-import { Exp, ExpKind } from "./exp.js"
+import { type Exp, ExpKind } from "../exp"
 
 export function isNullable(exp: Exp): boolean {
   console.assert(exp != null)

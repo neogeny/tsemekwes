@@ -1,6 +1,6 @@
-import type { Ctx } from "@context/ctx.js"
-import { type Exp, ExpKind } from "@peg/exp.js"
-import { NIL, type Tree, Seq } from "@trees/tree.js"
+import { NIL, type Tree, Seq } from "@trees"
+import type { Ctx } from "@context"
+import { type Exp, ExpKind } from "../exp"
 
 export function sequence(ctx: Ctx, items: Exp[]): Tree | null {
   const start = ctx.mark()
@@ -10,7 +10,7 @@ export function sequence(ctx: Ctx, items: Exp[]): Tree | null {
       ctx.cut()
       continue
     }
-    const result = item.parseAt(ctx)
+    const result = item.parse(ctx)
     if (result == null) {
       ctx.reset(start)
       return null

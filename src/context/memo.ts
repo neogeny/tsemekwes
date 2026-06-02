@@ -1,4 +1,4 @@
-import { BOTTOM, type Tree } from "../trees/tree.js"
+import { BOTTOM, type Tree } from "@trees"
 
 export interface MemoKey {
   mark: number

@@ -1,5 +1,5 @@
-import type { Ctx } from "../context/ctx.js"
-import { fold, Node as NodeTree, type Tree } from "../trees/tree.js"
+import type { Ctx } from "@context"
+import { fold, NodeTree, type Tree } from "@trees"
 import { BoxExp, type Exp, ExpKind } from "./exp.js"
 
 export class Rule extends BoxExp {
@@ -21,9 +21,9 @@ export class Rule extends BoxExp {
     super(exp)
   }
 
-  parseAt(ctx: Ctx): Tree | null {
+  parse(ctx: Ctx): Tree | null {
     const mark = ctx.mark()
-    const result = this.exp.parseAt(ctx)
+    const result = this.exp.parse(ctx)
     if (result == null) {
       ctx.reset(mark)
       return null

@@ -1,2 +1,2 @@
-export { Cfg, defaultCfg } from "./config"
-export type { Configurable } from "./config"
+export * from "./config"
+export * from "./globals"

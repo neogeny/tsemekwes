@@ -141,7 +141,7 @@ export class MapNode implements Tree {
   }
 }
 
-export class Node implements Tree {
+export class NodeTree implements Tree {
   readonly kind = TreeKind.Node
   constructor(
     public typeName: string,
@@ -310,7 +310,7 @@ export function treeToJSON(t: Tree): unknown {
     case TreeKind.OverrideAsList:
       return treeToJSON((t as OverrideAsList).value)
     case TreeKind.Node: {
-      const node = t as Node
+      const node = t as NodeTree
       const child = treeToJSON(node.tree)
       if (
         typeof child === "object" &&

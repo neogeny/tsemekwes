@@ -1,14 +1,13 @@
 import {
   ArrayValue as ArrayTree,
   MapNode,
-  Node as NodeTree,
+  NodeTree,
   Seq,
   Text,
   type Tree,
-} from "../trees/tree.js"
+} from "../../trees/tree"
 import {
   AlertExp,
-  CallExp,
   ChoiceExp,
   ClosureExp,
   ConstantExp,
@@ -40,9 +39,10 @@ import {
   SkipToExp,
   TokenExp,
   VoidExp,
-} from "./exp.js"
-import { Grammar } from "./grammar.js"
-import { Rule } from "./rule.js"
+} from "../exp"
+import { Grammar } from "../grammar"
+import { Rule } from "../rule"
+import { CallExp } from "../call"
 
 class CompileError extends Error {
   constructor(msg: string) {

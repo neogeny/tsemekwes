@@ -1,12 +1,12 @@
-import type { Ctx } from "@totetsu/context/ctx.js"
-import type { Exp } from "@peg/exp.js"
-import { ArrayValue, NIL, type Tree } from "@totetsu/trees/tree.js"
+import type { Ctx } from "@context"
+import type { Exp } from "../exp"
+import { ArrayValue, NIL, type Tree } from "@trees"
 
 export function closure(ctx: Ctx, exp: Exp, positive: boolean): Tree | null {
   const results: Tree[] = []
   while (true) {
     const branch = ctx.mark()
-    const result = exp.parseAt(ctx)
+    const result = exp.parse(ctx)
     if (result == null) {
       ctx.reset(branch)
       break
@@ -30,7 +30,7 @@ export function closureWithSep(
   keepSep: boolean,
 ): Tree | null {
   const results: Tree[] = []
-  const first = exp.parseAt(ctx)
+  const first = exp.parse(ctx)
   if (first == null) {
     if (positive) {
       ctx.failure(ctx.mark(), "join requires at least one match")
@@ -41,7 +41,7 @@ export function closureWithSep(
   if (first !== NIL) results.push(first)
   while (true) {
     const branch = ctx.mark()
-    const sepResult = sep.parseAt(ctx)
+    const sepResult = sep.parse(ctx)
     if (sepResult == null) {
       ctx.reset(branch)
       break
@@ -49,7 +49,7 @@ export function closureWithSep(
     if (keepSep && sepResult !== NIL) {
       results.push(sepResult)
     }
-    const expResult = exp.parseAt(ctx)
+    const expResult = exp.parse(ctx)
     if (expResult == null) {
       ctx.reset(branch)
       break

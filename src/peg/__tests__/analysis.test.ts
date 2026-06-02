@@ -3,7 +3,6 @@ import { describe, it } from "node:test"
 import {
   AlertExp,
   AltExp,
-  CallExp,
   ChoiceExp,
   ClosureExp,
   ConstantExp,
@@ -37,9 +36,11 @@ import {
   TokenExp,
   VoidExp,
 } from "../exp.js"
-import { markLeftRecursion } from "../leftrec.js"
-import { isNullable } from "../nullability.js"
+import { markLeftRecursion } from "../analysis/leftrec.js"
+import { isNullable } from "../analysis/nullability.js"
 import { Rule } from "../rule.js"
+import { CallExp } from "../call"
+import { linkRule } from "@peg"
 
 function wrap(exp: Exp, kind: ExpKind): Exp {
   switch (kind) {
@@ -187,7 +188,7 @@ describe("markLeftRecursion", () => {
   function linkRules(rules: Rule[]): void {
     const m = new Map(rules.map((r) => [r.name, r]))
     for (const r of rules) {
-      r.link(m)
+      linkRule(r, m)
     }
   }
 

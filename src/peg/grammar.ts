@@ -1,11 +1,13 @@
-import { Cfg, defaultCfg } from "@config/config"
-import type { Ctx } from "@context/ctx"
-import type { Tree } from "@trees/tree"
-import { CallExp, Exp, ExpKind } from "./exp.js"
-import { modelToJSONStr as _modelToJSONStr } from "./export.js"
-import { markLeftRecursion } from "./leftrec.js"
-import { prettyPrintGrammar } from "./pretty.js"
-import type { Rule } from "./rule.js"
+import { Cfg, defaultCfg } from "@config"
+import type { Ctx } from "@context"
+import type { Tree } from "@trees"
+import { Exp, ExpKind } from "./exp"
+import { modelToJSONStr as _modelToJSONStr } from "./export"
+import { markLeftRecursion } from "./analysis/leftrec"
+import { prettyPrintGrammar } from "./pretty"
+import type { Rule } from "./rule"
+import { linkGrammar } from "./analysis/link"
+import { CallExp } from "./call"
 
 export class Grammar extends Exp {
   readonly kind = ExpKind.Grammar
@@ -24,14 +26,7 @@ export class Grammar extends Exp {
     super()
   }
 
-  override link(rules: Map<string, Rule>) {
-    super.link(rules)
-    for (const rule of this.rules) {
-      rule.link(rules)
-    }
-  }
-
-  ruleMap(): Map<string, Rule> {
+  public ruleMap(): Map<string, Rule> {
     const m = new Map<string, Rule>()
     for (const rule of this.rules) {
       m.set(rule.name, rule)
@@ -62,7 +57,7 @@ export class Grammar extends Exp {
 
   initialize(): void {
     this.normalize()
-    this.link(this.ruleMap())
+    linkGrammar(this)
     this.validateLinked()
     if (!this.hasNoLeftRecursion()) {
       markLeftRecursion(this.rules)
@@ -154,7 +149,7 @@ export class Grammar extends Exp {
     return c
   }
 
-  parseAt(ctx: Ctx, extraCfg?: Partial<Cfg>): Tree | null {
+  parse(ctx: Ctx, extraCfg?: Partial<Cfg>): Tree | null {
     let acfg = defaultCfg()
     acfg = acfg.override(this.cfgFromDirectives())
     acfg = acfg.override(extraCfg ?? {})
@@ -167,6 +162,6 @@ export class Grammar extends Exp {
       ctx.failure(ctx.mark(), "no rules in grammar")
       return null
     }
-    return rule.parseAt(ctx)
+    return rule.parse(ctx)
   }
 }

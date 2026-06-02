@@ -1,13 +1,16 @@
 import {
-  type CallExp,
-  type Exp,
   ExpKind,
-  type JoinExp,
+  type Exp,
+  type BoxExp,
+  type SepBoxExp,
+  type ChoiceExp,
   type RuleIncludeExp,
   type SeqExp,
-} from "./exp.js"
-import type { Rule } from "./rule.js"
-import { LinkError } from "@peg/error.js"
+} from "../exp"
+import type { Rule } from "../rule"
+import { LinkError } from "../error"
+import type { Grammar } from "../grammar"
+import type { CallExp } from "../call"
 
 export function linkExp(exp: Exp | null, rules: Map<string, Rule>): void {
   if (exp == null) return
@@ -56,25 +59,30 @@ export function linkExp(exp: Exp | null, rules: Map<string, Rule>): void {
     case ExpKind.Alt:
     case ExpKind.Optional:
     case ExpKind.Closure:
-    case ExpKind.PositiveClosure:
-      exp.link(rules)
+    case ExpKind.PositiveClosure: {
+      const box = exp as BoxExp
+      linkExp(box.exp, rules)
       return
+    }
     // Binary — recurse into both
     case ExpKind.Join:
     case ExpKind.PositiveJoin:
     case ExpKind.Gather:
     case ExpKind.PositiveGather: {
-      exp.link(rules)
-      const join = exp as unknown as JoinExp
-      linkExp(join.exp, rules)
-      linkExp(join.sep, rules)
+      const box = exp as SepBoxExp
+      linkExp(box.exp, rules)
+      linkExp(box.sep, rules)
       return
     }
     // Collection — recurse into all
     case ExpKind.Sequence:
+      for (const item of (exp as SeqExp).sequence) {
+        linkExp(item, rules)
+      }
+      return
     case ExpKind.Choice: {
-      for (const child of (exp as SeqExp).sequence) {
-        linkExp(child, rules)
+      for (const opt of (exp as ChoiceExp).options) {
+        linkExp(opt, rules)
       }
       return
     }
@@ -87,11 +95,9 @@ export function linkRule(rule: Rule, rules: Map<string, Rule>): void {
   linkExp(rule.exp, rules)
 }
 
-export function linkGrammar(
-  grammar: { rules: Rule[] },
-  rules: Map<string, Rule>,
-): void {
+export function linkGrammar(grammar: Grammar): void {
+  const rulemap = grammar.ruleMap()
   for (const rule of grammar.rules) {
-    linkRule(rule, rules)
+    linkRule(rule, rulemap)
   }
 }

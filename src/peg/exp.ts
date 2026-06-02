@@ -1,23 +1,20 @@
-import type { Ctx } from "../context/ctx.js"
-import { ruleCall } from "./parsing/call.js"
+import type { Ctx } from "@context"
 
 import {
   ArrayValue,
-  NamedAsList as NamedAsListTree,
   Named as NamedTree,
+  NamedAsList as NamedAsListTree,
   NIL,
-  OverrideAsList as OverrideAsListTree,
   Override as OverrideTree,
+  OverrideAsList as OverrideAsListTree,
   Text as TextTree,
   type Tree,
 } from "../trees/tree.js"
-import type { Rule } from "./rule.js"
-import { closure, closureWithSep } from "@peg/parsing/closure.js"
-import { LinkError } from "@peg/error.js"
-import { prettyPrintExp } from "@peg/pretty.js"
-import { expToJSON } from "@peg/export.js"
-import { parseChoice } from "@peg/parsing/choice.js"
-import { sequence } from "@peg/parsing/sequence.js"
+import { closure, closureWithSep } from "./parsing/closure.js"
+import { prettyPrintExp } from "./pretty.js"
+import { expToJSON } from "./export.js"
+import { parseChoice } from "./parsing/choice.js"
+import { sequence } from "./parsing/sequence.js"
 
 export enum ExpKind {
   Nil = "Nil",
@@ -111,13 +108,13 @@ export abstract class Exp {
       case ExpKind.Grammar:
         return []
       case ExpKind.Rule:
-        return []
+        return (this as unknown as BoxExp).exp.children()
       default:
         throw new Error(`unhandled ExpKind: ${this.kind}`)
     }
   }
 
-  parseAt(ctx: Ctx): Tree | null {
+  parse(ctx: Ctx): Tree | null {
     switch (this.kind) {
       case ExpKind.Nil:
         return NIL
@@ -178,47 +175,42 @@ export abstract class Exp {
         return new TextTree(exp.value)
       }
 
-      case ExpKind.Call: {
-        const exp = this as unknown as CallExp
-        return ruleCall(ctx, exp.name, exp.rule)
-      }
-
       case ExpKind.Named: {
         const named = this as unknown as NamedExp
-        const result = named.exp.parseAt(ctx)
+        const result = named.exp.parse(ctx)
         if (result == null) return null
         return new NamedTree(named.name, result)
       }
 
       case ExpKind.NamedList: {
         const named = this as unknown as NamedListExp
-        const result = named.exp.parseAt(ctx)
+        const result = named.exp.parse(ctx)
         if (result == null) return null
         return new NamedAsListTree(named.name, result)
       }
 
       case ExpKind.Override: {
         const ovr = this as unknown as OverrideExp
-        const result = ovr.exp.parseAt(ctx)
+        const result = ovr.exp.parse(ctx)
         if (result == null) return null
         return new OverrideTree(result)
       }
 
       case ExpKind.OverrideList: {
         const ovr = this as unknown as OverrideListExp
-        const result = ovr.exp.parseAt(ctx)
+        const result = ovr.exp.parse(ctx)
         if (result == null) return null
         return new OverrideAsListTree(result)
       }
 
       case ExpKind.Group: {
         const group = this as unknown as GroupExp
-        return group.exp.parseAt(ctx)
+        return group.exp.parse(ctx)
       }
 
       case ExpKind.SkipGroup: {
         const skip = this as unknown as SkipGroupExp
-        const result = skip.exp.parseAt(ctx)
+        const result = skip.exp.parse(ctx)
         if (result == null) return null
         return NIL
       }
@@ -227,7 +219,7 @@ export abstract class Exp {
         const la = this as unknown as LookaheadExp
         const branch = ctx.mark()
         ctx.enterLookahead()
-        const result = la.exp.parseAt(ctx)
+        const result = la.exp.parse(ctx)
         ctx.reset(branch)
         ctx.leaveLookahead()
         if (result == null) return null
@@ -238,7 +230,7 @@ export abstract class Exp {
         const la = this as unknown as NegativeLookaheadExp
         const branch = ctx.mark()
         ctx.enterLookahead()
-        const result = la.exp.parseAt(ctx)
+        const result = la.exp.parse(ctx)
         ctx.reset(branch)
         ctx.leaveLookahead()
         if (result != null) {
@@ -252,7 +244,7 @@ export abstract class Exp {
         const skip = this as unknown as SkipToExp
         const mark = ctx.mark()
         while (!ctx.atEnd()) {
-          const result = skip.exp.parseAt(ctx)
+          const result = skip.exp.parse(ctx)
           if (result != null) return result
 
           const [_, ok] = ctx.next()
@@ -265,13 +257,13 @@ export abstract class Exp {
 
       case ExpKind.Alt: {
         const alt = this as unknown as AltExp
-        return alt.exp.parseAt(ctx)
+        return alt.exp.parse(ctx)
       }
 
       case ExpKind.Optional: {
         const opt = this as unknown as OptionalExp
         const branch = ctx.mark()
-        const result = opt.exp.parseAt(ctx)
+        const result = opt.exp.parse(ctx)
         if (result != null) return result
         ctx.reset(branch)
         return NIL
@@ -323,15 +315,13 @@ export abstract class Exp {
           ctx.failure(ctx.mark(), `rule not linked: ${include.name}`)
           return null
         }
-        return include.exp.parseAt(ctx)
+        return include.exp.parse(ctx)
       }
 
       default:
-        throw new Error(`unhandled ExpKind: ${this.kind}`)
+        throw new Error(`parse() unhandled ExpKind: ${this.kind}`)
     }
   }
-
-  link(_rules: Map<string, Rule>): void {}
 
   pretty(): string {
     return prettyPrintExp(this)
@@ -350,10 +340,6 @@ export abstract class BoxExp extends Exp {
   constructor(public exp: Exp) {
     super()
   }
-
-  override link(rules: Map<string, Rule>) {
-    this.exp.link(rules)
-  }
 }
 
 export abstract class NamedBoxExp extends BoxExp {
@@ -371,11 +357,6 @@ export abstract class SepBoxExp extends BoxExp {
     public sep: Exp,
   ) {
     super(exp)
-  }
-
-  override link(rules: Map<string, Rule>) {
-    super.link(rules)
-    this.sep.link(rules)
   }
 }
 
@@ -440,22 +421,6 @@ export class AlertExp extends Exp {
     public level: number,
   ) {
     super()
-  }
-}
-
-export class CallExp extends Exp {
-  readonly kind = ExpKind.Call
-  constructor(
-    public name: string,
-    public rule: Rule | null = null,
-  ) {
-    super()
-  }
-  override link(rules: Map<string, Rule>) {
-    // Implementation for linking call expressions
-    const rule = rules.get(this.name)
-    if (!rule) throw new LinkError(`call to undefined rule: ${this.name}`)
-    this.rule = rule
   }
 }
 
@@ -539,25 +504,12 @@ export class SeqExp extends Exp {
   constructor(public sequence: Exp[]) {
     super()
   }
-  override link(rules: Map<string, Rule>) {
-    super.link(rules)
-    for (const item of this.sequence) {
-      item.link(rules)
-    }
-  }
 }
 
 export class ChoiceExp extends Exp {
   readonly kind = ExpKind.Choice
   constructor(public options: Exp[]) {
     super()
-  }
-
-  override link(rules: Map<string, Rule>) {
-    super.link(rules)
-    for (const opt of this.options) {
-      opt.link(rules)
-    }
   }
 }
 
@@ -568,15 +520,5 @@ export class RuleIncludeExp extends Exp {
     public exp: Exp | null = null,
   ) {
     super()
-  }
-
-  override link(rules: Map<string, Rule>) {
-    super.link(rules)
-    const rule = rules.get(this.name)
-    if (!rule)
-      throw new LinkError(
-        `rule include references undefined rule: ${this.name}`,
-      )
-    this.exp = rule.exp
   }
 }

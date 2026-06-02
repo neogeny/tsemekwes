@@ -17,7 +17,7 @@ describe("Cfg", () => {
     assert.equal(cfg.colorize, false)
     assert.equal(cfg.noLeftRecursion, false)
     assert.equal(cfg.nameGuard, null)
-    assert.equal(cfg.whitespace, null)
+    assert.equal(cfg.whitespace, undefined)
     assert.deepEqual(cfg.keywords, [])
     assert.equal(cfg.parseInfo, false)
     assert.equal(cfg.semantics, undefined)

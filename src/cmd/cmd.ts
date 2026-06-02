@@ -1,7 +1,8 @@
-import { loadGrammar, parseInput } from "@api/api.js"
-import { bootGrammar } from "@json/boot.js"
-import { newCfg, readText } from "@totetsu/cmd/helpers.js"
-import { treeToJSONStr } from "@trees/tree.js"
+import { loadGrammar, parseInput } from "@api"
+import { bootGrammar } from "@json"
+import { newCfg, readText } from "@util/helpers"
+import { asjsonStr } from "@util/asjson"
+import { treeToJSONStr } from "@trees"
 
 export async function cmdRun(
   grammarPath: string,
@@ -13,8 +14,7 @@ export async function cmdRun(
 
   if (inputPaths.length === 0) {
     if (options.json) {
-      const out = { name: g.name, rules: g.rules.map((r) => r.name) }
-      console.log(JSON.stringify(out, null, 2))
+      console.log(asjsonStr(g))
     } else {
       console.log(`Compiled grammar: ${g.name}`)
       console.log(`  rules: ${g.rules.length}`)
@@ -70,13 +70,7 @@ export async function cmdRun(
 export function cmdBoot(options: { json?: boolean; pretty?: boolean }): void {
   const g = bootGrammar()
   if (options.json) {
-    const out = {
-      name: g.name,
-      rules: g.rules.length,
-      directives: g.directives.map((d) => ({ name: d[0], value: d[1] })),
-      keywords: g.keywords,
-    }
-    console.log(JSON.stringify(out, null, 2))
+    console.log(asjsonStr(g))
   } else {
     console.log(`Boot grammar: ${g.name}`)
     console.log(`  rules: ${g.rules.length}`)
@@ -95,13 +89,7 @@ export async function cmdGrammar(
   const g = await loadGrammar(grammarPath, cfg)
 
   if (options.json) {
-    const out = {
-      name: g.name,
-      rules: g.rules.map((r) => r.name),
-      directives: g.directives.map((d) => ({ name: d[0], value: d[1] })),
-      keywords: g.keywords,
-    }
-    console.log(JSON.stringify(out, null, 2))
+    console.log(asjsonStr(g))
   } else {
     console.log(`Grammar: ${g.name}`)
     console.log(`  rules: ${g.rules.length}`)

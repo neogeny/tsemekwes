@@ -1,7 +1,7 @@
-import { ConsoleTracer, NullTracer, type Tracer } from "@context/tracer"
-import { type Cfg, defaultCfg } from "@config/config"
-import type { Cursor } from "@input/cursor"
-import { Bool, NIL, NumberValue, Text, type Tree } from "@trees/tree"
+import { ConsoleTracer, NullTracer, type Tracer } from "@context"
+import { type Cfg, defaultCfg } from "@config"
+import type { Cursor } from "@input"
+import { Bool, NIL, NumberValue, Text, type Tree } from "@trees"
 import { type CallStack, type Ctx, ParseFailure } from "./ctx"
 import { type Memo, type MemoKey, pruneMemoCache } from "./memo"
 
@@ -188,7 +188,7 @@ export class Core implements Ctx {
 
   failure(start: number, msg: string): ParseFailure {
     this._cursor.reset(start)
-    const err = new ParseFailure(start, msg, this._cursor, this._callStack)
+    const err = new ParseFailure(start, msg, this)
     if (this.furthest == null || this.furthest.mark <= this._cursor.mark()) {
       this.setFurthestFailure(err)
     }

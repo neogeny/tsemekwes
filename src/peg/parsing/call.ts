@@ -1,7 +1,7 @@
-import type { Ctx } from "@context/ctx.js"
-import type { Rule } from "@peg/rule.js"
-import { BOTTOM, type Text, type Tree, TreeKind } from "@trees/tree.js"
-import type { MemoKey } from "@context/memo.js"
+import type { Ctx } from "@context"
+import { BOTTOM, type Text, type Tree, TreeKind } from "@trees"
+import type { MemoKey } from "@context"
+import type { Rule } from "../rule"
 
 /**
  * Implements the rule call semantics that were present in the Go version.
@@ -11,11 +11,7 @@ import type { MemoKey } from "@context/memo.js"
  *   • Tracing (entry, success, failure, recursion)
  *   • Name‑rule keyword reservation checks
  */
-export function ruleCall(
-  ctx: Ctx,
-  name: string,
-  rule: Rule | null,
-): Tree | null {
+export function call(ctx: Ctx, name: string, rule: Rule | null): Tree | null {
   const start = ctx.mark()
   ctx.heartbeatTick()
 
@@ -34,7 +30,7 @@ export function ruleCall(
     ctx.tracer().traceEntry(ctx)
   }
   ctx.enter(name)
-  const result = doCall(ctx, name, rule, key)
+  const result = doCall(ctx, name, rule)
   ctx.leave()
 
   if (result === null) {
@@ -71,8 +67,12 @@ export function ruleCall(
 
 /**
  * Core call logic: memo lookup, left‑recursion handling, or simple rule parse.
+ *
+ * NOTE: key is computed AFTER whitespace skip (post‑nextToken), matching the
+ * TieXiu approach so that nested left‑recursive calls share the same LR key.
  */
-function doCall(ctx: Ctx, name: string, rule: Rule, key: MemoKey): Tree | null {
+function doCall(ctx: Ctx, name: string, rule: Rule): Tree | null {
+  const key = ctx.key(name, rule.isMemoizable())
   const memo = ctx.memo(key)
   if (memo) {
     if (memo.tree === BOTTOM) {
@@ -89,7 +89,7 @@ function doCall(ctx: Ctx, name: string, rule: Rule, key: MemoKey): Tree | null {
     return callRecursive(ctx, name, rule, key)
   }
 
-  return rule.parseAt(ctx)
+  return rule.parse(ctx)
 }
 
 /**
@@ -121,7 +121,7 @@ function callRecursive(
       return null
     }
 
-    const result = rule.parseAt(ctx)
+    const result = rule.parse(ctx)
     ctx.untrack(key)
 
     if (result === null) break

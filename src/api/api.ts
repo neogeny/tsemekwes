@@ -1,24 +1,14 @@
 import { readFile } from "node:fs/promises"
-import { ext, readText } from "@totetsu/cmd/helpers.js"
-import { type Cfg, defaultCfg } from "@config/config"
-import { newCtx } from "@context/core"
-import { StrCursor } from "@input/cursor-str.js"
-import { bootGrammar as boot } from "../json/boot.js"
-import { loadGrammarFromJSON as loadJSON } from "../json/import.js"
-import { compileGrammar } from "@totetsu/peg"
-import type { Grammar } from "@totetsu/peg"
-import type { Tree } from "@trees/tree"
-
-export class ApiError extends Error {
-  constructor(
-    msg: string,
-    public readonly _cause?: unknown,
-  ) {
-    super(msg)
-    this.name = "ApiError"
-    this._cause = _cause
-  }
-}
+import { ext, readText } from "@util"
+import { type Cfg, defaultCfg } from "@config"
+import { newCtx } from "@context"
+import { StrCursor } from "@input"
+import { bootGrammar as boot } from "@json"
+import { loadGrammarFromJSON as loadJSON } from "@json"
+import { compileGrammar } from "@peg"
+import type { Grammar } from "@peg"
+import type { Tree } from "@trees"
+import { ApiError } from "./error.js"
 
 export function defaultConfig(): Cfg {
   return defaultCfg()
@@ -29,7 +19,7 @@ export function parseGrammar(grammar: string, cfg?: Cfg): Tree {
   const cursor = new StrCursor(grammar)
   const merged = cfg ?? undefined
   const ctx = newCtx(cursor, merged)
-  const tree = boot.parseAt(ctx, merged)
+  const tree = boot.parse(ctx, merged)
   if (tree == null) {
     const failure = ctx.furthestFailure()
     if (failure) throw new ApiError(failure.memento.error())
@@ -39,21 +29,15 @@ export function parseGrammar(grammar: string, cfg?: Cfg): Tree {
 }
 
 export function compile(grammar: string, cfg?: Cfg): Grammar {
-  try {
-    const tree = parseGrammar(grammar, cfg)
-    return compileGrammar(tree)
-  } catch (e) {
-    throw e
-    // if (e instanceof ApiError) throw e
-    // throw new ApiError(`grammar compilation failed: ${(e as Error).message}`, e)
-  }
+  const tree = parseGrammar(grammar, cfg)
+  return compileGrammar(tree)
 }
 
 export function parseInput(parser: Grammar, text: string, cfg?: Cfg): Tree {
   const cursor = new StrCursor(text)
   const merged = cfg ?? undefined
   const ctx = newCtx(cursor, merged)
-  const result = parser.parseAt(ctx, merged)
+  const result = parser.parse(ctx, merged)
   if (result == null) {
     const failure = ctx.furthestFailure()
     if (failure) throw new ApiError(failure.memento.error())

@@ -2,7 +2,6 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import {
   AlertExp,
-  CallExp,
   ChoiceExp,
   ClosureExp,
   ConstantExp,
@@ -27,6 +26,7 @@ import {
   TokenExp,
   VoidExp,
 } from "../exp.js"
+import { CallExp } from "../call"
 
 describe("ExpKind", () => {
   it("has 33 variants", () => {

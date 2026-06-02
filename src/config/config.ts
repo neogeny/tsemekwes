@@ -1,4 +1,4 @@
-import type { Tree } from "@trees/tree"
+import type { Tree } from "@trees"
 
 export interface Configurable {
   configure(cfg: Cfg): void

@@ -1,7 +1,7 @@
-import type { Tracer } from "@context/tracer.js"
-import type { Cfg } from "@config/config"
-import type { Cursor } from "@input/cursor"
-import type { Tree } from "@trees/tree"
+import type { Tracer } from "./tracer"
+import type { Cfg } from "@config"
+import type { Cursor } from "@input"
+import type { Tree } from "@trees"
 import { Memento } from "./memento.js"
 import type { Memo, MemoKey } from "./memo.js"
 
@@ -13,12 +13,17 @@ export class ParseFailure extends Error {
   constructor(
     public readonly start: number,
     msg: string,
-    cursor: Cursor,
-    callStack: CallStack,
+    ctx: Ctx,
   ) {
     super(msg)
     this.name = "ParseFailure"
-    this.memento = new Memento(start, msg, cursor, callStack)
+    this.memento = new Memento(
+      start,
+      msg,
+      ctx.cursor(),
+      ctx.callStack(),
+      ctx.cfg().colorize as boolean,
+    )
   }
 
   get mark(): number {

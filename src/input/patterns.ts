@@ -1,4 +1,4 @@
-import type { Cfg } from "@config/config.js"
+import type { Cfg } from "@config"
 import XRegExp from "xregexp"
 
 function compileRe(pattern: string, extraFlags?: string): RegExp | null {

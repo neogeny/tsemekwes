@@ -1,6 +1,6 @@
+import { Cfg } from "@config"
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { Cfg } from "../../config"
 import { TokenizingPatterns } from "../patterns"
 import { StrCursor } from "../cursor-str.js"
 

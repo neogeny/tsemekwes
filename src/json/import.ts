@@ -1,6 +1,5 @@
 import {
   AlertExp,
-  CallExp,
   ChoiceExp,
   ClosureExp,
   ConstantExp,
@@ -35,6 +34,7 @@ import {
 } from "../peg/exp.js"
 import { Grammar } from "../peg/grammar.js"
 import { Rule } from "../peg/rule.js"
+import { CallExp } from "@peg/call"
 
 export class ImportError extends Error {
   constructor(msg: string) {
@@ -93,7 +93,9 @@ export function loadGrammarFromJSON(data: unknown): Grammar {
   const directives = parseDirectives(root)
   const keywords = parseKeywords(root)
 
-  return new Grammar(name, rules, directives, keywords)
+  const g = new Grammar(name, rules, directives, keywords)
+  g.initialize()
+  return g
 }
 
 function parseDirectives(obj: Record<string, unknown>): string[][] {

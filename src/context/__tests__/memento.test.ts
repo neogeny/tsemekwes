@@ -1,13 +1,14 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { StrCursor } from "../../input/cursor-str.js"
-import { Memento } from "../memento.js"
+import { StrCursor } from "@input"
+import { Memento } from "@context"
 
 describe("Memento", () => {
   it("captures start, mark, msg, callstack", () => {
     const cursor = new StrCursor("hello world")
     cursor.reset(6)
-    const m = new Memento(6, "test error", cursor, ["ruleA", "ruleB"])
+
+    const m = new Memento(6, "test error", cursor, ["ruleA", "ruleB"], true)
     assert.equal(m.start, 6)
     assert.equal(m.mark, 6)
     assert.equal(m.msg, "test error")

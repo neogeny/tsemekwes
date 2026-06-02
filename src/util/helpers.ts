@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises"
-import { type Cfg, defaultCfg } from "@config/config.js"
+import { type Cfg, defaultCfg } from "@config/config"
 
 export async function readText(path: string): Promise<string> {
   if (path === "-") {

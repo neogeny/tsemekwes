@@ -31,23 +31,23 @@ export function stripRight(s: string): string {
   return s.replace(/\s+$/g, "")
 }
 
-import git from "isomorphic-git";
-import fs from "node:fs";
+import git from "isomorphic-git"
+import fs from "node:fs"
 export async function getProjectGitVersion(dir: string = "."): Promise<string> {
   try {
-    const sha = await git.resolveRef({ fs, dir, ref: "HEAD" });
+    const sha = await git.resolveRef({ fs, dir, ref: "HEAD" })
 
-    const tags = await git.listTags({ fs, dir });
+    const tags = await git.listTags({ fs, dir })
 
     for (const tag of tags) {
-      const tagSha = await git.resolveRef({ fs, dir, ref: tag });
+      const tagSha = await git.resolveRef({ fs, dir, ref: tag })
       if (tagSha === sha) {
-        return tag; // Returns the clean semantic tag (e.g., "v1.2.0")
+        return tag // Returns the clean semantic tag (e.g., "v1.2.0")
       }
     }
 
-    return sha.slice(0, 7);
-  } catch (error) {
-    return "unknown";
+    return sha.slice(0, 7)
+  } catch (_) {
+    return "unknown"
   }
 }
