@@ -95,7 +95,6 @@ export function defaultCfg(): Cfg {
   c.noLeftRecursion = false
   c.ignoreCase = false
   c.nameGuard = null
-  c.whitespace = null
   c.keywords = []
   c.parseInfo = false
   return c

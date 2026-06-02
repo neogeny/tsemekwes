@@ -1,6 +1,6 @@
 import type { Ctx } from "@totetsu/context/ctx.js"
 import type { Exp } from "@peg/exp.js"
-import { NIL, type Tree, Seq } from "@totetsu/trees/tree.js"
+import { ArrayValue, NIL, type Tree } from "@totetsu/trees/tree.js"
 
 export function closure(ctx: Ctx, exp: Exp, positive: boolean): Tree | null {
   const results: Tree[] = []
@@ -11,17 +11,15 @@ export function closure(ctx: Ctx, exp: Exp, positive: boolean): Tree | null {
       ctx.reset(branch)
       break
     }
-    if (result !== NIL) {
-      results.push(result)
-    }
+    results.push(result)
   }
   if (positive && results.length === 0) {
     ctx.failure(ctx.mark(), "positive closure requires at least one match")
     return null
   }
-  if (results.length === 0) return NIL
+  if (results.length === 0) return new ArrayValue([])
   if (results.length === 1) return results[0]
-  return new Seq(results)
+  return new ArrayValue(results)
 }
 
 export function closureWithSep(
@@ -61,6 +59,5 @@ export function closureWithSep(
     }
   }
   if (results.length === 0) return NIL
-  if (results.length === 1) return results[0]
-  return new Seq(results)
+  return new ArrayValue(results)
 }

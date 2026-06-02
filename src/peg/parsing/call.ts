@@ -93,7 +93,7 @@ function doCall(ctx: Ctx, name: string, rule: Rule, key: MemoKey): Tree | null {
 }
 
 /**
- * Left‑recursive handling using the seed‑grow algorithm from the Go code.
+ * Left‑recursive handling using the seed‑grow algorithm.
  */
 function callRecursive(
   ctx: Ctx,
@@ -105,11 +105,11 @@ function callRecursive(
   ctx.tracer().traceRecursion(ctx)
   ctx.memoize(key, BOTTOM, ctx.mark())
 
-  let lastMark = ctx.mark()
+  let lastMark = start
   let lastTree: Tree | null = null
 
   while (true) {
-    ctx.reset(lastMark)
+    ctx.reset(start)
 
     ctx.track(key)
     if (ctx.recursionDepthExceeded()) {
@@ -124,14 +124,10 @@ function callRecursive(
     const result = rule.parseAt(ctx)
     ctx.untrack(key)
 
-    if (result === null) {
-      break
-    }
+    if (result === null) break
 
     const endMark = ctx.mark()
-    if (endMark <= lastMark) {
-      break
-    }
+    if (endMark <= lastMark) break
 
     lastMark = endMark
     lastTree = result

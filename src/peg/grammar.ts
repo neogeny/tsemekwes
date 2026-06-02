@@ -49,11 +49,24 @@ export class Grammar extends Exp {
     }
   }
 
+  private hasNoLeftRecursion(): boolean {
+    for (const dir of this.directives) {
+      if (dir.length < 2) continue
+      if (dir[0] === "left_recursion") {
+        const s = dir[1]
+        if (s !== "True" && s !== "true" && s !== "1") return true
+      }
+    }
+    return false
+  }
+
   initialize(): void {
     this.normalize()
     this.link(this.ruleMap())
     this.validateLinked()
-    markLeftRecursion(this.rules)
+    if (!this.hasNoLeftRecursion()) {
+      markLeftRecursion(this.rules)
+    }
     this.analyzed = true
   }
 

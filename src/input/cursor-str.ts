@@ -1,6 +1,7 @@
 import type { Cfg } from "@config/config"
 import { type Cursor, Location } from "./cursor.js"
 import {lines, splitlines, stripRight} from "@util/index.js"
+import XRegExp from "xregexp"
 
 import {
   configurePatterns,
@@ -270,9 +271,9 @@ export class StrCursor implements Cursor {
       return cached
     }
     try {
-      const re = new RegExp(pattern)
-      this.heavy.patternCache.set(pattern, re)
-      return re
+      const re = XRegExp(pattern)
+      this.heavy.patternCache.set(pattern, re as RegExp)
+      return re as RegExp
     } catch {
       return null
     }

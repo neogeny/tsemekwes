@@ -2,6 +2,7 @@ import type { Ctx } from "../context/ctx.js"
 import { ruleCall } from "./parsing/call.js"
 
 import {
+  ArrayValue,
   NamedAsList as NamedAsListTree,
   Named as NamedTree,
   NIL,
@@ -119,8 +120,9 @@ export abstract class Exp {
   parseAt(ctx: Ctx): Tree | null {
     switch (this.kind) {
       case ExpKind.Nil:
-      case ExpKind.EmptyClosure:
         return NIL
+      case ExpKind.EmptyClosure:
+        return new ArrayValue([])
 
       case ExpKind.Cut:
         ctx.cut()
@@ -251,7 +253,7 @@ export abstract class Exp {
         const mark = ctx.mark()
         while (!ctx.atEnd()) {
           const result = skip.exp.parseAt(ctx)
-          if (result != null) return NIL
+          if (result != null) return result
 
           const [_, ok] = ctx.next()
           if (!ok) break

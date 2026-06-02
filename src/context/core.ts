@@ -240,7 +240,7 @@ export class Core implements Ctx {
   }
 
   recursionDepthExceeded(): boolean {
-    return this.recursionDepth <= 64
+    return this.recursionDepth >= 64
   }
 
   track(key: MemoKey): void {

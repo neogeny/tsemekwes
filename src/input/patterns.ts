@@ -50,21 +50,27 @@ export function configurePatterns(
     }
   }
 
-  patterns.cmt = null
-  if (cfg.comments) {
+  if (cfg.comments !== undefined) {
     patterns.nonDefault = true
-    const re = compileRe(cfg.comments)
-    if (re !== null) {
-      patterns.cmt = re
+    if (cfg.comments !== null) {
+      const re = compileRe(cfg.comments)
+      if (re !== null) {
+        patterns.cmt = re
+      }
+    } else {
+      patterns.cmt = null
     }
   }
 
-  patterns.eol = null
-  if (cfg.eolComments) {
+  if (cfg.eolComments !== undefined) {
     patterns.nonDefault = true
-    const re = compileRe(cfg.eolComments)
-    if (re !== null) {
-      patterns.eol = re
+    if (cfg.eolComments !== null) {
+      const re = compileRe(cfg.eolComments)
+      if (re !== null) {
+        patterns.eol = re
+      }
+    } else {
+      patterns.eol = null
     }
   }
 }
