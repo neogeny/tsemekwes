@@ -1,6 +1,6 @@
 import type { Cfg } from "@config/config"
 import { type Cursor, Location } from "./cursor.js"
-import { splitlines, stripRight } from "@util/index.js"
+import {lines, splitlines, stripRight} from "@util/index.js"
 
 import {
   configurePatterns,
@@ -101,20 +101,10 @@ export class StrCursor implements Cursor {
     return count
   }
 
-  lineAt(n: number): string {
-    let lineno = 0
-    let start = 0
-    for (let i = 0; i < this.text.length; i++) {
-      if (this.text[i] === "\n") {
-        if (lineno === n) {
-          return this.text.slice(start, i + 1)
-        }
-        lineno++
-        start = i + 1
-      }
-    }
-    if (lineno === n) {
-      return this.text.slice(start)
+  lineAt(mark: number): string {
+    const lines = this.linesAt(mark, mark + 1)
+    if (lines) {
+      return lines[0]
     }
     return ""
   }
@@ -123,12 +113,19 @@ export class StrCursor implements Cursor {
     if (end <= start || start < 0) {
       return []
     }
-    let text = this.text
-    let lines = splitlines(text, true)
-    if (end > lines.length) {
-      end = lines.length
+
+    let out: string[] = []
+    let i = 0
+    for (let line of lines(this.text)) {
+      if (i >= end) {
+        break
+      }
+      if (i >= start) {
+        out.push(line)
+      }
+      i++
     }
-    return lines.slice(start, end)
+    return out
   }
 
   asStr(): string {

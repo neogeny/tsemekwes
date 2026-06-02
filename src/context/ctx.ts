@@ -1,7 +1,7 @@
 import type { Tracer } from "@context/tracer.js"
-import type { Cfg } from "../config/config.js"
-import type { Cursor } from "../input/cursor.js"
-import type { Tree } from "../trees/tree.js"
+import type { Cfg } from "@config/config"
+import type { Cursor } from "@input/cursor"
+import type { Tree } from "@trees/tree"
 import { Memento } from "./memento.js"
 import type { Memo, MemoKey } from "./memo.js"
 
