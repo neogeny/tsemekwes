@@ -56,6 +56,7 @@ export enum ExpKind {
 
 export abstract class Exp {
   abstract readonly kind: ExpKind
+  la: string[] = []
 
   children(): Exp[] {
     switch (this.kind) {
@@ -333,6 +334,10 @@ export abstract class Exp {
 
   asjsons(): string {
     return JSON.stringify(this.asjson())
+  }
+
+  lookAheadStr(): string {
+    return this.la.map(s => `\`${s}\``).join(" ")
   }
 }
 
