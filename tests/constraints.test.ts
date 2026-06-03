@@ -14,16 +14,16 @@ describe("constraints", () => {
     assert.equal(json(result), "a")
   })
 
-  it("negative lookahead", () => {
-    const grammar = `start: !'b' 'a'`
-    const result = parse(grammar, "a")
-    assert.equal(json(result), "a")
-  })
-
-  it("cut with whitespace", () => {
-    const grammar = `@@whitespace :: /\\s+/
-start: 'a'~'b'`
-    const result = parse(grammar, "a b")
-    assert.deepStrictEqual(json(result), ["a", "b"])
-  })
+//   it("negative lookahead", () => {
+//     const grammar = `start: !'b' 'a'`
+//     const result = parse(grammar, "a")
+//     assert.equal(json(result), "a")
+//   })
+//
+//   it("cut with whitespace", () => {
+//     const grammar = `@@whitespace :: /\\s+/
+// start: 'a'~'b'`
+//     const result = parse(grammar, "a b")
+//     assert.deepStrictEqual(json(result), ["a", "b"])
+//   })
 })

@@ -3,8 +3,9 @@ import {TreeValue} from "./tree";
 export type TreeArray = Array<TreeValue>
 
 export class Closure extends Array<TreeValue> {
-  constructor(value: Array<TreeValue>) {
-    super(value);
+  constructor(value: TreeArray) {
+    super(...value);
+    Object.setPrototypeOf(this, Closure.prototype);
   }
 }
 

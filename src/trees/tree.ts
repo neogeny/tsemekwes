@@ -8,9 +8,9 @@ export type TreeValue =
   | boolean
   | null
   | object
-    | Tree
+  | Tree
   | Closure
-  | Array<TreeValue>
+  | TreeArray
 
 
 export enum TreeKind {
@@ -71,8 +71,9 @@ export class Named extends Tree {
     public value: TreeValue,
   ) { super() }
   fold(gather: TreeMerge): TreeValue {
-    gather.insert(this.name, this.value)
-    return this.value
+    let val = foldOrGather(this.value, gather)
+    gather.insert(this.name, val)
+    return val
   }
 }
 
@@ -113,6 +114,14 @@ function foldOrGather(t: TreeValue, gather: TreeMerge): TreeValue {
   if (t === null) {
     return null
   }
+  if (isArrayNotClosure(t)) {
+    let out: TreeValue = null
+    for (let item of (t as TreeArray)) {
+      let tree = foldOrGather(item, gather)
+      out = treeMerge(out, tree)
+    }
+    return out
+  }
   return t instanceof Tree ? t.fold(gather) : t
 }
 
@@ -121,7 +130,7 @@ export function treeFold(tree: TreeValue): TreeValue {
     return null
   }
   const g = new TreeMerge()
-  const result = tree instanceof Tree ? tree.fold(g) : tree
+  const result = foldOrGather(tree, g)
   return finish(g, result)
 }
 
@@ -192,33 +201,39 @@ export function treeToJSON(t: TreeValue): TreeValue {
   }
   switch (t.kind) {
     case TreeKind.Named:
-      return { [(t as Named).name]: treeToJSON((t as Named).value) }
+      const m = t as Named
+      return { [m.name]: treeToJSON(m.value) }
+
     case TreeKind.NamedAsList:
-      return {
-        [(t as NamedAsList).name]: treeToJSON((t as NamedAsList).value),
-      }
+      const ml = t as NamedAsList
+      return { [ml.name]: treeToJSON(ml.value) }
+
     case TreeKind.Override:
       return treeToJSON((t as Override).value)
     case TreeKind.OverrideAsList:
       return treeToJSON((t as OverrideAsList).value)
+
     case TreeKind.Node: {
       const node = t as NodeTree
       const child = treeToJSON(node.tree)
       if (
-        typeof child === "object" &&
         child !== null &&
-        !globalThis.Array.isArray(child)
+        typeof child === "object" &&
+        !Array.isArray(child)
       ) {
         const childObj = child as Record<string, unknown>
-        if (!("__class__" in childObj)) {
-          return { __class__: node.typeName, ...childObj }
+        let result = {
+          __class__: node.typeName,
+          ...childObj
         }
+        result["__class__"] = node.typeName
+        return result
       }
       return { __class__: node.typeName, ast: child }
     }
   }
 }
 
-export function treeToJSONStr(t: Tree): string {
+export function treeToJSONStr(t: TreeValue): string {
   return JSON.stringify(treeToJSON(t), null, 2)
 }

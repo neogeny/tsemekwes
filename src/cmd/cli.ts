@@ -80,7 +80,7 @@ program
   })
 
 program
-  .command("grammar <grammar-path>")
+  .command("grammar <grammar>")
   .description("compile and inspect a grammar")
   .option("-j, --json", "print the grammar in JSON format")
   .option("-p, --pretty", "pretty-print the grammar (default)", true)

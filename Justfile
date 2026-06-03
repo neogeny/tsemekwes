@@ -34,7 +34,10 @@ run script:
 
 # Run the entire test pipeline directly using Bun
 test:
-    bun test src/**/*.test.ts src/**/__tests__/*.test.ts
+    bun test \
+      src/**/__tests__/*.test.ts \
+      src/**/*.test.ts \
+      tests/**/*.test.ts
 
 prof script:
     node --prof --cpu-prof {{script}}
