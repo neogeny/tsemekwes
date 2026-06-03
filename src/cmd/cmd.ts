@@ -1,7 +1,7 @@
 import { loadGrammar, parseInput } from "@api"
 import { bootGrammar } from "@json"
 import { newCfg, readText } from "@util/helpers"
-import { asjsonStr } from "@util/asjson"
+import { asjsons } from "@util/asjson"
 import { treeToJSONStr } from "@trees"
 import { grammarSummary } from "@peg"
 import path from "node:path"
@@ -83,7 +83,7 @@ export async function cmdRun(
 
   if (inputPaths.length === 0) {
     if (options.json) {
-      outputs.push({ name: path.basename(grammarPath), payload: asjsonStr(g) })
+      outputs.push({ name: path.basename(grammarPath), payload: asjsons(g) })
       return { lang: "json", outputs }
     }
     outputs.push({ name: path.basename(grammarPath), payload: grammarSummary(g, options.colorize) })
@@ -119,7 +119,7 @@ export async function cmdBoot(
   let payload: string
   let lang: string
   if (options.json) {
-    payload = asjsonStr(g)
+    payload = asjsons(g)
     lang = "json"
   } else {
     payload = grammarSummary(g, options.colorize)
@@ -140,7 +140,7 @@ export async function cmdGrammar(
   let payload: string
   let lang: string
   if (options.json) {
-    payload = asjsonStr(g)
+    payload = asjsons(g)
     lang = "json"
   } else {
     payload = grammarSummary(g, options.colorize)

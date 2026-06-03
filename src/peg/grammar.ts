@@ -2,7 +2,8 @@ import { Cfg, defaultCfg } from "@config"
 import type { Ctx } from "@context"
 import type { Tree } from "@trees"
 import { Exp, ExpKind } from "./exp"
-import { modelToJSONStr as _modelToJSONStr } from "./export"
+import { modelToJSONStr as _modelToJSONStr, serializeGrammar } from "./export"
+import { asjson } from "../util/asjson"
 import { markLeftRecursion } from "./analysis/leftrec"
 import { prettyPrintGrammar } from "./pretty"
 import type { Rule } from "./rule"
@@ -86,6 +87,10 @@ export class Grammar extends Exp {
 
   asjsons(): string {
     return _modelToJSONStr(this)
+  }
+
+  override __json__(seen?: Set<object>): any {
+    return asjson(serializeGrammar(this), seen)
   }
 
   cfgFromDirectives(): Cfg {

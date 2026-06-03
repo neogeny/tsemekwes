@@ -1,6 +1,8 @@
 import type { Ctx } from "@context"
 import { fold, NodeTree, type Tree } from "@trees"
 import { BoxExp, type Exp, ExpKind } from "./exp.js"
+import { asjson } from "../util/asjson"
+import { serializeRule } from "./export"
 
 export class Rule extends BoxExp {
   readonly kind = ExpKind.Rule
@@ -45,6 +47,10 @@ export class Rule extends BoxExp {
     }
 
     return new NodeTree(this.params[0], folded)
+  }
+
+  override __json__(seen?: Set<object>): any {
+    return asjson(serializeRule(this), seen)
   }
 
   isToken(): boolean {

@@ -1,35 +1,11 @@
-import type { Tracer } from "./tracer"
-import type { Cfg } from "@config"
-import type { Cursor } from "@input"
-import type { Tree } from "@trees"
-import { Memento } from "./memento.js"
-import type { Memo, MemoKey } from "./memo.js"
+import type {Cfg} from "@config"
+import type {Cursor} from "@input"
+import type {Tree} from "@trees"
+import {ParseFailure} from "./error";
+import type {Memo, MemoKey} from "./memo.js"
+import type {Tracer} from "./tracer"
 
 export type CallStack = string[]
-
-export class ParseFailure extends Error {
-  public readonly memento: Memento
-
-  constructor(
-    public readonly start: number,
-    msg: string,
-    ctx: Ctx,
-  ) {
-    super(msg)
-    this.name = "ParseFailure"
-    this.memento = new Memento(
-      start,
-      msg,
-      ctx.cursor(),
-      ctx.callStack(),
-      ctx.cfg().colorize as boolean,
-    )
-  }
-
-  get mark(): number {
-    return this.memento.mark
-  }
-}
 
 export interface Ctx {
   cfg(): Cfg

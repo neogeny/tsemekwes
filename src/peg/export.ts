@@ -172,7 +172,7 @@ export function expToJSON(exp: Exp): Record<string, unknown> {
   }
 }
 
-function serializeRule(rule: Rule): Record<string, unknown> {
+export function serializeRule(rule: Rule): Record<string, unknown> {
   const kwp: Record<string, string> = {}
   for (const [k, v] of rule.kwParams) {
     kwp[k] = v

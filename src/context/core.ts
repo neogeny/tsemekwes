@@ -2,7 +2,8 @@ import { ConsoleTracer, NullTracer, type Tracer } from "@context"
 import { type Cfg, defaultCfg } from "@config"
 import type { Cursor } from "@input"
 import { Bool, NIL, NumberValue, Text, type Tree } from "@trees"
-import { type CallStack, type Ctx, ParseFailure } from "./ctx"
+import { type CallStack, type Ctx } from "./ctx"
+import { ParseFailure } from "./error"
 import { type Memo, type MemoKey, pruneMemoCache } from "./memo"
 
 export function newCtx(cursor: Cursor, cfg?: Cfg): Core {

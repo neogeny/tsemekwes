@@ -1,23 +1,38 @@
-import type { Ctx } from "@context"
+import {Ctx, isParseFailure} from "@context"
 import type { Tree } from "@trees"
-import type { Exp } from "../exp"
+import {ChoiceExp, Exp} from "../exp"
 
-export function parseChoice(ctx: Ctx, options: Exp[]): Tree | null {
+export function parseChoice(ctx: Ctx, choice: ChoiceExp): Tree | null {
   const mark = ctx.mark()
+  const options: Exp[] = choice.options
   for (const opt of options) {
     ctx.reset(mark)
 
-    ctx.cutStackPush()
-    const result = opt.parse(ctx)
-    const cutSeen = ctx.cutStackPop()
+    let result: Tree | null = null
+    let cutSeen = false
 
-    if (result != null) {
-      return result
-    } else if (cutSeen) {
+    try {
+      ctx.cutStackPush()
+      try {
+        result = opt.parse(ctx)
+      } finally {
+        cutSeen = ctx.cutStackPop()
+      }
+
+      if (result != null) {
+        return result
+      } else if (cutSeen) {
+        ctx.reset(mark)
+        return null
+      }
+    } catch (error) {
       ctx.reset(mark)
-      return null
+      if (!isParseFailure(error) || cutSeen) {
+        throw error
+      }
     }
   }
   ctx.reset(mark)
+  ctx.failure(mark, `expecting: ${choice.lookaheadStr()}`)
   return null
 }

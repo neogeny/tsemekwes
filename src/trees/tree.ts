@@ -1,3 +1,17 @@
+import {Closure} from "./closure";
+import { asjson } from "@util/asjson"
+
+export type TreeValue =
+  | string
+  | number
+  | boolean
+  | null
+  | object
+  | Tree
+  | Closure
+  | Array<TreeValue>
+
+
 export enum TreeKind {
   Text = "Text",
   NumberValue = "NumberValue",
@@ -17,9 +31,13 @@ export enum TreeKind {
   OverrideAsList = "OverrideAsList",
 }
 
-export interface Tree {
-  readonly kind: TreeKind
-  fold(gather: TreeMerge): Tree
+export abstract class Tree {
+  abstract readonly kind: TreeKind
+  abstract fold(gather: TreeMerge): Tree
+
+  __json__(seen?: Set<object>): any {
+    return asjson(treeToJSON(this), seen)
+  }
 }
 
 export class TreeMerge {
@@ -47,59 +65,59 @@ export class TreeMerge {
 
 // --- Leaf types ---
 
-export class Text implements Tree {
+export class Text extends Tree {
   readonly kind = TreeKind.Text
-  constructor(public value: string) {}
+  constructor(public value: string) { super() }
   fold(_gather: TreeMerge): Tree {
     return this
   }
 }
 
-export class NumberValue implements Tree {
+export class NumberValue extends Tree {
   readonly kind = TreeKind.NumberValue
-  constructor(public value: number) {}
+  constructor(public value: number) { super() }
   fold(_gather: TreeMerge): Tree {
     return this
   }
 }
 
-export class Bool implements Tree {
+export class Bool extends Tree {
   readonly kind = TreeKind.Bool
-  constructor(public value: boolean) {}
+  constructor(public value: boolean) { super() }
   fold(_gather: TreeMerge): Tree {
     return this
   }
 }
 
-export class Nil implements Tree {
+export class Nil extends Tree {
   readonly kind = TreeKind.Nil
   fold(_gather: TreeMerge): Tree {
     return this
   }
 }
 
-export class Bottom implements Tree {
+export class Bottom extends Tree {
   readonly kind = TreeKind.Bottom
   fold(_gather: TreeMerge): Tree {
     return this
   }
 }
 
-export class TrueValue implements Tree {
+export class TrueValue extends Tree {
   readonly kind = TreeKind.TrueValue
   fold(_gather: TreeMerge): Tree {
     return this
   }
 }
 
-export class FalseValue implements Tree {
+export class FalseValue extends Tree {
   readonly kind = TreeKind.FalseValue
   fold(_gather: TreeMerge): Tree {
     return this
   }
 }
 
-export class NullValue implements Tree {
+export class NullValue extends Tree {
   readonly kind = TreeKind.NullValue
   fold(_gather: TreeMerge): Tree {
     return this
@@ -112,9 +130,9 @@ export const TRUE: Tree = new TrueValue()
 export const FALSE: Tree = new FalseValue()
 export const NULL: Tree = new NullValue()
 
-export class Seq implements Tree {
+export class Seq extends Tree {
   readonly kind = TreeKind.Seq
-  constructor(public items: Tree[]) {}
+  constructor(public items: Tree[]) { super() }
   fold(gather: TreeMerge): Tree {
     let out: Tree = NIL
     for (const item of this.items) {
@@ -124,29 +142,29 @@ export class Seq implements Tree {
   }
 }
 
-export class ArrayValue implements Tree {
+export class ArrayValue extends Tree {
   readonly kind = TreeKind.ArrayValue
-  constructor(public items: Tree[]) {}
+  constructor(public items: Tree[]) { super() }
   fold(gather: TreeMerge): Tree {
     const items = this.items.map((item) => item.fold(gather))
     return new ArrayValue(items)
   }
 }
 
-export class MapNode implements Tree {
+export class MapNode extends Tree {
   readonly kind = TreeKind.MapNode
-  constructor(public entries: Map<string, Tree>) {}
+  constructor(public entries: Map<string, Tree>) { super() }
   fold(_gather: TreeMerge): Tree {
     return this
   }
 }
 
-export class NodeTree implements Tree {
+export class NodeTree extends Tree {
   readonly kind = TreeKind.Node
   constructor(
     public typeName: string,
     public tree: Tree,
-  ) {}
+  ) { super() }
   fold(_gather: TreeMerge): Tree {
     return this
   }
@@ -154,12 +172,12 @@ export class NodeTree implements Tree {
 
 // --- Name / Override types ---
 
-export class Named implements Tree {
+export class Named extends Tree {
   readonly kind = TreeKind.Named
   constructor(
     public name: string,
     public value: Tree,
-  ) {}
+  ) { super() }
   fold(gather: TreeMerge): Tree {
     const val = this.value.fold(gather)
     gather.insert(this.name, val)
@@ -167,12 +185,12 @@ export class Named implements Tree {
   }
 }
 
-export class NamedAsList implements Tree {
+export class NamedAsList extends Tree {
   readonly kind = TreeKind.NamedAsList
   constructor(
     public name: string,
     public value: Tree,
-  ) {}
+  ) { super() }
   fold(gather: TreeMerge): Tree {
     const val = this.value.fold(gather)
     gather.insertAsList(this.name, val)
@@ -180,9 +198,9 @@ export class NamedAsList implements Tree {
   }
 }
 
-export class Override implements Tree {
+export class Override extends Tree {
   readonly kind = TreeKind.Override
-  constructor(public value: Tree) {}
+  constructor(public value: Tree) { super() }
   fold(gather: TreeMerge): Tree {
     const val = this.value.fold(gather)
     gather.root = appendTree(gather.root, val)
@@ -190,9 +208,9 @@ export class Override implements Tree {
   }
 }
 
-export class OverrideAsList implements Tree {
+export class OverrideAsList extends Tree {
   readonly kind = TreeKind.OverrideAsList
-  constructor(public value: Tree) {}
+  constructor(public value: Tree) { super() }
   fold(gather: TreeMerge): Tree {
     const val = this.value.fold(gather)
     gather.root = appendAsList(gather.root, val)

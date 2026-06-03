@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { compile, loadGrammarFromJSON, parseInput } from "../src/api/index.js"
 import { treeToJSON, type Tree } from "../src/trees/tree.js"
-import { asjsonStr } from "../src/util/asjson.js"
+import { asjsons } from "../src/util/asjson.js"
 
 function json(t: Tree): unknown {
   return treeToJSON(t)
@@ -29,9 +29,9 @@ describe("round trips", () => {
       @@grammar :: Test
       start: 'a' | 'b'
     `
-    const out1 = asjsonStr(compile(grammarText))
+    const out1 = asjsons(compile(grammarText))
     const grammar2 = loadGrammarFromJSON(out1)
-    const out2 = asjsonStr(grammar2)
+    const out2 = asjsons(grammar2)
     assert.equal(out1, out2)
   })
 })

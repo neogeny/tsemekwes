@@ -104,7 +104,7 @@ export class StrCursor implements Cursor {
 
   lineAt(mark: number): string {
     const lines = this.linesAt(mark, mark + 1)
-    if (lines) {
+    if (lines && lines.length > 0) {
       return lines[0]
     }
     return ""

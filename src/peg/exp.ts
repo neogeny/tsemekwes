@@ -15,6 +15,7 @@ import { prettyPrintExp } from "./pretty.js"
 import { expToJSON } from "./export.js"
 import { parseChoice } from "./parsing/choice.js"
 import { sequence } from "./parsing/sequence.js"
+import { asjson } from "../util/asjson"
 
 export enum ExpKind {
   Nil = "Nil",
@@ -286,8 +287,8 @@ export abstract class Exp {
       }
 
       case ExpKind.Choice: {
-        const exp = this as unknown as ChoiceExp
-        return parseChoice(ctx, exp.options)
+        const choice = this as unknown as ChoiceExp
+        return parseChoice(ctx, choice)
       }
 
       case ExpKind.Join: {
@@ -324,19 +325,23 @@ export abstract class Exp {
     }
   }
 
-  pretty(): string {
+  public pretty(): string {
     return prettyPrintExp(this)
   }
 
-  asjson(): object {
+  public asjson(): object {
     return expToJSON(this)
   }
 
-  asjsons(): string {
+  public asjsons(): string {
     return JSON.stringify(this.asjson())
   }
 
-  lookAheadStr(): string {
+  __json__(seen?: Set<object>): any {
+    return asjson(this.asjson(), seen)
+  }
+
+  lookaheadStr(): string {
     return this.la.map(s => `\`${s}\``).join(" ")
   }
 }

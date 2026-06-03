@@ -1,10 +1,11 @@
 export class ApiError extends Error {
   constructor(
     msg: string,
-    public readonly _cause?: unknown,
+    public readonly cause?: unknown,
+    options?: ErrorOptions
   ) {
-    super(msg)
+    super(msg, options)
     this.name = "ApiError"
-    this._cause = _cause
+    this.cause = cause
   }
 }
