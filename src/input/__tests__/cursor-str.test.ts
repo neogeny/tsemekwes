@@ -297,7 +297,7 @@ describe("StrCursor", () => {
 
   it("LinesAt returns range of lines", () => {
     const s = new StrCursor("a\nb\nc\nd\n")
-    const lines = s.linesAt(1, 3)
+    const lines = s.linesAt(1, 3, true)
     assert.equal(lines.length, 2)
     assert.equal(lines[0], "b\n")
     assert.equal(lines[1], "c\n")

@@ -102,22 +102,22 @@ export class StrCursor implements Cursor {
     return count
   }
 
-  lineAt(mark: number): string {
-    const lines = this.linesAt(mark, mark + 1)
+  lineAt(mark: number, keepend: boolean = true): string {
+    const lines = this.linesAt(mark, mark + 1, keepend)
     if (lines && lines.length > 0) {
       return lines[0]
     }
     return ""
   }
 
-  linesAt(start: number, end: number): string[] {
+  linesAt(start: number, end: number, keepend: boolean = false): string[] {
     if (end <= start || start < 0) {
       return []
     }
 
     const out: string[] = []
     let i = 0
-    for (const line of lines(this.text)) {
+    for (const line of lines(this.text, keepend)) {
       if (i >= end) {
         break
       }

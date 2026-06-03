@@ -43,7 +43,7 @@ export class Memento {
       result += `${sprintf("%5d", ln)} ${pc.blueBright(`|`)}  ${disp}\n`
     }
     const pad = " ".repeat(Math.max(0, col - 1))
-    result += `${pc.blueBright(`······|`)}·${pad}${pc.redBright(`^·${this.msg}\n`)}`
+    result += `${pc.blueBright(`      |`)} ${pad}${pc.redBright(`^ ${this.msg}\n`)}`
 
     if (this.callStack.length > 0) {
       result += "\n"
