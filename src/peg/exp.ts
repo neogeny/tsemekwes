@@ -1,19 +1,17 @@
 import type { Ctx } from "@context"
+import {Closure} from "@trees";
 
 import {
-  ArrayValue,
   Named as NamedTree,
   NamedAsList as NamedAsListTree,
-  NIL,
   Override as OverrideTree,
   OverrideAsList as OverrideAsListTree,
-  Text as TextTree,
-  type Tree,
+  TreeValue,
 } from "../trees/tree.js"
 import { closure, closureWithSep } from "./parsing/closure.js"
 import { prettyPrintExp } from "./pretty.js"
 import { expToJSON } from "./export.js"
-import { parseChoice } from "./parsing/choice.js"
+import {parseChoice, parseOptional} from "./parsing/choice.js"
 import { sequence } from "./parsing/sequence.js"
 import { asjson } from "../util/asjson"
 
@@ -116,20 +114,20 @@ export abstract class Exp {
     }
   }
 
-  parse(ctx: Ctx): Tree | null {
+  parse(ctx: Ctx): TreeValue {
     switch (this.kind) {
       case ExpKind.Nil:
-        return NIL
+        return null
       case ExpKind.EmptyClosure:
-        return new ArrayValue([])
+        return new Closure([])
 
       case ExpKind.Cut:
         ctx.cut()
-        return NIL
+        return null
 
       case ExpKind.Void:
         ctx.void_()
-        return NIL
+        return null
 
       case ExpKind.Fail:
         ctx.fail()
@@ -138,32 +136,33 @@ export abstract class Exp {
       case ExpKind.Dot: {
         const [ch, ok] = ctx.dot()
         if (!ok) return null
-        return new TextTree(ch)
+        return ch.toString()
       }
 
       case ExpKind.Eof: {
-        if (ctx.parseEOF()) return NIL
+        if (ctx.parseEOF()) return null
         ctx.failure(ctx.mark(), "expected end of input")
         return null
       }
 
       case ExpKind.Eol: {
-        if (ctx.matchEOL()) return NIL
+        if (ctx.matchEOL()) return null
         ctx.failure(ctx.mark(), "expected EOL")
         return null
       }
 
       case ExpKind.Token: {
-        const exp = this as unknown as TokenExp
-        if (ctx.matchToken(exp.value)) return new TextTree(exp.value)
-        ctx.failure(ctx.mark(), `expected token "${exp.value}"`)
+        const token = this as unknown as TokenExp
+        if (ctx.matchToken(token.value)) return token.value
+        ctx.failure(ctx.mark(), `expected: "${token.value}"`)
         return null
       }
 
       case ExpKind.Pattern: {
-        const exp = this as unknown as PatternExp
-        const matched = ctx.matchPattern(exp.value)
-        if (matched != null) return new TextTree(matched)
+        const pattern = this as unknown as PatternExp
+        const matched = ctx.matchPattern(pattern.value)
+        if (matched != null) return matched
+        ctx.failure(ctx.mark(), `expected pattern: ${pattern.value}`)
         return null
       }
 
@@ -174,21 +173,21 @@ export abstract class Exp {
 
       case ExpKind.Alert: {
         const exp = this as unknown as AlertExp
-        return new TextTree(exp.value)
+        return exp.value
       }
 
       case ExpKind.Named: {
         const named = this as unknown as NamedExp
-        const result = named.exp.parse(ctx)
-        if (result == null) return null
-        return new NamedTree(named.name, result)
+        const tree = named.exp.parse(ctx)
+        if (tree == null) return null
+        return new NamedTree(named.name, tree)
       }
 
       case ExpKind.NamedList: {
         const named = this as unknown as NamedListExp
-        const result = named.exp.parse(ctx)
-        if (result == null) return null
-        return new NamedAsListTree(named.name, result)
+        const tree = named.exp.parse(ctx)
+        if (tree == null) return null
+        return new NamedAsListTree(named.name, tree)
       }
 
       case ExpKind.Override: {
@@ -212,34 +211,36 @@ export abstract class Exp {
 
       case ExpKind.SkipGroup: {
         const skip = this as unknown as SkipGroupExp
-        const result = skip.exp.parse(ctx)
-        if (result == null) return null
-        return NIL
+        skip.exp.parse(ctx)
+        return null
       }
 
       case ExpKind.Lookahead: {
         const la = this as unknown as LookaheadExp
-        const branch = ctx.mark()
+        const mark = ctx.mark()
+
         ctx.enterLookahead()
-        const result = la.exp.parse(ctx)
-        ctx.reset(branch)
-        ctx.leaveLookahead()
-        if (result == null) return null
-        return NIL
+        try {
+          la.exp.parse(ctx)
+        } finally {
+          ctx.reset(mark)
+          ctx.leaveLookahead()
+        }
+        return null
       }
 
       case ExpKind.NegativeLookahead: {
         const la = this as unknown as NegativeLookaheadExp
-        const branch = ctx.mark()
+        const mark = ctx.mark()
         ctx.enterLookahead()
-        const result = la.exp.parse(ctx)
-        ctx.reset(branch)
-        ctx.leaveLookahead()
-        if (result != null) {
-          ctx.failure(branch, "negative lookahead matched")
-          return null
+        try {
+          la.exp.parse(ctx)
+        } finally {
+          ctx.reset(mark)
+          ctx.leaveLookahead()
         }
-        return NIL
+        ctx.failure(mark, "negative lookahead matched")
+        return null
       }
 
       case ExpKind.SkipTo: {
@@ -264,11 +265,7 @@ export abstract class Exp {
 
       case ExpKind.Optional: {
         const opt = this as unknown as OptionalExp
-        const branch = ctx.mark()
-        const result = opt.exp.parse(ctx)
-        if (result != null) return result
-        ctx.reset(branch)
-        return NIL
+        return parseOptional(ctx, opt.exp)
       }
 
       case ExpKind.Closure: {

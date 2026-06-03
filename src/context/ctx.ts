@@ -1,6 +1,6 @@
 import type {Cfg} from "@config"
 import type {Cursor} from "@input"
-import type {Tree} from "@trees"
+import type {TreeValue} from "@trees"
 import {ParseFailure} from "./error";
 import type {Memo, MemoKey} from "./memo.js"
 import type {Tracer} from "./tracer"
@@ -29,11 +29,11 @@ export interface Ctx {
   inLookahead(): boolean
   enterLookahead(): void
   leaveLookahead(): void
-  fail(): void
+  fail(): ParseFailure
   eof(): boolean
   eofCheck(): void
   eolCheck(): void
-  constant(literal: unknown): Tree
+  constant(literal: unknown): TreeValue
   enter(name: string): void
   leave(): void
   failure(start: number, msg: string): ParseFailure
@@ -45,7 +45,7 @@ export interface Ctx {
   heartbeatTick(): void
   key(name: string, canMemo: boolean): MemoKey
   memo(key: MemoKey): Memo | undefined
-  memoize(key: MemoKey, tree: Tree, mark: number): void
+  memoize(key: MemoKey, tree: TreeValue, mark: number): void
   recursionDepthExceeded(): boolean
   track(key: MemoKey): void
   untrack(key: MemoKey): void
@@ -54,8 +54,8 @@ export interface Ctx {
   cutStackPush(): void
   cutStackPop(): boolean
   applySemantics(
-    node: Tree,
+    node: TreeValue,
     ruleName: string,
     params: string[],
-  ): [Tree, boolean]
+  ): [TreeValue, boolean]
 }

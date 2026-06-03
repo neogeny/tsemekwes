@@ -146,8 +146,8 @@ export class Core implements Ctx {
     this.lookaheadDepth--
   }
 
-  fail(): void {
-    this.failure(this._cursor.mark(), "fail")
+  fail(): ParseFailure {
+    return this.failure(this._cursor.mark(), "fail")
   }
 
   eof(): boolean {

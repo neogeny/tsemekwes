@@ -1,5 +1,5 @@
 import type { Ctx } from "@context"
-import { fold, NodeTree, type Tree } from "@trees"
+import {treeFold, NodeTree, TreeValue} from "@trees"
 import { BoxExp, type Exp, ExpKind } from "./exp.js"
 import { asjson } from "../util/asjson"
 import { serializeRule } from "./export"
@@ -23,15 +23,9 @@ export class Rule extends BoxExp {
     super(exp)
   }
 
-  parse(ctx: Ctx): Tree | null {
-    const mark = ctx.mark()
-    const result = this.exp.parse(ctx)
-    if (result == null) {
-      ctx.reset(mark)
-      return null
-    }
-
-    const folded = fold(result)
+  parse(ctx: Ctx): TreeValue {
+    const tree = this.exp.parse(ctx)
+    const folded = treeFold(tree)
 
     const [newTree, overridden] = ctx.applySemantics(
       folded,

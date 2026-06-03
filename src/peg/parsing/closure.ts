@@ -1,25 +1,21 @@
-import type { Ctx } from "@context"
+import {closed, TreeValue} from "@trees"
+import {Ctx} from "@context"
 import type { Exp } from "../exp"
-import { ArrayValue, NIL, type Tree } from "@trees"
+import {tryExp} from "./tryexp";
 
-export function closure(ctx: Ctx, exp: Exp, positive: boolean): Tree | null {
-  const results: Tree[] = []
+export function closure(ctx: Ctx, exp: Exp, positive: boolean): TreeValue {
+  const out = []
+  if (positive) {
+    const tree = exp.parse(ctx)
+    out.push(tree)
+  }
+
   while (true) {
-    const branch = ctx.mark()
-    const result = exp.parse(ctx)
-    if (result == null) {
-      ctx.reset(branch)
-      break
-    }
-    results.push(result)
+    let [tree, ok] = tryExp(ctx, exp)
+    if (!ok) break
+    out.push(tree)
   }
-  if (positive && results.length === 0) {
-    ctx.failure(ctx.mark(), "positive closure requires at least one match")
-    return null
-  }
-  if (results.length === 0) return new ArrayValue([])
-  if (results.length === 1) return results[0]
-  return new ArrayValue(results)
+  return closed(out)
 }
 
 export function closureWithSep(
@@ -28,36 +24,35 @@ export function closureWithSep(
   sep: Exp,
   positive: boolean,
   keepSep: boolean,
-): Tree | null {
-  const results: Tree[] = []
-  const first = exp.parse(ctx)
-  if (first == null) {
-    if (positive) {
-      ctx.failure(ctx.mark(), "join requires at least one match")
-      return null
-    }
-    return NIL
+): TreeValue {
+  const out = []
+
+  if (positive) {
+    const first = exp.parse(ctx)
+    out.push(first)
   }
-  if (first !== NIL) results.push(first)
+  else {
+    const mark = ctx.mark()
+    const [first, ok] = tryExp(ctx, exp)
+    if (!ok) {
+      ctx.reset(mark)
+      return closed([])
+    }
+    out.push(first)
+  }
+
   while (true) {
-    const branch = ctx.mark()
-    const sepResult = sep.parse(ctx)
-    if (sepResult == null) {
-      ctx.reset(branch)
+    const mark = ctx.mark()
+    const [tsep, ok] = tryExp(ctx, sep)
+    if (!ok) {
+      ctx.reset(mark)
       break
     }
-    if (keepSep && sepResult !== NIL) {
-      results.push(sepResult)
+    if (keepSep) {
+      out.push(tsep)
     }
-    const expResult = exp.parse(ctx)
-    if (expResult == null) {
-      ctx.reset(branch)
-      break
-    }
-    if (expResult !== NIL) {
-      results.push(expResult)
-    }
+    const tree = exp.parse(ctx)
+    out.push(tree)
   }
-  if (results.length === 0) return NIL
-  return new ArrayValue(results)
+  return closed(out)
 }

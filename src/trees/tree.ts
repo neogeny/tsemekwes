@@ -1,29 +1,20 @@
+import {isArrayNotClosure, TreeArray} from "./closure";
 import {Closure} from "./closure";
 import { asjson } from "@util/asjson"
 
 export type TreeValue =
-  | string
+  string
   | number
   | boolean
   | null
   | object
-  | Tree
+    | Tree
   | Closure
   | Array<TreeValue>
 
 
 export enum TreeKind {
-  Text = "Text",
-  NumberValue = "NumberValue",
-  Bool = "Bool",
-  Nil = "Nil",
   Bottom = "Bottom",
-  TrueValue = "TrueValue",
-  FalseValue = "FalseValue",
-  NullValue = "NullValue",
-  Seq = "Seq",
-  ArrayValue = "ArrayValue",
-  MapNode = "MapNode",
   Node = "Node",
   Named = "Named",
   NamedAsList = "NamedAsList",
@@ -33,7 +24,7 @@ export enum TreeKind {
 
 export abstract class Tree {
   abstract readonly kind: TreeKind
-  abstract fold(gather: TreeMerge): Tree
+  abstract fold(gather: TreeMerge): TreeValue
 
   __json__(seen?: Set<object>): any {
     return asjson(treeToJSON(this), seen)
@@ -41,10 +32,10 @@ export abstract class Tree {
 }
 
 export class TreeMerge {
-  root: Tree | null = null
-  map = new Map<string, Tree>()
+  root: TreeValue = null
+  map = new Map<string, TreeValue>()
 
-  insert(key: string, val: Tree): void {
+  insert(key: string, val: TreeValue): void {
     const existing = this.map.get(key)
     if (existing === undefined) {
       this.map.set(key, val)
@@ -53,46 +44,13 @@ export class TreeMerge {
     }
   }
 
-  insertAsList(key: string, val: Tree): void {
+  insertAsList(key: string, val: TreeValue): void {
     const existing = this.map.get(key)
     if (existing === undefined) {
-      this.map.set(key, new Seq([val]))
+      this.map.set(key, [val])
     } else {
       this.map.set(key, appendAsList(existing, val))
     }
-  }
-}
-
-// --- Leaf types ---
-
-export class Text extends Tree {
-  readonly kind = TreeKind.Text
-  constructor(public value: string) { super() }
-  fold(_gather: TreeMerge): Tree {
-    return this
-  }
-}
-
-export class NumberValue extends Tree {
-  readonly kind = TreeKind.NumberValue
-  constructor(public value: number) { super() }
-  fold(_gather: TreeMerge): Tree {
-    return this
-  }
-}
-
-export class Bool extends Tree {
-  readonly kind = TreeKind.Bool
-  constructor(public value: boolean) { super() }
-  fold(_gather: TreeMerge): Tree {
-    return this
-  }
-}
-
-export class Nil extends Tree {
-  readonly kind = TreeKind.Nil
-  fold(_gather: TreeMerge): Tree {
-    return this
   }
 }
 
@@ -103,85 +61,28 @@ export class Bottom extends Tree {
   }
 }
 
-export class TrueValue extends Tree {
-  readonly kind = TreeKind.TrueValue
-  fold(_gather: TreeMerge): Tree {
-    return this
-  }
-}
-
-export class FalseValue extends Tree {
-  readonly kind = TreeKind.FalseValue
-  fold(_gather: TreeMerge): Tree {
-    return this
-  }
-}
-
-export class NullValue extends Tree {
-  readonly kind = TreeKind.NullValue
-  fold(_gather: TreeMerge): Tree {
-    return this
-  }
-}
-
-export const NIL = new Nil()
 export const BOTTOM = new Bottom()
-export const TRUE: Tree = new TrueValue()
-export const FALSE: Tree = new FalseValue()
-export const NULL: Tree = new NullValue()
-
-export class Seq extends Tree {
-  readonly kind = TreeKind.Seq
-  constructor(public items: Tree[]) { super() }
-  fold(gather: TreeMerge): Tree {
-    let out: Tree = NIL
-    for (const item of this.items) {
-      out = merge(out, item.fold(gather))
-    }
-    return out
-  }
-}
-
-export class ArrayValue extends Tree {
-  readonly kind = TreeKind.ArrayValue
-  constructor(public items: Tree[]) { super() }
-  fold(gather: TreeMerge): Tree {
-    const items = this.items.map((item) => item.fold(gather))
-    return new ArrayValue(items)
-  }
-}
-
-export class MapNode extends Tree {
-  readonly kind = TreeKind.MapNode
-  constructor(public entries: Map<string, Tree>) { super() }
-  fold(_gather: TreeMerge): Tree {
-    return this
-  }
-}
 
 export class NodeTree extends Tree {
   readonly kind = TreeKind.Node
   constructor(
     public typeName: string,
-    public tree: Tree,
+    public tree: TreeValue,
   ) { super() }
-  fold(_gather: TreeMerge): Tree {
+  fold(_gather: TreeMerge): TreeValue {
     return this
   }
 }
-
-// --- Name / Override types ---
 
 export class Named extends Tree {
   readonly kind = TreeKind.Named
   constructor(
     public name: string,
-    public value: Tree,
+    public value: TreeValue,
   ) { super() }
-  fold(gather: TreeMerge): Tree {
-    const val = this.value.fold(gather)
-    gather.insert(this.name, val)
-    return val
+  fold(gather: TreeMerge): TreeValue {
+    gather.insert(this.name, this.value)
+    return this.value
   }
 }
 
@@ -189,10 +90,10 @@ export class NamedAsList extends Tree {
   readonly kind = TreeKind.NamedAsList
   constructor(
     public name: string,
-    public value: Tree,
+    public value: TreeValue,
   ) { super() }
-  fold(gather: TreeMerge): Tree {
-    const val = this.value.fold(gather)
+  fold(gather: TreeMerge): TreeValue {
+    const val = foldOrGather(this.value, gather)
     gather.insertAsList(this.name, val)
     return val
   }
@@ -200,9 +101,9 @@ export class NamedAsList extends Tree {
 
 export class Override extends Tree {
   readonly kind = TreeKind.Override
-  constructor(public value: Tree) { super() }
-  fold(gather: TreeMerge): Tree {
-    const val = this.value.fold(gather)
+  constructor(public value: TreeValue) { super() }
+  fold(gather: TreeMerge): TreeValue {
+    const val = foldOrGather(this.value, gather)
     gather.root = appendTree(gather.root, val)
     return val
   }
@@ -210,113 +111,98 @@ export class Override extends Tree {
 
 export class OverrideAsList extends Tree {
   readonly kind = TreeKind.OverrideAsList
-  constructor(public value: Tree) { super() }
-  fold(gather: TreeMerge): Tree {
-    const val = this.value.fold(gather)
+  constructor(public value: TreeValue) { super() }
+  fold(gather: TreeMerge): TreeValue {
+    const val = foldOrGather(this.value, gather)
     gather.root = appendAsList(gather.root, val)
     return val
   }
 }
 
-// --- Internal helpers ---
-
-function isNil(t: Tree | null | undefined): boolean {
-  return t == null || t.kind === TreeKind.Nil
+function foldOrGather(t: TreeValue, gather: TreeMerge): TreeValue {
+  if (t === null) {
+    return null
+  }
+  return t instanceof Tree ? t.fold(gather) : t
 }
 
-function merge(a: Tree, b: Tree): Tree {
-  if (isNil(a)) return b
-  if (isNil(b)) return a
-
-  const aIsSeq = a.kind === TreeKind.Seq
-  const bIsSeq = b.kind === TreeKind.Seq
-
-  if (aIsSeq && bIsSeq) {
-    return new Seq([...(a as Seq).items, ...(b as Seq).items])
+export function treeFold(tree: TreeValue): TreeValue {
+  if (tree === null) {
+    return null
   }
-  if (aIsSeq) {
-    return new Seq([...(a as Seq).items, b])
-  }
-  if (bIsSeq) {
-    return new Seq([a, ...(b as Seq).items])
-  }
-  return new Seq([a, b])
+  const g = new TreeMerge()
+  const result = tree instanceof Tree ? tree.fold(g) : tree
+  return finish(g, result)
 }
 
-function appendTree(a: Tree | null, b: Tree): Tree {
-  if (a == null || a.kind === TreeKind.Nil) return b
-  if (b.kind === TreeKind.Nil) return a
 
-  if (a.kind === TreeKind.Seq) {
-    return new Seq([...(a as Seq).items, b])
+export function treeMerge(a: TreeValue, b: TreeValue): TreeValue {
+  if (b === null) return a
+  if (a === null) return b
+
+  const aIsArr = isArrayNotClosure(a)
+  const bIsArr = isArrayNotClosure(b)
+
+  if (aIsArr && bIsArr) {
+    return [...(a as TreeArray), ...(b as TreeArray)]
   }
-  return new Seq([a, b])
+  if (aIsArr) {
+    return [...(a as TreeArray), b]
+  }
+  if (bIsArr) {
+    return [a, ...(b as TreeArray)]
+  }
+  return [a, b]
 }
 
-function appendAsList(a: Tree | null, b: Tree): Tree {
-  if (a == null || a.kind === TreeKind.Nil) return new Seq([b])
+function appendTree(a: TreeValue | null, b: TreeValue): TreeValue {
+  if (a === null) return b
+  if (b === null) return a
 
-  if (a.kind === TreeKind.Seq) {
-    return new Seq([...(a as Seq).items, b])
+  if (isArrayNotClosure(a)) {
+    return [...(a as TreeArray), b]
   }
-  return new Seq([a, b])
+  return [a, b]
 }
 
-function closed(t: Tree): Tree {
-  if (t.kind === TreeKind.Seq) {
-    return new ArrayValue((t as Seq).items)
+function appendAsList(a: TreeValue, b: TreeValue): TreeArray {
+  if (a === null) {
+    return [b]
+  }
+
+  if (isArrayNotClosure(a)) {
+    return [...(a as TreeArray), b]
+  }
+  return [a, b]
+}
+
+export function closed(t: TreeValue): TreeValue {
+  if (t === null) {
+    return null
+  }
+  if (isArrayNotClosure(t)) {
+    return new Closure(t as TreeArray)
   }
   return t
 }
 
-function finish(g: TreeMerge, base: Tree): Tree {
-  if (g.root !== null && g.root.kind !== TreeKind.Nil) {
+function finish(g: TreeMerge, base: TreeValue): TreeValue {
+  if (g.root !== null) {
     return closed(g.root)
   }
   if (g.map.size > 0) {
-    return new MapNode(new Map(g.map))
+    return g.map
   }
   return closed(base)
 }
 
-// --- Public API ---
-
-export function fold(tree: Tree | null): Tree {
-  if (tree === null) {
-    return NIL
+export function treeToJSON(t: TreeValue): TreeValue {
+  if (!(t instanceof Tree)) {
+    return t
   }
-  const g = new TreeMerge()
-  const result = tree.fold(g)
-  return finish(g, result)
-}
-
-export function treeToJSON(t: Tree): unknown {
   switch (t.kind) {
-    case TreeKind.Text:
-      return (t as Text).value
-    case TreeKind.NumberValue:
-      return (t as NumberValue).value
-    case TreeKind.Bool:
-      return (t as Bool).value
-    case TreeKind.Nil:
     case TreeKind.Bottom:
-    case TreeKind.NullValue:
       return null
-    case TreeKind.TrueValue:
-      return true
-    case TreeKind.FalseValue:
-      return false
-    case TreeKind.Seq:
-      return (t as Seq).items.map(treeToJSON)
-    case TreeKind.ArrayValue:
-      return (t as ArrayValue).items.map(treeToJSON)
-    case TreeKind.MapNode: {
-      const out: Record<string, unknown> = {}
-      for (const [key, val] of (t as MapNode).entries) {
-        out[key] = treeToJSON(val)
-      }
-      return out
-    }
     case TreeKind.Named:
       return { [(t as Named).name]: treeToJSON((t as Named).value) }
     case TreeKind.NamedAsList:

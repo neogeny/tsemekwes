@@ -4,7 +4,7 @@ import {
   ArrayValue,
   Bool,
   Bottom,
-  fold,
+  treeFold,
   MapNode,
   Named,
   NamedAsList,
@@ -31,40 +31,40 @@ function list(...items: Tree[]): ArrayValue {
 
 describe("fold", () => {
   it("Nil", () => {
-    const result = fold(new Nil())
+    const result = treeFold(new Nil())
     assert.ok(result instanceof Nil)
   })
 
   it("Bottom", () => {
-    const result = fold(new Bottom())
+    const result = treeFold(new Bottom())
     assert.ok(result instanceof Bottom)
   })
 
   it("null -> Nil", () => {
-    const result = fold(null)
+    const result = treeFold(null)
     assert.ok(result instanceof Nil)
   })
 
   it("Text", () => {
-    const result = fold(text("hello"))
+    const result = treeFold(text("hello"))
     assert.ok(result instanceof Text)
     assert.equal((result as Text).value, "hello")
   })
 
   it("Bool", () => {
-    const result = fold(new Bool(true))
+    const result = treeFold(new Bool(true))
     assert.ok(result instanceof Bool)
     assert.equal((result as Bool).value, true)
   })
 
   it("Number", () => {
-    const result = fold(new NumberValue(42.5))
+    const result = treeFold(new NumberValue(42.5))
     assert.ok(result instanceof NumberValue)
     assert.equal((result as NumberValue).value, 42.5)
   })
 
   it("Seq to Array", () => {
-    const result = fold(seq(text("a"), text("b"), text("c")))
+    const result = treeFold(seq(text("a"), text("b"), text("c")))
     assert.ok(
       result instanceof ArrayValue,
       `expected Array, got ${typeof result}`,
@@ -74,7 +74,7 @@ describe("fold", () => {
   })
 
   it("List to Array", () => {
-    const result = fold(list(text("a"), text("b"), text("c")))
+    const result = treeFold(list(text("a"), text("b"), text("c")))
     assert.ok(
       result instanceof ArrayValue,
       `expected Array, got ${typeof result}`,
@@ -84,7 +84,7 @@ describe("fold", () => {
   })
 
   it("Named to Map", () => {
-    const result = fold(new Named("x", text("hello")))
+    const result = treeFold(new Named("x", text("hello")))
     assert.ok(
       result instanceof MapNode,
       `expected MapNode, got ${typeof result}`,
@@ -95,13 +95,13 @@ describe("fold", () => {
   })
 
   it("Override", () => {
-    const result = fold(new Override(text("result")))
+    const result = treeFold(new Override(text("result")))
     assert.ok(result instanceof Text)
     assert.equal((result as Text).value, "result")
   })
 
   it("Multiple Named", () => {
-    const result = fold(
+    const result = treeFold(
       seq(new Named("a", text("1")), new Named("b", text("2"))),
     )
     assert.ok(
@@ -114,7 +114,7 @@ describe("fold", () => {
   })
 
   it("Named accumulates", () => {
-    const result = fold(
+    const result = treeFold(
       seq(new Named("x", text("a")), new Named("x", text("b"))),
     )
     assert.ok(
@@ -128,7 +128,7 @@ describe("fold", () => {
   })
 
   it("NamedAsList", () => {
-    const result = fold(new NamedAsList("items", text("x")))
+    const result = treeFold(new NamedAsList("items", text("x")))
     assert.ok(
       result instanceof MapNode,
       `expected MapNode, got ${typeof result}`,
@@ -140,7 +140,7 @@ describe("fold", () => {
   })
 
   it("NamedAsList accumulates", () => {
-    const result = fold(
+    const result = treeFold(
       seq(
         new NamedAsList("items", text("a")),
         new NamedAsList("items", text("b")),
@@ -158,7 +158,7 @@ describe("fold", () => {
   })
 
   it("Override wins", () => {
-    const result = fold(
+    const result = treeFold(
       seq(
         new Named("x", text("ignored")),
         text("also ignored"),
@@ -170,7 +170,7 @@ describe("fold", () => {
   })
 
   it("OverrideAsList", () => {
-    const result = fold(
+    const result = treeFold(
       seq(new OverrideAsList(text("a")), new OverrideAsList(text("b"))),
     )
     assert.ok(
@@ -181,7 +181,7 @@ describe("fold", () => {
   })
 
   it("Nested Named", () => {
-    const result = fold(
+    const result = treeFold(
       new Named("x", seq(new Named("a", text("1")), new Named("b", text("2")))),
     )
     assert.ok(
@@ -195,7 +195,7 @@ describe("fold", () => {
   })
 
   it("Seq with Nil", () => {
-    const result = fold(seq(text("a"), new Nil(), text("b")))
+    const result = treeFold(seq(text("a"), new Nil(), text("b")))
     assert.ok(
       result instanceof ArrayValue,
       `expected Array, got ${typeof result}`,
@@ -204,7 +204,7 @@ describe("fold", () => {
   })
 
   it("Rule node", () => {
-    const result = fold(new NodeTree("expr", text("42")))
+    const result = treeFold(new NodeTree("expr", text("42")))
     assert.ok(result instanceof NodeTree)
     const r = result as NodeTree
     assert.equal(r.typeName, "expr")

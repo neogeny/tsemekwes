@@ -1,7 +1,10 @@
+import {TreeValue} from "./tree";
 
-export class Closure extends Array {
-  public isClosure() {
-    return true
+export type TreeArray = Array<TreeValue>
+
+export class Closure extends Array<TreeValue> {
+  constructor(value: Array<TreeValue>) {
+    super(value);
   }
 }
 
@@ -14,7 +17,7 @@ export function isClosure(obj: any): boolean {
       obj.constructor === Closure;
 }
 
-export function isArray(obj: any): boolean {
+export function isArrayNotClosure(obj: any): boolean {
   // The only truly universal check for array-like behavior
   return Array.isArray(obj) && !isClosure(obj)
 }
