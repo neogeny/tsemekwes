@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es2023",
+    "target": "esnext",
     "module": "esnext",
     "lib": ["ES2023"],
     "types": ["node", "bun-types"],
     "resolveJsonModule": true,
     "skipLibCheck": true,
+    "importHelpers": true,
 
     "preserveSymlinks": true,
 

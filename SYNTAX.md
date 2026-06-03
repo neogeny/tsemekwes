@@ -125,7 +125,7 @@ Optionally match `e`.
 
 ### `{ e }` or `{ e }*`
 
-Closure. Match `e` zero or more times. The
+Types. Match `e` zero or more times. The
 [AST](http://en.wikipedia.org/wiki/Abstract_syntax_tree) returned for a
 closure is always a `list`.
 

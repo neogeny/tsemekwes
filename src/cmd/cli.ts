@@ -51,8 +51,9 @@ program
   .action(async (grammarPath, inputPaths, options, command) => {
     const parentOpts = command.parent?.opts?.() ?? {}
     const combinedOpts = { ...parentOpts, ...options }
+    const colorize = !combinedOpts.output || combinedOpts.output === "-"
     try {
-      const { lang, outputs } = await cmdRun(grammarPath, inputPaths, options)
+      const { lang, outputs } = await cmdRun(grammarPath, inputPaths, { ...options, colorize })
       writeOutputs(outputs, lang, combinedOpts.output ?? "")
     } catch (e) {
       console.error(`Error: ${(e as Error).message}`)
@@ -68,8 +69,9 @@ program
   .action(async (options, command) => {
     const parentOpts = command.parent?.opts?.() ?? {}
     const combinedOpts = { ...parentOpts, ...options }
+    const colorize = !combinedOpts.output || combinedOpts.output === "-"
     try {
-      const { lang, outputs } = await cmdBoot(options)
+      const { lang, outputs } = await cmdBoot({ ...options, colorize })
       writeOutputs(outputs, lang, combinedOpts.output ?? "")
     } catch (e) {
       console.error(`Error: ${(e as Error).message}`)
@@ -85,8 +87,9 @@ program
   .action(async (grammarPath, options, command) => {
     const parentOpts = command.parent?.opts?.() ?? {}
     const combinedOpts = { ...parentOpts, ...options }
+    const colorize = !combinedOpts.output || combinedOpts.output === "-"
     try {
-      const { lang, outputs } = await cmdGrammar(grammarPath, options)
+      const { lang, outputs } = await cmdGrammar(grammarPath, { ...options, colorize })
       writeOutputs(outputs, lang, combinedOpts.output ?? "")
     } catch (e) {
       console.error(`Error: ${(e as Error).message}`)
