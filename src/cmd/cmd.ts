@@ -3,107 +3,176 @@ import { bootGrammar } from "@json"
 import { newCfg, readText } from "@util/helpers"
 import { asjsonStr } from "@util/asjson"
 import { treeToJSONStr } from "@trees"
+import path from "node:path"
+import fs from "node:fs"
+
+export interface OutputItem {
+  name: string
+  payload: string
+}
+
+const modeStdout = 0
+const modeFile = 1
+const modeDir = 2
+
+function outputMode(outputPath: string): number {
+  if (!outputPath || outputPath === "-") return modeStdout
+  try {
+    const stat = fs.statSync(outputPath)
+    if (stat.isDirectory()) return modeDir
+    return modeFile
+  } catch {
+    // path doesn't exist
+  }
+  if (!path.extname(outputPath)) return modeDir
+  return modeFile
+}
+
+function langExt(lang: string): string {
+  switch (lang) {
+    case "json":
+      return ".json"
+    default:
+      return ".txt"
+  }
+}
+
+function replaceExt(name: string, newExt: string): string {
+  const old = path.extname(name)
+  if (old) name = name.slice(0, -old.length)
+  return name + newExt
+}
+
+function joinOutputs(outputs: OutputItem[]): string {
+  return outputs.map((o) => o.payload).join("\n")
+}
+
+export function writeOutputs(
+  outputs: OutputItem[],
+  lang: string,
+  outputPath: string,
+): void {
+  switch (outputMode(outputPath)) {
+    case modeStdout:
+      for (const o of outputs) console.log(o.payload)
+      break
+    case modeFile:
+      fs.writeFileSync(outputPath, joinOutputs(outputs), "utf-8")
+      break
+    case modeDir:
+      const ext = langExt(lang)
+      fs.mkdirSync(outputPath, { recursive: true })
+      for (const o of outputs) {
+        const name = replaceExt(o.name, ext)
+        const outPath = path.join(outputPath, name)
+        fs.writeFileSync(outPath, o.payload, "utf-8")
+      }
+      break
+  }
+}
 
 export async function cmdRun(
   grammarPath: string,
   inputPaths: string[],
   options: { json?: boolean; start?: string; trace?: boolean },
-): Promise<void> {
+): Promise<{ lang: string; outputs: OutputItem[] }> {
   const cfg = newCfg(options)
   const g = await loadGrammar(grammarPath, cfg)
+  const outputs: OutputItem[] = []
 
   if (inputPaths.length === 0) {
     if (options.json) {
-      console.log(asjsonStr(g))
-    } else {
-      console.log(`Compiled grammar: ${g.name}`)
-      console.log(`  rules: ${g.rules.length}`)
-      for (const r of g.rules) console.log(`  - ${r.name}`)
+      outputs.push({ name: path.basename(grammarPath), payload: asjsonStr(g) })
+      return { lang: "json", outputs }
     }
-    return
+    const lines: string[] = [
+      `Compiled grammar: ${g.name}`,
+      `  rules: ${g.rules.length}`,
+    ]
+    for (const r of g.rules) lines.push(`  - ${r.name}`)
+    outputs.push({ name: path.basename(grammarPath), payload: lines.join("\n") })
+    return { lang: "json", outputs }
   }
 
-  const results: {
-    file: string
-    ok: boolean
-    data?: string
-    error?: string
-  }[] = []
+  let errcount = 0
   for (const inputPath of inputPaths) {
     try {
       const inputText = await readText(inputPath)
       const tree = parseInput(g, inputText, cfg)
-      results.push({
-        file: inputPath,
-        ok: true,
-        data: treeToJSONStr(tree),
+      outputs.push({
+        name: path.basename(inputPath),
+        payload: treeToJSONStr(tree),
       })
     } catch (e: unknown) {
-      results.push({
-        file: inputPath,
-        ok: false,
-        error: (e as Error).message,
-      })
+      errcount++
+      console.error(`Error: ${inputPath}: ${(e as Error).message}`)
     }
   }
 
-  if (options.json) {
-    console.log(JSON.stringify(results, null, 2))
-  } else {
-    let passed = 0
-    let errors = 0
-    for (const r of results) {
-      if (r.ok) {
-        passed++
-        console.log(r.data)
-      } else {
-        errors++
-        console.error(`Error: ${r.file}: ${r.error}`)
-      }
-    }
-    console.error(
-      `Parsed ${results.length} files  ${passed} passed  ${errors} errors`,
-    )
-  }
+  console.error(
+    `Parsed ${inputPaths.length} files  ${outputs.length} passed  ${errcount} errors`,
+  )
+  return { lang: "json", outputs }
 }
 
-export function cmdBoot(options: { json?: boolean; pretty?: boolean }): void {
+export async function cmdBoot(
+  options: { json?: boolean; pretty?: boolean },
+): Promise<{ lang: string; outputs: OutputItem[] }> {
   const g = bootGrammar()
+
+  let payload: string
+  let lang: string
   if (options.json) {
-    console.log(asjsonStr(g))
+    payload = asjsonStr(g)
+    lang = "json"
   } else {
-    console.log(`Boot grammar: ${g.name}`)
-    console.log(`  rules: ${g.rules.length}`)
-    console.log(`  directives: ${g.directives.length}`)
-    console.log(`  keywords: ${g.keywords.length}`)
-    for (const d of g.directives) console.log(`  @${d[0]} :: ${d[1]}`)
+    const lines: string[] = [
+      `Boot grammar: ${g.name}`,
+      `  rules: ${g.rules.length}`,
+      `  directives: ${g.directives.length}`,
+      `  keywords: ${g.keywords.length}`,
+    ]
+    for (const d of g.directives) lines.push(`  @${d[0]} :: ${d[1]}`)
+    payload = lines.join("\n")
+    lang = "json"
   }
+
+  return { lang, outputs: [{ name: "boot", payload }] }
 }
 
 export async function cmdGrammar(
   grammarPath: string,
   options: { json?: boolean; pretty?: boolean; trace?: boolean },
-): Promise<void> {
+): Promise<{ lang: string; outputs: OutputItem[] }> {
   const cfg = newCfg(options)
   cfg.source = grammarPath
   const g = await loadGrammar(grammarPath, cfg)
 
+  let payload: string
+  let lang: string
   if (options.json) {
-    console.log(asjsonStr(g))
+    payload = asjsonStr(g)
+    lang = "json"
   } else {
-    console.log(`Grammar: ${g.name}`)
-    console.log(`  rules: ${g.rules.length}`)
+    const lines: string[] = [`Grammar: ${g.name}`, `  rules: ${g.rules.length}`]
     for (const r of g.rules) {
       const deco =
         r.decorators.length > 0 ? ` [${r.decorators.join(", ")}]` : ""
-      console.log(`  - ${r.name}${deco}`)
+      lines.push(`  - ${r.name}${deco}`)
     }
     if (g.directives.length > 0) {
-      console.log(`  directives:`)
-      for (const d of g.directives) console.log(`    ${d[0]} = ${d[1]}`)
+      lines.push(`  directives:`)
+      for (const d of g.directives) lines.push(`    ${d[0]} = ${d[1]}`)
     }
     if (g.keywords.length > 0)
-      console.log(`  keywords: ${g.keywords.join(", ")}`)
+      lines.push(`  keywords: ${g.keywords.join(", ")}`)
+    payload = lines.join("\n")
+    lang = "json"
+  }
+
+  return {
+    lang,
+    outputs: [{ name: path.basename(grammarPath), payload }],
   }
 }
 
@@ -111,16 +180,16 @@ export function cmdInfo(): void {
   const features = [
     ["API function", "Status", "Depends on"],
     ["───", "───", "───"],
-    ["bootGrammar", "✅ done", "boot grammar JSON + link"],
-    ["loadGrammarFromJSON", "✅ done", "JSON → Grammar deserialization"],
-    ["parseInput", "✅ done", "Grammar.parseAt() used directly"],
-    ["parseGrammar", "✅ done", "boot grammar + fold + compileGrammar"],
-    ["compile", "✅ done", "parseGrammar + Grammar.initialize()"],
-    ["parse", "✅ done", "compile + parseInput"],
-    ["grammarToJSON", "❌ stub", "Grammar.toJSON()"],
-    ["grammarPretty", "❌ stub", "Grammar.prettyPrint()"],
+    ["bootGrammar", "done", "boot grammar JSON + link"],
+    ["loadGrammarFromJSON", "done", "JSON  Grammar deserialization"],
+    ["parseInput", "done", "Grammar.parseAt() used directly"],
+    ["parseGrammar", "done", "boot grammar + fold + compileGrammar"],
+    ["compile", "done", "parseGrammar + Grammar.initialize()"],
+    ["parse", "done", "compile + parseInput"],
+    ["grammarToJSON", "stub", "Grammar.toJSON()"],
+    ["grammarPretty", "stub", "Grammar.prettyPrint()"],
   ]
-  console.log("TS’emekwes v0.0.0 — Feature Status\n")
+  console.log("TS\u2019emekwes v0.0.0 \u2014 Feature Status\n")
   for (const row of features) {
     console.log(`  ${row[0].padEnd(25)} ${row[1].padEnd(12)} ${row[2]}`)
   }

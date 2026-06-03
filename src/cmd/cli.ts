@@ -3,7 +3,7 @@
 import { Command, Help, Option } from "commander"
 import pc from "picocolors"
 import { getProjectGitVersion } from "@util"
-import { cmdBoot, cmdGrammar, cmdInfo, cmdRun } from "./cmd"
+import { cmdBoot, cmdGrammar, cmdInfo, cmdRun, writeOutputs } from "./cmd"
 
 const program = new Command()
 
@@ -52,7 +52,8 @@ program
     const parentOpts = command.parent?.opts?.() ?? {}
     const combinedOpts = { ...parentOpts, ...options }
     try {
-      await cmdRun(grammarPath, inputPaths, combinedOpts)
+      const { lang, outputs } = await cmdRun(grammarPath, inputPaths, options)
+      writeOutputs(outputs, lang, combinedOpts.output ?? "")
     } catch (e) {
       console.error(`Error: ${(e as Error).message}`)
       process.exit(1)
@@ -64,9 +65,12 @@ program
   .description("the internal boot grammar")
   .option("-j, --json", "print the boot grammar in JSON format")
   .option("-p, --pretty", "pretty-print the boot grammar", true)
-  .action(async (options) => {
+  .action(async (options, command) => {
+    const parentOpts = command.parent?.opts?.() ?? {}
+    const combinedOpts = { ...parentOpts, ...options }
     try {
-      cmdBoot(options)
+      const { lang, outputs } = await cmdBoot(options)
+      writeOutputs(outputs, lang, combinedOpts.output ?? "")
     } catch (e) {
       console.error(`Error: ${(e as Error).message}`)
       process.exit(1)
@@ -82,7 +86,8 @@ program
     const parentOpts = command.parent?.opts?.() ?? {}
     const combinedOpts = { ...parentOpts, ...options }
     try {
-      await cmdGrammar(grammarPath, combinedOpts)
+      const { lang, outputs } = await cmdGrammar(grammarPath, options)
+      writeOutputs(outputs, lang, combinedOpts.output ?? "")
     } catch (e) {
       console.error(`Error: ${(e as Error).message}`)
       process.exit(1)
