@@ -1,97 +1,88 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
+import {BOTTOM} from "@context";
+import {Closure, isArrayNotClosure, isClosure, isComplex} from "../closure";
+import {type TreeArray} from '../closure'
 import {
-  ArrayValue,
-  Bool,
-  Bottom,
   treeFold,
-  MapNode,
+  treeToJSONStr,
   Named,
   NamedAsList,
-  Nil,
   NodeTree,
-  NumberValue,
   Override,
   OverrideAsList,
-  Seq,
-  Text,
-  type Tree,
-  treeToJSONStr,
-} from "../tree.js"
+  TreeValue,
+} from "../tree"
 
 function text(s: string): Text {
   return new Text(s)
 }
-function seq(...items: Tree[]): Seq {
-  return new Seq(items)
+function seq(...items: TreeValue[]): TreeArray {
+  return items
 }
-function list(...items: Tree[]): ArrayValue {
-  return new ArrayValue(items)
+function closure(...items: TreeValue[]): Closure {
+  return new Closure(items)
 }
 
 describe("fold", () => {
   it("Nil", () => {
-    const result = treeFold(new Nil())
-    assert.ok(result instanceof Nil)
+    const result = treeFold(null)
+    assert.ok(result == null)
   })
 
   it("Bottom", () => {
-    const result = treeFold(new Bottom())
-    assert.ok(result instanceof Bottom)
+    const result = treeFold(BOTTOM)
+    assert.ok(result === BOTTOM)
   })
 
-  it("null -> Nil", () => {
+  it("null -> null", () => {
     const result = treeFold(null)
-    assert.ok(result instanceof Nil)
+    assert.ok(result === null)
   })
 
   it("Text", () => {
     const result = treeFold(text("hello"))
     assert.ok(result instanceof Text)
-    assert.equal((result as Text).value, "hello")
+    assert.equal(result, "hello")
   })
 
   it("Bool", () => {
-    const result = treeFold(new Bool(true))
-    assert.ok(result instanceof Bool)
-    assert.equal((result as Bool).value, true)
+    const result = treeFold(true)
+    assert.equal(result, true)
   })
 
   it("Number", () => {
-    const result = treeFold(new NumberValue(42.5))
-    assert.ok(result instanceof NumberValue)
-    assert.equal((result as NumberValue).value, 42.5)
+    const result = treeFold(42.5)
+    assert.equal(result, 42.5)
   })
 
   it("Seq to Array", () => {
     const result = treeFold(seq(text("a"), text("b"), text("c")))
-    assert.ok(
-      result instanceof ArrayValue,
+    assert.ok(isArrayNotClosure(result),
       `expected Array, got ${typeof result}`,
     )
-    assert.equal((result as ArrayValue).items.length, 3)
-    assert.equal(((result as ArrayValue).items[0] as Text).value, "a")
+    assert.equal(result.length, 3)
+    assert.equal(result[0], "a")
   })
 
   it("List to Array", () => {
-    const result = treeFold(list(text("a"), text("b"), text("c")))
+    const result = treeFold(closure(text("a"), text("b"), text("c")))
     assert.ok(
-      result instanceof ArrayValue,
-      `expected Array, got ${typeof result}`,
+      isClosure(result),
+      `expected Closure, got ${typeof result}`,
     )
-    assert.equal((result as ArrayValue).items.length, 3)
-    assert.equal(((result as ArrayValue).items[0] as Text).value, "a")
+    assert.equal(result.length, 3)
+    assert.equal(result[0], "a")
   })
 
   it("Named to Map", () => {
     const result = treeFold(new Named("x", text("hello")))
     assert.ok(
-      result instanceof MapNode,
-      `expected MapNode, got ${typeof result}`,
+      isComplex(result),
+      `expected object, got ${typeof result}`,
     )
-    const m = result as MapNode
-    assert.ok(m.entries.has("x"))
-    assert.equal((m.entries.get("x") as Text).value, "hello")
+    assert.ok(result.has("x"))
+    assert.equal(result["x"], "hello")
   })
 
   it("Override", () => {
@@ -213,7 +204,7 @@ describe("fold", () => {
 
 describe("treeToJSONStr", () => {
   it("Text", () => {
-    assert.equal(treeToJSONStr(new Text("hello")), '"hello"')
+    assert.equal(treeToJSONStr("hello"), '"hello"')
   })
 
   it("Number", () => {

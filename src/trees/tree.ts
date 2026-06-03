@@ -1,4 +1,4 @@
-import {isArrayNotClosure, TreeArray} from "./closure";
+import {isArrayNotClosure, type TreeArray} from "./closure";
 import {Closure} from "./closure";
 import { asjson } from "@util/asjson"
 
@@ -14,7 +14,6 @@ export type TreeValue =
 
 
 export enum TreeKind {
-  Bottom = "Bottom",
   Node = "Node",
   Named = "Named",
   NamedAsList = "NamedAsList",
@@ -53,15 +52,6 @@ export class TreeMerge {
     }
   }
 }
-
-export class Bottom extends Tree {
-  readonly kind = TreeKind.Bottom
-  fold(_gather: TreeMerge): Tree {
-    return this
-  }
-}
-
-export const BOTTOM = new Bottom()
 
 export class NodeTree extends Tree {
   readonly kind = TreeKind.Node
@@ -201,8 +191,6 @@ export function treeToJSON(t: TreeValue): TreeValue {
     return t
   }
   switch (t.kind) {
-    case TreeKind.Bottom:
-      return null
     case TreeKind.Named:
       return { [(t as Named).name]: treeToJSON((t as Named).value) }
     case TreeKind.NamedAsList:

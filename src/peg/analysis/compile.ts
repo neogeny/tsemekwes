@@ -1,10 +1,6 @@
 import {
-  ArrayValue as ArrayTree,
-  MapNode,
   NodeTree,
-  Seq,
-  Text,
-  type Tree,
+  type TreeValue,
 } from "../../trees/tree"
 import {
   AlertExp,
@@ -51,14 +47,15 @@ class CompileError extends Error {
   }
 }
 
-function node(tree: Tree): [string, Tree] {
+function node(tree: TreeValue): [string, TreeValue] {
+  if (tree === null) return ["null", null]
   if (tree instanceof NodeTree) {
     return [tree.typeName, tree.tree]
   }
-  throw new CompileError(`expected Node tree, got ${tree.kind}`)
+  throw new CompileError(`expected Node tree, got ${tree}`)
 }
 
-function nodeCheck(tree: Tree, typename: string): Tree {
+function nodeCheck(tree: TreeValue, typename: string): TreeValue {
   const [name, inner] = node(tree)
   if (name !== typename) {
     throw new CompileError(`expected ${typename} node, got ${name}`)
@@ -66,34 +63,34 @@ function nodeCheck(tree: Tree, typename: string): Tree {
   return inner
 }
 
-function isMapNode(tree: Tree): tree is MapNode {
-  return tree instanceof MapNode
+function isMapNode(tree: TreeValue): boolean {
+  return tree instanceof Map
 }
 
-function mapGet(tree: Tree, key: string): Tree | null {
+function mapGet(tree: TreeValue, key: string): TreeValue {
   if (!isMapNode(tree)) return null
-  return tree.entries.get(key) ?? null
+  return (tree as Map<string, TreeValue>).get(key) ?? null
 }
 
-function mapGetDefault(tree: Tree, key: string, def: string): string {
+function mapGetDefault(tree: TreeValue, key: string, def: string): string {
   if (!isMapNode(tree)) return def
-  const val = tree.entries.get(key)
+  if (tree === null) return def
+  const val = (tree as Map<string, TreeValue>).get(key)
   if (val == null) return def
   return textValue(val)
 }
 
-function textValue(tree: Tree): string {
-  if (tree instanceof Text) return tree.value
-  return ""
+function textValue(tree: TreeValue): string {
+  if (tree == null) return ""
+  return String(tree)
 }
 
-function listValue(tree: Tree): Tree[] {
-  if (tree instanceof Seq) return tree.items
-  if (tree instanceof ArrayTree) return tree.items
+function listValue(tree: TreeValue): Array<any> {
+  if (Array.isArray(tree)) return tree
   return []
 }
 
-function strListValue(tree: Tree): string[] {
+function strListValue(tree: TreeValue): string[] {
   const items = listValue(tree)
   if (items.length === 0) return []
   const out: string[] = []
@@ -104,7 +101,7 @@ function strListValue(tree: Tree): string[] {
   return out
 }
 
-function strPairsListValue(tree: Tree): Map<string, string> {
+function strPairsListValue(tree: TreeValue): Map<string, string> {
   const out = new Map<string, string>()
   for (const item of listValue(tree)) {
     const pair = strListValue(item)
@@ -116,20 +113,20 @@ function strPairsListValue(tree: Tree): Map<string, string> {
 }
 
 /** Compile a parse tree into a Grammar object. */
-export function compileGrammar(tree: Tree): Grammar {
+export function compileGrammar(tree: TreeValue): Grammar {
   const inner = nodeCheck(tree, "Grammar")
   if (!isMapNode(inner)) {
-    throw new CompileError(`expected MapNode, got ${inner.kind}`)
+    throw new CompileError(`expected MapNode`)
   }
 
   let name = ""
-  const nameTree = inner.entries.get("name")
+  const nameTree = mapGet(inner, "name")
   if (nameTree != null) {
     name = textValue(nameTree)
   }
 
   const rules: Rule[] = []
-  const rulesTree = inner.entries.get("rules")
+  const rulesTree = mapGet(inner, "rules")
   if (rulesTree != null) {
     for (const rt of listValue(rulesTree)) {
       rules.push(compileRule(rt))
@@ -137,12 +134,12 @@ export function compileGrammar(tree: Tree): Grammar {
   }
 
   const directives: string[][] = []
-  const dirsTree = inner.entries.get("directives")
+  const dirsTree = mapGet(inner, "directives")
   if (dirsTree != null) {
     for (const d of listValue(dirsTree)) {
       if (!isMapNode(d)) continue
-      const n = textValue(d.entries.get("name") || new Text(""))
-      const v = textValue(d.entries.get("value") || new Text(""))
+      const n = textValue(mapGet(d, "name") ?? "")
+      const v = textValue(mapGet(d, "value") ?? "")
       if (n !== "") {
         directives.push([n, v])
         if (n === "grammar" && name === "") {
@@ -157,7 +154,7 @@ export function compileGrammar(tree: Tree): Grammar {
   }
 
   const keywords: string[] = []
-  const kwTree = inner.entries.get("keywords")
+  const kwTree = mapGet(inner, "keywords")
   if (kwTree != null) {
     for (const innerList of listValue(kwTree)) {
       for (const kw of listValue(innerList)) {
@@ -176,13 +173,13 @@ export function compileGrammar(tree: Tree): Grammar {
   return g
 }
 
-function compileRule(tree: Tree): Rule {
+function compileRule(tree: TreeValue): Rule {
   const inner = nodeCheck(tree, "Rule")
   if (!isMapNode(inner)) {
-    throw new CompileError(`expected MapNode for Rule, got ${inner.kind}`)
+    throw new CompileError(`expected MapNode for Rule`)
   }
 
-  const name = textValue(inner.entries.get("name") || new Text(""))
+  const name = mapGetDefault(inner, "name", "")
   if (name === "") {
     throw new CompileError("rule has no name")
   }
@@ -195,11 +192,11 @@ function compileRule(tree: Tree): Rule {
   const exp = compileExp(expTree)
 
   const decorators = strListValue(
-    inner.entries.get("decorators") ?? new Seq([]),
+    mapGet(inner, "decorators") ?? [],
   )
-  const params = strListValue(inner.entries.get("params") ?? new Seq([]))
+  const params = strListValue(mapGet(inner, "params") ?? [])
   const kwparams = strPairsListValue(
-    inner.entries.get("kwparams") ?? new Seq([]),
+    mapGet(inner, "kwparams") ?? [],
   )
 
   const isName = decorators.includes("name") || decorators.includes("isname")
@@ -229,7 +226,7 @@ function compileRule(tree: Tree): Rule {
   )
 }
 
-function compileExp(tree: Tree): Exp {
+function compileExp(tree: TreeValue): Exp {
   const [typename, inner] = node(tree)
 
   switch (typename) {
@@ -347,17 +344,14 @@ function compileExp(tree: Tree): Exp {
       return new PatternExp(textValue(inner))
 
     case "Patterns": {
-      let items: Tree[]
+      let items: TreeValue[]
       const t = mapGet(inner, "tree")
       if (t != null) {
         items = listValue(t)
       } else {
         items = listValue(inner)
       }
-      if (
-        items.length === 0 &&
-        !(inner instanceof Seq || inner instanceof ArrayTree)
-      ) {
+      if (items.length === 0) {
         items = [inner]
       }
       const exps = items.map(compileExp)
@@ -391,17 +385,14 @@ function compileExp(tree: Tree): Exp {
       return new RuleIncludeExp(textValue(inner))
 
     case "Sequence": {
-      let items: Tree[]
+      let items: TreeValue[]
       const t = mapGet(inner, "tree")
       if (t != null) {
         items = listValue(t)
       } else {
         items = listValue(inner)
       }
-      if (
-        items.length === 0 &&
-        !(inner instanceof Seq || inner instanceof ArrayTree)
-      ) {
+      if (items.length === 0) {
         items = [inner]
       }
       const exps = items.map(compileExp)

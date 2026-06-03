@@ -22,7 +22,7 @@ export function parseGrammar(grammar: string, cfg?: Cfg): Tree {
 
   let tree: Tree | null = null
   try {
-    tree = boot.parse(ctx, merged)
+    tree = boot.parse(ctx, merged) as unknown as Tree
   } catch (error) {
     if (!isParseError(error)) {
       throw error
@@ -55,7 +55,7 @@ export function parseInput(parser: Grammar, text: string, cfg?: Cfg): Tree {
 
   let tree: Tree | null = null
   try {
-    tree = parser.parse(ctx, merged)
+    tree = parser.parse(ctx, merged) as unknown as Tree
   } catch (error) {
     if (!isParseError(error)) {
       throw error

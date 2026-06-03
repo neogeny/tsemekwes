@@ -16,14 +16,32 @@ export class ParseError extends Error {
   }
 }
 
+export class BottomError extends ParseError {
+  // Brand the class to ensure detection even across bundles
+  readonly __isBottomError = true;
+
+  constructor(options?: ErrorOptions) {
+    super("BOTTOM", options);
+    this.name = 'BottomError';
+  }
+
+  static isBottomError(error: unknown): error is ParseError {
+    return error instanceof BottomError
+        || (!!error && (error as any).__isBottomError === true);
+  }
+}
+
+export const BOTTOM = new BottomError()
+
 export class ParseFailure extends ParseError{
   public readonly memento: Memento
 
   constructor(
-      public readonly start: number,
-      msg: string,
-      ctx: Ctx,
-     options?: ErrorOptions
+    ctx: Ctx,
+    public readonly start: number,
+    public readonly msg: string,
+    public readonly source?: ParseFailure,
+   options?: ErrorOptions
   ) {
     super(msg, options)
     this.name = "ParseFailure"
@@ -44,6 +62,11 @@ export class ParseFailure extends ParseError{
     return error instanceof ParseFailure
         || (!!error && (error as any).__isMyCustomError === true);
   }
+}
+
+// noinspection JSUnusedGlobalSymbols
+export function isBottomError(error: unknown): boolean {
+  return BottomError.isBottomError(error)
 }
 
 export function isParseFailure(error: unknown): boolean {

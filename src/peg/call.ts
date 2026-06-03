@@ -1,4 +1,4 @@
-import type { Tree } from "@trees"
+import type {TreeValue} from "@trees"
 import type { Ctx } from "@context"
 import type { Rule } from "./rule"
 import { Exp, ExpKind } from "./exp"
@@ -14,7 +14,7 @@ export class CallExp extends Exp {
     super()
   }
 
-  override parse(ctx: Ctx): Tree | null {
+  override parse(ctx: Ctx): TreeValue {
     return call(ctx, this.name, this.rule)
   }
 }

@@ -1,14 +1,14 @@
-import type { Tree } from "@trees"
+import type {TreeValue} from "@trees"
 
 export interface Configurable {
   configure(cfg: Cfg): void
 }
 
 export type SemanticsFunc = (
-  node: Tree,
+  node: TreeValue,
   ruleName: string,
   params: string[],
-) => [Tree, boolean]
+) => [TreeValue, boolean]
 
 export class Cfg {
   name?: string

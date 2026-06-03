@@ -1,6 +1,6 @@
-import { Cfg, defaultCfg } from "@config"
+import {Cfg, defaultCfg, SemanticsFunc} from "@config"
 import type { Ctx } from "@context"
-import type { Tree } from "@trees"
+import type {TreeValue} from "@trees"
 import { Exp, ExpKind } from "./exp"
 import { modelToJSONStr as _modelToJSONStr, serializeGrammar } from "./export"
 import { asjson } from "../util/asjson"
@@ -18,11 +18,7 @@ export class Grammar extends Exp {
     public directives: string[][] = [],
     public keywords: string[] = [],
     public analyzed: boolean = false,
-    public semantics?: (
-      node: Tree,
-      ruleName: string,
-      params: string[],
-    ) => [Tree, boolean],
+    public semantics?: SemanticsFunc,
   ) {
     super()
   }
@@ -154,7 +150,7 @@ export class Grammar extends Exp {
     return c
   }
 
-  parse(ctx: Ctx, extraCfg?: Partial<Cfg>): Tree | null {
+  parse(ctx: Ctx, extraCfg?: Partial<Cfg>): TreeValue {
     let acfg = defaultCfg()
     acfg = acfg.override(this.cfgFromDirectives())
     acfg = acfg.override(extraCfg ?? {})

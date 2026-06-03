@@ -1,7 +1,7 @@
-import { ConsoleTracer, NullTracer, type Tracer } from "@context"
+import {ConsoleTracer, MemoValue, NullTracer, type Tracer} from "@context"
 import { type Cfg, defaultCfg } from "@config"
 import type { Cursor } from "@input"
-import { Bool, NIL, NumberValue, Text, type Tree } from "@trees"
+import {TreeValue} from "@trees";
 import { type CallStack, type Ctx } from "./ctx"
 import { ParseFailure } from "./error"
 import { type Memo, type MemoKey, pruneMemoCache } from "./memo"
@@ -169,12 +169,14 @@ export class Core implements Ctx {
     }
   }
 
-  constant(literal: unknown): Tree {
-    if (typeof literal === "string") return new Text(literal)
-    if (typeof literal === "number") return new NumberValue(literal)
-    if (typeof literal === "boolean") return new Bool(literal)
-    if (literal == null) return NIL
-    return new Text(String(literal))
+  constant(literal: unknown): TreeValue {
+    if (typeof literal === "string" ||
+        typeof literal === "number" ||
+        typeof literal === "boolean") {
+          return literal
+    }
+    if (literal === null) return null
+    return String(literal)
   }
 
   enter(name: string): void {
@@ -189,8 +191,8 @@ export class Core implements Ctx {
 
   failure(start: number, msg: string): ParseFailure {
     this._cursor.reset(start)
-    const err = new ParseFailure(start, msg, this)
-    if (this.furthest == null || this.furthest.mark <= this._cursor.mark()) {
+    const err = new ParseFailure(this, start, msg)
+    if (this.furthest === null || this.furthest.mark <= this._cursor.mark()) {
       this.setFurthestFailure(err)
     }
     return err
@@ -234,10 +236,10 @@ export class Core implements Ctx {
     return this.memoCache.get(k)
   }
 
-  memoize(key: MemoKey, tree: Tree, mark: number): void {
+  memoize(key: MemoKey, value: MemoValue, mark: number): void {
     if (!key.canMemo) return
     const k = `${key.mark}:${key.name}`
-    this.memoCache.set(k, { tree, mark })
+    this.memoCache.set(k, { value, mark })
   }
 
   recursionDepthExceeded(): boolean {
@@ -298,10 +300,10 @@ export class Core implements Ctx {
   }
 
   applySemantics(
-    node: Tree,
+    node: TreeValue,
     _ruleName: string,
     _params: string[],
-  ): [Tree, boolean] {
+  ): [TreeValue, boolean] {
     if (this.cfg().semantics) {
       return this.cfg().semantics?.(node, _ruleName, _params) || [node, false]
     }

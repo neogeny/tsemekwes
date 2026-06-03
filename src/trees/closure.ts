@@ -28,6 +28,10 @@ export function isComplex(obj: any): boolean {
   return obj !== null && (typeof obj === 'object' || typeof obj === 'function');
 }
 
+export function asObject(obj: any): object | null {
+  return isComplex(obj) ? obj : null
+}
+
 export function isPlain(obj: any): boolean {
   if (obj === null || typeof obj !== 'object') return false;
 

@@ -1,5 +1,5 @@
-import type { Ctx } from "@context"
-import { BOTTOM, type Text, type Tree, TreeKind } from "@trees"
+import {BOTTOM, Ctx, isBottomEntry, isParseError, ParseError} from "@context"
+import {TreeValue} from "@trees"
 import type { MemoKey } from "@context"
 import type { Rule } from "../rule"
 
@@ -11,7 +11,7 @@ import type { Rule } from "../rule"
  *   • Tracing (entry, success, failure, recursion)
  *   • Name‑rule keyword reservation checks
  */
-export function call(ctx: Ctx, name: string, rule: Rule | null): Tree | null {
+export function call(ctx: Ctx, name: string, rule: Rule | null): TreeValue {
   const start = ctx.mark()
   ctx.heartbeatTick()
 
@@ -29,32 +29,30 @@ export function call(ctx: Ctx, name: string, rule: Rule | null): Tree | null {
   if (rule.shouldTrace()) {
     ctx.tracer().traceEntry(ctx)
   }
+
+  let tree: TreeValue = null
+  let mark = ctx.mark()
+  try {
   ctx.enter(name)
-  const result = doCall(ctx, name, rule)
-  ctx.leave()
-
-  if (result === null) {
-    if (rule.shouldTrace()) {
-      ctx.tracer().traceFailure(ctx, name)
+    try {
+      tree = doCall(ctx, name, rule)
+    } finally {
+      ctx.leave()
     }
-    ctx.memoize(key, BOTTOM, start)
-    return null
-  }
 
-  const tree = result as Tree
-
-  if (rule.isName) {
-    if (tree.kind === TreeKind.Text) {
-      const value = (tree as Text).value
-      if (ctx.isKeyword(value)) {
-        if (rule.shouldTrace()) {
-          ctx.tracer().traceFailure(ctx, value)
-        }
+    let value = tree ? tree.toString() : name
+    if (rule.isName && ctx.isKeyword(value)) {
         ctx.failure(ctx.mark(), `'${value}' is a reserved word`)
-        ctx.memoize(key, BOTTOM, ctx.mark())
-        return null
+    }
+  } catch (error) {
+    if (isParseError(error)) {
+      ctx.memoize(key, error as ParseError, start)
+      if (rule.shouldTrace()) {
+        ctx.tracer().traceFailure(ctx, (error as ParseError).toString())
       }
     }
+    ctx.reset(mark)
+    throw error
   }
 
   ctx.memoize(key, tree, ctx.mark())
@@ -71,18 +69,18 @@ export function call(ctx: Ctx, name: string, rule: Rule | null): Tree | null {
  * NOTE: key is computed AFTER whitespace skip (post‑nextToken), matching the
  * TieXiu approach so that nested left‑recursive calls share the same LR key.
  */
-function doCall(ctx: Ctx, name: string, rule: Rule): Tree | null {
+function doCall(ctx: Ctx, name: string, rule: Rule): TreeValue {
   const key = ctx.key(name, rule.isMemoizable())
   const memo = ctx.memo(key)
   if (memo) {
-    if (memo.tree === BOTTOM) {
+    if (isBottomEntry(memo)) {
       if (rule.shouldTrace()) {
         ctx.tracer().traceFailure(ctx, name)
       }
-      return null
+      throw memo.value as ParseError
     }
     ctx.reset(memo.mark)
-    return memo.tree
+    return memo.value
   }
 
   if (rule.isLeftRecursive()) {
@@ -100,13 +98,13 @@ function callRecursive(
   _name: string,
   rule: Rule,
   key: MemoKey,
-): Tree | null {
+): TreeValue {
   const start = ctx.mark()
   ctx.tracer().traceRecursion(ctx)
   ctx.memoize(key, BOTTOM, ctx.mark())
 
   let lastMark = start
-  let lastTree: Tree | null = null
+  let lastTree: TreeValue = null
 
   while (true) {
     ctx.reset(start)
@@ -135,7 +133,7 @@ function callRecursive(
   }
 
   ctx.reset(lastMark)
-  ctx.memoize(key, lastTree as Tree, lastMark)
+  ctx.memoize(key, lastTree as TreeValue, lastMark)
 
   if (lastTree === null || lastTree === BOTTOM) {
     ctx.reset(start)

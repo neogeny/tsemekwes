@@ -1,4 +1,5 @@
-import { BOTTOM, type Tree } from "@trees"
+import {TreeValue} from "@trees"
+import {isParseError, ParseError} from "./error";
 
 export interface MemoKey {
   mark: number
@@ -6,13 +7,15 @@ export interface MemoKey {
   canMemo: boolean
 }
 
+export type MemoValue = TreeValue|ParseError
+
 export interface Memo {
-  tree: Tree
   mark: number
+  value: MemoValue
 }
 
 export function isBottomEntry(memo: Memo): boolean {
-  return memo.tree === BOTTOM
+  return isParseError(memo.value)
 }
 
 export function pruneMemoCache(
