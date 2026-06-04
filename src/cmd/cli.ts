@@ -13,20 +13,18 @@ const pc = picocolors.createColors(true)
 const baseHelp = new Help()
 baseHelp.showGlobalOptions = true
 program.configureHelp({
-  commandDescription: (cmd) => pc.dim(cmd.description()),
-  optionDescription: (option) => pc.dim(option.description),
-
   // 2. Use the clean base instance here instead of the recursive 'helper'
   formatHelp: (cmd) => {
     const regularHelp = baseHelp.formatHelp(cmd, baseHelp)
 
     return regularHelp
-        .replace(/(<[^>]+>|\[[^\]]+])/g, pc.green("$1"))
-      .replace(/(-\w|--\w[\w-]+)/g, pc.yellow("$1"))
-      .replace(/^Usage:/gm, pc.cyanBright("Usage:"))
-      .replace(/^Commands:/gm, pc.cyanBright("Commands:"))
-      .replace(/^Global Options:/gm, pc.cyanBright("Global Options:"))
-      .replace(/^Options:/gm, pc.cyanBright("Options:"))
+      .replace(/(<[^>]+>|\[[^\]]+])/g, pc.cyan("$1"))
+      .replace(/(?<!\w)(-\w|--\w[\w-]+)/g, pc.cyanBright("$1"))
+      .replace(/^  (\w[\w-]+)(?=\s)/gm, pc.cyanBright("$1"))
+      .replace(/^Usage:/gm, pc.greenBright("Usage:"))
+      .replace(/^Commands:/gm, pc.greenBright("Commands:"))
+      .replace(/^Global Options:/gm, pc.greenBright("Global Options:"))
+      .replace(/^Options:/gm, pc.greenBright("Options:"))
   },
 })
 
@@ -41,16 +39,16 @@ let gopts = {}
 program
   .description("꘩TS’emekwes — A PEG parser generator for TypeScript")
   .name("emekwes")
-  .version(await getProjectGitVersion())
-  .option("-o, --output <path>", "write output to file instead of stdout")
-  .option("--trace", "display a detailed trace of the parsing process")
   .addOption(colorOption)
-  // .action((options, _command) => {
-  //   const colorize =
-  //     options.color === "always" ||
-  //     (options.color === "auto" && !options.output && process.stdout.isTTY)
-  //   gopts = { ...gopts, ...options, colorize }
-  // })
+  .option("-o, --output <path>", "write output to file instead of stdout")
+  .option("-t, --trace", "display a detailed trace of the parsing process")
+  .version(await getProjectGitVersion())
+  .action((options, _command) => {
+    const colorize =
+      options.color === "always" ||
+      (options.color === "auto" && !options.output && process.stdout.isTTY)
+    gopts = { ...gopts, ...options, colorize }
+  })
 
 program
   .command("run <grammar> [inputs...]")
