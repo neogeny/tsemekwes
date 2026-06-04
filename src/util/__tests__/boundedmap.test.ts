@@ -133,10 +133,18 @@ describe("BoundedMap", () => {
     }
     assert.equal(bm.len(), 3)
     for (const i of [0, 1]) {
-      assert.equal(bm.get(intToKey(i)), undefined, `old key ${intToKey(i)} should be evicted`)
+      assert.equal(
+        bm.get(intToKey(i)),
+        undefined,
+        `old key ${intToKey(i)} should be evicted`,
+      )
     }
     for (const i of [2, 3, 4]) {
-      assert.notEqual(bm.get(intToKey(i)), undefined, `recent key ${intToKey(i)} should survive`)
+      assert.notEqual(
+        bm.get(intToKey(i)),
+        undefined,
+        `recent key ${intToKey(i)} should survive`,
+      )
     }
   })
 

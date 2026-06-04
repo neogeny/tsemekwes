@@ -47,6 +47,7 @@ export function stripLeft(s: string): string {
 
 import git from "isomorphic-git"
 import fs from "node:fs"
+
 export async function getProjectGitVersion(dir: string = "."): Promise<string> {
   try {
     const sha = await git.resolveRef({ fs, dir, ref: "HEAD" })
@@ -97,4 +98,23 @@ export function pybool(value: any): boolean {
 
   // Everything else (functions, classes, true) is True
   return true
+}
+
+export function isBaseArray(obj: any): boolean {
+  return Array.isArray(obj) && obj.constructor === Array
+}
+
+export function isComplex(obj: any): boolean {
+  return obj !== null && (typeof obj === "object" || typeof obj === "function")
+}
+
+export function asObject(obj: any): object | null {
+  return isComplex(obj) ? obj : null
+}
+
+export function isPlain(obj: any): boolean {
+  if (obj === null || typeof obj !== "object") return false
+
+  const proto = Object.getPrototypeOf(obj)
+  return proto === Object.prototype || proto === Array.prototype
 }

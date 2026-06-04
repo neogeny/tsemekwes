@@ -1,6 +1,6 @@
 import { asjson, asjsons, JSONSerializable } from "@util/asjson"
 import { type Ctx, isParseFailure, ParseError } from "@context"
-import { Closure } from "@trees"
+import { TreeArray } from "@trees"
 import { closure, closureWithSep } from "./parsing/closure"
 import { prettyPrintExp } from "./pretty"
 import { serializeExp } from "./json"
@@ -120,7 +120,7 @@ export abstract class Exp implements JSONSerializable {
       case ExpKind.Nil:
         return null
       case ExpKind.EmptyClosure:
-        return new Closure([])
+        return new TreeArray([])
 
       case ExpKind.Cut:
         ctx.cut()
@@ -171,14 +171,12 @@ export abstract class Exp implements JSONSerializable {
       case ExpKind.Named: {
         const named = this as unknown as NamedExp
         const tree = named.exp.parse(ctx)
-        if (tree == null) return null
         return new NamedTree(named.name, tree)
       }
 
       case ExpKind.NamedList: {
         const named = this as unknown as NamedListExp
         const tree = named.exp.parse(ctx)
-        if (tree == null) return null
         return new NamedAsListTree(named.name, tree)
       }
 

@@ -59,27 +59,21 @@ export function parseInput(parser: Grammar, text: string, cfg?: Cfg): Tree {
   const merged = cfg ?? undefined
   const ctx = newCtx(cursor, merged)
 
-  let tree: Tree | null = null
   try {
-    tree = parser.parse(ctx, merged) as unknown as Tree
+    return parser.parse(ctx, merged) as unknown as Tree
   } catch (error) {
     if (!isParseError(error)) {
       throw error
     }
+    let failure: ParseFailure = null
     if (isParseFailure(error)) {
-      const failure = error as ParseFailure
-      if (failure) throw new ApiError(failure.memento.error())
+      failure = error as ParseFailure
+    } else {
+      failure = ctx.furthestFailure()
     }
+    if (failure !== null) throw new ApiError(failure.memento.error())
     throw new ApiError("failed to parse grammar", error)
   }
-
-  if (tree == null) {
-    const failure = ctx.furthestFailure()
-    if (failure) throw new ApiError(failure.memento.error())
-    throw new ApiError("parse failed")
-  }
-
-  return tree
 }
 
 export function parse(grammar: string, text: string, cfg?: Cfg): Tree {

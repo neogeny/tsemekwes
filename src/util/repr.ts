@@ -7,7 +7,11 @@ export interface FoldOptions {
   amount?: number
 }
 
-export function fitsfmt(line: string, addLevels: number, amount: number): boolean {
+export function fitsfmt(
+  line: string,
+  addLevels: number,
+  amount: number,
+): boolean {
   if (line.includes("\n")) return false
   return line.length + addLevels * amount <= BlackLineLength
 }
@@ -91,13 +95,15 @@ function reprValue(v: any, seen: Set<object>): string {
 
 function arrTypeString(arr: any[]): string {
   if (arr.length === 0) return "[]any"
-  const types = new Set(arr.map((e) => {
-    if (e === null || e === undefined) return "nil"
-    if (typeof e === "object" && e.constructor && e.constructor !== Object) {
-      return e.constructor.name
-    }
-    return typeof e
-  }))
+  const types = new Set(
+    arr.map((e) => {
+      if (e === null || e === undefined) return "nil"
+      if (typeof e === "object" && e.constructor && e.constructor !== Object) {
+        return e.constructor.name
+      }
+      return typeof e
+    }),
+  )
   if (types.size === 1) {
     const t = types.values().next().value
     if (t === "string") return "[]string"
@@ -142,7 +148,10 @@ function reprArray(arr: any[], seen: Set<object>): string {
   return fold("", parts, typeStr + "{", "}")
 }
 
-function reprOrderedMap(om: BoundedMap<string, any>, seen: Set<object>): string {
+function reprOrderedMap(
+  om: BoundedMap<string, any>,
+  seen: Set<object>,
+): string {
   const keys = om.keys()
   let typeName = ""
   if (keys.length > 0 && keys[0] === "__class__") {

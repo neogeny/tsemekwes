@@ -56,10 +56,7 @@ describe("repr", () => {
   })
 
   it("nested struct", () => {
-    const s = new ReprNested(
-      "top",
-      new ReprTestStruct("inner", 1, false),
-    )
+    const s = new ReprNested("top", new ReprTestStruct("inner", 1, false))
     const got = repr(s)
     // TS names are shorter than Go (no package prefix), so it
     // fits on one line (&ReprNested{label: "top", inner: &ReprTestStruct{name: "inner", value: 1, ok: false}})

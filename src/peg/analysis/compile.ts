@@ -1,4 +1,3 @@
-import type { TreeArray } from "@trees"
 import { inspect } from "node:util"
 import { NodeTree, type TreeValue } from "../../trees/tree"
 import {
@@ -91,7 +90,7 @@ function textValue(tree: TreeValue): string {
   return String(tree)
 }
 
-function listValue(tree: TreeValue): TreeArray {
+function listValue(tree: TreeValue): Array<TreeValue> {
   if (Array.isArray(tree)) return [...tree]
   return []
 }

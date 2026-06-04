@@ -143,23 +143,23 @@ export class Core implements Ctx {
     return this._cursor.atEnd()
   }
 
-  matchEOF(): boolean {
+  matchEOF(): null {
     const mark = this._cursor.mark()
     this.nextToken()
     if (!this._cursor.atEnd()) {
       this.reset(mark)
       throw this.failure(mark, new ParseError("expected end of text"))
     }
-    return true
+    return null
   }
 
-  matchEOL(): boolean {
+  matchEOL(): null {
     const mark = this._cursor.mark()
     if (!this._cursor.matchEOL()) {
       this.reset(mark)
       throw this.failure(mark, new ParseError("expected end of line"))
     }
-    return true
+    return null
   }
 
   mtchConstant(literal: unknown): TreeValue {

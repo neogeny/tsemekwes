@@ -49,4 +49,12 @@ start: 'a'`
     const result = parse(grammar, "a")
     assert.equal(json(result), "a")
   })
+
+  it("whitespace directive with double quote token", () => {
+    const grammar = `@@whitespace :: /[\\t ]+/
+@@grammar :: Test
+test := "test" $`
+    const result = parse(grammar, "test")
+    assert.equal(json(result), "test")
+  })
 })

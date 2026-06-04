@@ -3,7 +3,9 @@ import { Memento } from "./memento"
 
 export class ParseError extends Error {
   // Brand the class to ensure detection even across bundles
-  readonly __isParseError = true
+  get __isParseError(): boolean {
+    return true
+  }
 
   constructor(message: string, options?: ErrorOptions) {
     super(message, options)
@@ -20,7 +22,9 @@ export class ParseError extends Error {
 
 export class BottomError extends ParseError {
   // Brand the class to ensure detection even across bundles
-  readonly __isBottomError = true
+  get __isBottomError(): boolean {
+    return true
+  }
 
   constructor(options?: ErrorOptions) {
     super("BOTTOM", options)
@@ -38,6 +42,9 @@ export class BottomError extends ParseError {
 export const BOTTOM = new BottomError()
 
 export class ParseFailure extends ParseError {
+  get __isParseFailure(): boolean {
+    return true
+  }
   public readonly memento: Memento
 
   constructor(
@@ -70,7 +77,7 @@ export class ParseFailure extends ParseError {
   static isParseFailure(error: unknown): error is ParseFailure {
     return (
       error instanceof ParseFailure ||
-      (!!error && (error as any).__isMyCustomError === true)
+      (!!error && (error as any).__isParseFailure === true)
     )
   }
 }
