@@ -291,7 +291,7 @@ export class Core implements Ctx {
     _ruleName: string,
     _params: string[],
   ): [TreeValue, boolean] {
-    if (this.cfg().semantics) {
+    if (this.cfg().semantics !== null) {
       return this.cfg().semantics?.(node, _ruleName, _params) || [node, false]
     }
     return [node, false]
