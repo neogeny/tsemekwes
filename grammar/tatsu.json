@@ -4,8 +4,8 @@
   "directives": {
     "grammar": "TatSu",
     "whitespace": "(?m)\\s+",
-    "comments": "(?ms)[(][*]\\\\s*(.*?)\\\\s*[*][)]|[\\\\/][*]\\\\s*(.*?)\\\\s*[*][\\\\/]",
-    "eol_comments": "(?ms)(?:[#]|[\\/][\\/])(.*?)$",
+    "comments": "(?ms)[(][*]\\s*(.*?)\\s*[*][)]|/[*]\\s*(.*?)\\s*[*]/",
+    "eol_comments": "(?ms)(?:#|//)(.*?)$",
     "parseinfo": true,
     "left_recursion": false
   },
@@ -116,9 +116,7 @@
           }
         ]
       },
-      "params": [
-        "Grammar"
-      ],
+      "params": ["Grammar"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -933,9 +931,7 @@
           }
         ]
       },
-      "params": [
-        "Rule"
-      ],
+      "params": ["Rule"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1241,9 +1237,7 @@
           }
         ]
       },
-      "params": [
-        "Choice"
-      ],
+      "params": ["Choice"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1261,9 +1255,7 @@
         "__class__": "Call",
         "name": "sequence"
       },
-      "params": [
-        "Option"
-      ],
+      "params": ["Option"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1342,9 +1334,7 @@
           }
         ]
       },
-      "params": [
-        "Sequence"
-      ],
+      "params": ["Sequence"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1424,9 +1414,7 @@
           }
         ]
       },
-      "params": [
-        "RuleInclude"
-      ],
+      "params": ["RuleInclude"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1501,9 +1489,7 @@
           }
         ]
       },
-      "params": [
-        "NamedList"
-      ],
+      "params": ["NamedList"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1545,9 +1531,7 @@
           }
         ]
       },
-      "params": [
-        "Named"
-      ],
+      "params": ["Named"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1620,9 +1604,7 @@
           }
         ]
       },
-      "params": [
-        "OverrideList"
-      ],
+      "params": ["OverrideList"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1655,9 +1637,7 @@
           }
         ]
       },
-      "params": [
-        "Override"
-      ],
+      "params": ["Override"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1690,9 +1670,7 @@
           }
         ]
       },
-      "params": [
-        "Override"
-      ],
+      "params": ["Override"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1863,9 +1841,7 @@
           }
         ]
       },
-      "params": [
-        "Group"
-      ],
+      "params": ["Group"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1905,9 +1881,7 @@
           }
         ]
       },
-      "params": [
-        "SkipGroup"
-      ],
+      "params": ["SkipGroup"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2027,9 +2001,7 @@
           }
         ]
       },
-      "params": [
-        "PositiveGather"
-      ],
+      "params": ["PositiveGather"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2093,9 +2065,7 @@
           }
         ]
       },
-      "params": [
-        "Gather"
-      ],
+      "params": ["Gather"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2215,9 +2185,7 @@
           }
         ]
       },
-      "params": [
-        "PositiveJoin"
-      ],
+      "params": ["PositiveJoin"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2281,9 +2249,7 @@
           }
         ]
       },
-      "params": [
-        "Join"
-      ],
+      "params": ["Join"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2343,9 +2309,7 @@
           }
         ]
       },
-      "params": [
-        "LeftJoin"
-      ],
+      "params": ["LeftJoin"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2405,9 +2369,7 @@
           }
         ]
       },
-      "params": [
-        "RightJoin"
-      ],
+      "params": ["RightJoin"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2492,9 +2454,7 @@
           }
         ]
       },
-      "params": [
-        "PositiveClosure"
-      ],
+      "params": ["PositiveClosure"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2568,9 +2528,7 @@
           }
         ]
       },
-      "params": [
-        "Closure"
-      ],
+      "params": ["Closure"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2602,9 +2560,7 @@
           }
         ]
       },
-      "params": [
-        "EmptyClosure"
-      ],
+      "params": ["EmptyClosure"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2706,9 +2662,7 @@
           }
         ]
       },
-      "params": [
-        "Optional"
-      ],
+      "params": ["Optional"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2741,9 +2695,7 @@
           }
         ]
       },
-      "params": [
-        "Lookahead"
-      ],
+      "params": ["Lookahead"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2776,9 +2728,7 @@
           }
         ]
       },
-      "params": [
-        "NegativeLookahead"
-      ],
+      "params": ["NegativeLookahead"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2811,9 +2761,7 @@
           }
         ]
       },
-      "params": [
-        "SkipTo"
-      ],
+      "params": ["SkipTo"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2920,9 +2868,7 @@
         "__class__": "Call",
         "name": "word"
       },
-      "params": [
-        "Call"
-      ],
+      "params": ["Call"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2948,9 +2894,7 @@
           }
         ]
       },
-      "params": [
-        "Void"
-      ],
+      "params": ["Void"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2976,9 +2920,7 @@
           }
         ]
       },
-      "params": [
-        "Fail"
-      ],
+      "params": ["Fail"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3004,9 +2946,7 @@
           }
         ]
       },
-      "params": [
-        "Cut"
-      ],
+      "params": ["Cut"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3032,9 +2972,7 @@
           }
         ]
       },
-      "params": [
-        "Cut"
-      ],
+      "params": ["Cut"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3149,9 +3087,7 @@
           }
         ]
       },
-      "params": [
-        "Constant"
-      ],
+      "params": ["Constant"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3186,9 +3122,7 @@
           }
         ]
       },
-      "params": [
-        "Alert"
-      ],
+      "params": ["Alert"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3221,9 +3155,7 @@
           }
         ]
       },
-      "params": [
-        "Token"
-      ],
+      "params": ["Token"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3686,9 +3618,7 @@
         "__class__": "Token",
         "token": "/./"
       },
-      "params": [
-        "Dot"
-      ],
+      "params": ["Dot"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3706,9 +3636,7 @@
         "__class__": "Call",
         "name": "regex"
       },
-      "params": [
-        "Pattern"
-      ],
+      "params": ["Pattern"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3933,9 +3861,7 @@
           }
         ]
       },
-      "params": [
-        "EOF"
-      ],
+      "params": ["EOF"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3953,9 +3879,7 @@
         "__class__": "Token",
         "token": "$->"
       },
-      "params": [
-        "EOL"
-      ],
+      "params": ["EOL"],
       "kwparams": {},
       "decorators": [],
       "base": null,
