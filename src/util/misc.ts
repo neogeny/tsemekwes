@@ -11,6 +11,10 @@ export function* lines(
   s: string,
   keepends: boolean = false,
 ): IterableIterator<string> {
+  if (s.length === 0) {
+    yield ""
+    return
+  }
   for (const m of s.matchAll(linesre)) {
     if (keepends) {
       // Yield the full match including the line endings
@@ -24,10 +28,13 @@ export function* lines(
 }
 
 export function splitlines(s: string, keepends: boolean = false): string[] {
-  return Array.from(lines(s, keepends))
+  return [...lines(s, keepends)]
 }
 
 export function stripRight(s: string): string {
+  if (s == null ||s === "" || s.length === 0) {
+    return ""
+  }
   return s.replace(/\s+$/g, "")
 }
 
