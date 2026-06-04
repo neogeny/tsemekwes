@@ -192,7 +192,6 @@ export function serializeRule(
   return {
     __class__: "Rule",
     name: rule.name,
-    exp: serializeExp(rule.exp, seen),
     params: [...rule.params],
     kwparams: kwp,
     decorators: [...rule.decorators],
@@ -203,6 +202,7 @@ export function serializeRule(
     no_stak: rule.noStak,
     is_memo: rule.isMemo,
     is_lrec: rule.isLrec,
+    exp: serializeExp(rule.exp, seen),
   }
 }
 
