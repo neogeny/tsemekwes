@@ -2,14 +2,22 @@ export interface JSONSerializable {
   __json__(seen?: Set<object>): any
 }
 
+export function asjsons(obj: any): string {
+  return JSON.stringify(asjson(obj), null, 2)
+}
+
 export function asjson(obj: any, seen?: Set<object>): any {
-  if (obj === null || obj === undefined) return null
+  if (obj === null || obj === undefined) {
+    return null
+  }
+
   if (
     typeof obj === "string" ||
     typeof obj === "number" ||
     typeof obj === "boolean"
   )
     return obj
+
   if (typeof obj === "bigint") return obj.toString()
   if (typeof obj === "function" || typeof obj === "symbol") return repr(obj)
 
@@ -18,12 +26,15 @@ export function asjson(obj: any, seen?: Set<object>): any {
   seen.add(obj)
 
   try {
-    if (typeof obj.__json__ === "function")
-      return asjson(obj.__json__(seen), seen)
+    if (typeof obj.__json__ === "function") {
+      return obj.__json__(seen)
+    }
 
     if (obj instanceof Map) {
       const out: Record<string, any> = {}
-      for (const [k, v] of obj) out[String(k)] = asjson(v, seen)
+      for (const [k, v] of obj) {
+        out[String(k)] = asjson(v, seen)
+      }
       return out
     }
 
@@ -38,7 +49,9 @@ export function asjson(obj: any, seen?: Set<object>): any {
       obj.constructor === Object
     ) {
       const out: Record<string, any> = {}
-      for (const [k, v] of Object.entries(obj)) out[k] = asjson(v, seen)
+      for (const [k, v] of Object.entries(obj)) {
+        out[k] = asjson(v, seen)
+      }
       return out
     }
 
@@ -47,11 +60,6 @@ export function asjson(obj: any, seen?: Set<object>): any {
     seen.delete(obj)
   }
 }
-
-export function asjsons(obj: any): string {
-  return JSON.stringify(asjson(obj), null, 2)
-}
-
 export function repr(obj: any): string {
   if (obj === null) return "null"
   if (typeof obj === "string") return JSON.stringify(obj)

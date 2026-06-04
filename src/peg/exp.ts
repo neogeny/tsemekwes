@@ -1,5 +1,11 @@
 import { type Ctx, isParseFailure, ParseError } from "@context"
 import { Closure } from "@trees"
+import { asjson, asjsons } from "@util/asjson"
+import { closure, closureWithSep } from "./parsing/closure.js"
+import { prettyPrintExp } from "./pretty.js"
+import { serializeExp } from "./export.js"
+import { parseChoice, parseOptional } from "./parsing/choice.js"
+import { sequence } from "./parsing/sequence.js"
 
 import {
   Named as NamedTree,
@@ -8,12 +14,6 @@ import {
   OverrideAsList as OverrideAsListTree,
   type TreeValue,
 } from "../trees/tree.js"
-import { closure, closureWithSep } from "./parsing/closure.js"
-import { prettyPrintExp } from "./pretty.js"
-import { expToJSON } from "./export.js"
-import { parseChoice, parseOptional } from "./parsing/choice.js"
-import { sequence } from "./parsing/sequence.js"
-import { asjson } from "../util/asjson"
 
 export enum ExpKind {
   Nil = "Nil",
@@ -329,15 +329,15 @@ export abstract class Exp {
   }
 
   public asjson(): object {
-    return expToJSON(this)
+    return asjson(this)
   }
 
   public asjsons(): string {
-    return JSON.stringify(this.asjson())
+    return asjsons(this)
   }
 
-  __json__(seen?: Set<object>): any {
-    return asjson(this.asjson(), seen)
+  public __json__(seen?: Set<object>): any {
+    return serializeExp(this, seen)
   }
 
   lookaheadStr(): string {

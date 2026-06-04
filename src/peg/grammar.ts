@@ -3,7 +3,7 @@ import { type Ctx, ParseError } from "@context"
 import type { TreeValue } from "@trees"
 import { call } from "./parsing/call"
 import { Exp, ExpKind } from "./exp"
-import { modelToJSONStr as _modelToJSONStr, serializeGrammar } from "./export"
+import { serializeGrammar } from "./export"
 import { asjson } from "../util/asjson"
 import { markLeftRecursion } from "./analysis/leftrec"
 import { prettyPrintGrammar } from "./pretty"
@@ -80,10 +80,6 @@ export class Grammar extends Exp {
 
   pretty(): string {
     return prettyPrintGrammar(this)
-  }
-
-  asjsons(): string {
-    return _modelToJSONStr(this)
   }
 
   override __json__(seen?: Set<object>): any {

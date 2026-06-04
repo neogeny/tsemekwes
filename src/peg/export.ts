@@ -37,7 +37,7 @@ function mapClass(cls: string, ...kv: unknown[]): Record<string, unknown> {
   return out
 }
 
-export function expToJSON(exp: Exp): Record<string, unknown> {
+export function serializeExp(exp: Exp, _seen?: Set<object>): Record<string, unknown> {
   switch (exp.kind) {
     case ExpKind.Token:
       return mapClass("Token", "token", (exp as TokenExp).value)
@@ -74,38 +74,38 @@ export function expToJSON(exp: Exp): Record<string, unknown> {
     case ExpKind.RuleInclude:
       return mapClass("RuleInclude", "name", (exp as RuleIncludeExp).name)
     case ExpKind.Group:
-      return mapClass("Group", "exp", expToJSON((exp as GroupExp).exp))
+      return mapClass("Group", "exp", serializeExp((exp as GroupExp).exp))
     case ExpKind.SkipGroup:
-      return mapClass("SkipGroup", "exp", expToJSON((exp as SkipGroupExp).exp))
+      return mapClass("SkipGroup", "exp", serializeExp((exp as SkipGroupExp).exp))
     case ExpKind.Lookahead:
-      return mapClass("Lookahead", "exp", expToJSON((exp as LookaheadExp).exp))
+      return mapClass("Lookahead", "exp", serializeExp((exp as LookaheadExp).exp))
     case ExpKind.NegativeLookahead:
       return mapClass(
         "NegativeLookahead",
         "exp",
-        expToJSON((exp as NegativeLookaheadExp).exp),
+        serializeExp((exp as NegativeLookaheadExp).exp),
       )
     case ExpKind.SkipTo:
-      return mapClass("SkipTo", "exp", expToJSON((exp as SkipToExp).exp))
+      return mapClass("SkipTo", "exp", serializeExp((exp as SkipToExp).exp))
     case ExpKind.Alt:
-      return mapClass("Option", "exp", expToJSON((exp as OverrideExp).exp))
+      return mapClass("Option", "exp", serializeExp((exp as OverrideExp).exp))
     case ExpKind.Optional:
-      return mapClass("Optional", "exp", expToJSON((exp as OptionalExp).exp))
+      return mapClass("Optional", "exp", serializeExp((exp as OptionalExp).exp))
     case ExpKind.Closure:
-      return mapClass("Closure", "exp", expToJSON((exp as ClosureExp).exp))
+      return mapClass("Closure", "exp", serializeExp((exp as ClosureExp).exp))
     case ExpKind.PositiveClosure:
       return mapClass(
         "PositiveClosure",
         "exp",
-        expToJSON((exp as PositiveClosureExp).exp),
+        serializeExp((exp as PositiveClosureExp).exp),
       )
     case ExpKind.Override:
-      return mapClass("Override", "exp", expToJSON((exp as OverrideExp).exp))
+      return mapClass("Override", "exp", serializeExp((exp as OverrideExp).exp))
     case ExpKind.OverrideList:
       return mapClass(
         "OverrideList",
         "exp",
-        expToJSON((exp as OverrideListExp).exp),
+        serializeExp((exp as OverrideListExp).exp),
       )
     case ExpKind.Named:
       return mapClass(
@@ -113,7 +113,7 @@ export function expToJSON(exp: Exp): Record<string, unknown> {
         "name",
         (exp as NamedExp).name,
         "exp",
-        expToJSON((exp as NamedExp).exp),
+        serializeExp((exp as NamedExp).exp),
       )
     case ExpKind.NamedList:
       return mapClass(
@@ -121,51 +121,51 @@ export function expToJSON(exp: Exp): Record<string, unknown> {
         "name",
         (exp as NamedListExp).name,
         "exp",
-        expToJSON((exp as NamedListExp).exp),
+        serializeExp((exp as NamedListExp).exp),
       )
     case ExpKind.Join:
       return mapClass(
         "Join",
         "exp",
-        expToJSON((exp as JoinExp).exp),
+        serializeExp((exp as JoinExp).exp),
         "sep",
-        expToJSON((exp as JoinExp).sep),
+        serializeExp((exp as JoinExp).sep),
       )
     case ExpKind.PositiveJoin:
       return mapClass(
         "PositiveJoin",
         "exp",
-        expToJSON((exp as PositiveJoinExp).exp),
+        serializeExp((exp as PositiveJoinExp).exp),
         "sep",
-        expToJSON((exp as PositiveJoinExp).sep),
+        serializeExp((exp as PositiveJoinExp).sep),
       )
     case ExpKind.Gather:
       return mapClass(
         "Gather",
         "exp",
-        expToJSON((exp as GatherExp).exp),
+        serializeExp((exp as GatherExp).exp),
         "sep",
-        expToJSON((exp as GatherExp).sep),
+        serializeExp((exp as GatherExp).sep),
       )
     case ExpKind.PositiveGather:
       return mapClass(
         "PositiveGather",
         "exp",
-        expToJSON((exp as PositiveGatherExp).exp),
+        serializeExp((exp as PositiveGatherExp).exp),
         "sep",
-        expToJSON((exp as PositiveGatherExp).sep),
+        serializeExp((exp as PositiveGatherExp).sep),
       )
     case ExpKind.Sequence:
       return mapClass(
         "Sequence",
         "sequence",
-        (exp as SeqExp).sequence.map((item) => expToJSON(item)),
+        (exp as SeqExp).sequence.map((item) => serializeExp(item)),
       )
     case ExpKind.Choice:
       return mapClass(
         "Choice",
         "options",
-        (exp as ChoiceExp).options.map((item) => expToJSON(item)),
+        (exp as ChoiceExp).options.map((item) => serializeExp(item)),
       )
     default:
       throw new Error(`modelToJSON: unhandled ExpKind: ${exp.kind}`)
@@ -180,7 +180,7 @@ export function serializeRule(rule: Rule): Record<string, unknown> {
   return {
     __class__: "Rule",
     name: rule.name,
-    exp: expToJSON(rule.exp),
+    exp: serializeExp(rule.exp),
     params: [...rule.params],
     kwparams: kwp,
     decorators: [...rule.decorators],
@@ -225,8 +225,4 @@ export function serializeGrammar(g: Grammar): Record<string, unknown> {
     keywords: [...g.keywords],
     rules: g.rules.map((r) => serializeRule(r)),
   }
-}
-
-export function modelToJSONStr(g: Grammar): string {
-  return JSON.stringify(serializeGrammar(g), null, 2)
 }
