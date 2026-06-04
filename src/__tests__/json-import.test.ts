@@ -1,8 +1,8 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { loadGrammarFromJSON, parseInput } from "../src/api/index.js"
+import { loadGrammarFromJSON, parseInput } from "@api"
 import { readFileSync } from "node:fs"
-import { treeToJSON, type Tree } from "../src/trees/tree.js"
+import { treeToJSON, type Tree } from "@trees"
 
 function json(t: Tree): unknown {
   return treeToJSON(t)

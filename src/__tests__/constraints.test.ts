@@ -1,8 +1,8 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { inspect } from "node:util"
-import { parse } from "../src/api/index.js"
-import { treeToJSON, type Tree } from "../src/trees/tree.js"
+import { parse } from "@api"
+import { treeToJSON, type Tree } from "@trees"
 
 function json(tree: Tree): unknown {
   return treeToJSON(tree)

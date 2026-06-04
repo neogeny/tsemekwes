@@ -28,6 +28,7 @@ export interface Cursor extends Configurable {
   peekToken(token: string): [string, boolean]
   matchToken(token: string): [string, boolean]
   matchPattern(pattern: string): [string, boolean]
+  getPattern(pattern: string): RegExp | null
   isNameChar(c: string): boolean
   isName(s: string): boolean
   matchEOL(): boolean

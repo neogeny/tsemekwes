@@ -107,7 +107,8 @@ export class Core implements Ctx {
   }
 
   matchPattern(pattern: string): string {
-    let view = pattern.replace(/\//g, "\\/")
+    // let view = pattern.replace(/\//g, "\\/")
+    let view = pattern
     view = (view.slice(0, 16) + "...").slice(0, view.length)
 
     const mark = this._cursor.mark()
@@ -117,7 +118,8 @@ export class Core implements Ctx {
       return slice
     }
     this._tracer.traceNoMatch(this, view, slice)
-    throw this.failure(mark, new ParseError(`expected pattern /${view}/`))
+    const p = this._cursor.getPattern(pattern)
+    throw this.failure(mark, new ParseError(`expected pattern ${p}`))
   }
 
   matchVoid(): void {
