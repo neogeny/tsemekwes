@@ -15,7 +15,7 @@ clean:
 
 # Format code with Biome
 fmt:
-    biome format --write .
+    biome format src/ --write
 
 # Check both structural code metrics and type definitions
 lint: fmt
