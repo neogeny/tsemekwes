@@ -2,7 +2,7 @@ import type { Ctx } from "@context"
 import { treeFold, NodeTree, type TreeValue } from "@trees"
 import { BoxExp, type Exp, ExpKind } from "./exp.js"
 import { asjson } from "../util/asjson"
-import { serializeRule } from "./export"
+import { serializeRule } from "./json"
 
 export class Rule extends BoxExp {
   readonly kind = ExpKind.Rule

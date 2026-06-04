@@ -68,6 +68,6 @@ export function repr(obj: any): string {
     return name ? `[Function: ${name}]` : "[Function]"
   if (typeof obj === "symbol") return obj.toString()
   if (typeof obj === "bigint") return obj.toString() + "n"
-  if (typeof obj === "object" && obj !== null) return `[${name}]`
+  if (typeof obj === "object") return `[${name}]`
   return String(obj)
 }

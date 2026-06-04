@@ -1,3 +1,4 @@
+import {asjsons} from "@util/asjson";
 import {
   ExpKind,
   type Exp,
@@ -18,7 +19,11 @@ export function linkExp(exp: Exp | null, rules: Map<string, Rule>): void {
     case ExpKind.Call: {
       const call = exp as CallExp
       const rule = rules.get(call.name)
-      if (!rule) throw new LinkError(`call to undefined rule: ${call.name}`)
+      if (!rule) {
+        throw new LinkError(
+            `call to undefined rule: ${call.name}\n${asjsons(rules)}
+            `)
+      }
       call.rule = rule
       return
     }

@@ -3,13 +3,12 @@ import { type Ctx, ParseError } from "@context"
 import type { TreeValue } from "@trees"
 import { call } from "./parsing/call"
 import { Exp, ExpKind } from "./exp"
-import { serializeGrammar } from "./export"
-import { asjson } from "../util/asjson"
 import { markLeftRecursion } from "./analysis/leftrec"
 import { prettyPrintGrammar } from "./pretty"
 import type { Rule } from "./rule"
 import { linkGrammar } from "./analysis/link"
 import { CallExp } from "./call"
+import { serializeGrammar } from "./json"
 
 export class Grammar extends Exp {
   readonly kind = ExpKind.Grammar
@@ -83,7 +82,7 @@ export class Grammar extends Exp {
   }
 
   override __json__(seen?: Set<object>): any {
-    return asjson(serializeGrammar(this), seen)
+    return serializeGrammar(this, seen)
   }
 
   cfgFromDirectives(): Cfg {

@@ -1,6 +1,6 @@
 import { isArrayNotClosure, type TreeArray } from "./closure"
 import { Closure } from "./closure"
-import { asjson } from "@util/asjson"
+import {asjson, JSONSerializable} from "@util/asjson"
 
 export type TreeValue =
   | string
@@ -20,12 +20,12 @@ export enum TreeKind {
   OverrideAsList = "OverrideAsList",
 }
 
-export abstract class Tree {
+export abstract class Tree implements JSONSerializable {
   abstract readonly kind: TreeKind
   abstract fold(gather: TreeMerge): TreeValue
 
   __json__(seen?: Set<object>): any {
-    return asjson(treeToJSON(this), seen)
+    return treeToJSON(this, seen)
   }
 }
 
@@ -204,29 +204,29 @@ function finish(g: TreeMerge, base: TreeValue): TreeValue {
   return closed(base)
 }
 
-export function treeToJSON(t: TreeValue): TreeValue {
+export function treeToJSON(t: TreeValue, seen?: Set<object>): TreeValue {
   if (!(t instanceof Tree)) {
-    return t
+    return asjson(t, seen)
   }
   switch (t.kind) {
     case TreeKind.Named: {
       const m = t as Named
-      return { [m.name]: treeToJSON(m.value) }
+      return { [m.name]: treeToJSON(m.value, seen) }
     }
 
     case TreeKind.NamedAsList: {
       const ml = t as NamedAsList
-      return { [ml.name]: treeToJSON(ml.value) }
+      return { [ml.name]: treeToJSON(ml.value, seen) }
     }
 
     case TreeKind.Override:
-      return treeToJSON((t as Override).value)
+      return treeToJSON((t as Override).value, seen)
     case TreeKind.OverrideAsList:
-      return treeToJSON((t as OverrideAsList).value)
+      return treeToJSON((t as OverrideAsList).value, seen)
 
     case TreeKind.Node: {
       const node = t as NodeTree
-      const child = treeToJSON(node.tree)
+      const child = treeToJSON(node.tree, seen)
       if (
         child !== null &&
         typeof child === "object" &&

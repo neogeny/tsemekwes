@@ -1,11 +1,11 @@
+import {asjson, asjsons, JSONSerializable} from "@util/asjson"
 import { type Ctx, isParseFailure, ParseError } from "@context"
 import { Closure } from "@trees"
-import { asjson, asjsons } from "@util/asjson"
-import { closure, closureWithSep } from "./parsing/closure.js"
-import { prettyPrintExp } from "./pretty.js"
-import { serializeExp } from "./export.js"
-import { parseChoice, parseOptional } from "./parsing/choice.js"
-import { sequence } from "./parsing/sequence.js"
+import { closure, closureWithSep } from "./parsing/closure"
+import { prettyPrintExp } from "./pretty"
+import { serializeExp } from "./json"
+import { parseChoice, parseOptional } from "./parsing/choice"
+import { sequence } from "./parsing/sequence"
 
 import {
   Named as NamedTree,
@@ -54,7 +54,7 @@ export enum ExpKind {
 }
 
 // noinspection JSUnusedGlobalSymbols
-export abstract class Exp {
+export abstract class Exp implements JSONSerializable {
   abstract readonly kind: ExpKind
   la: string[] = []
 
