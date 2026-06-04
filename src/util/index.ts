@@ -1,2 +1,6 @@
 export * from "./misc"
 export * from "./helpers"
+export * from "./boundedmap"
+export * from "./countlines"
+export * from "./newlines"
+export * from "./repr"

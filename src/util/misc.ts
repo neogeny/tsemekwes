@@ -38,6 +38,13 @@ export function stripRight(s: string): string {
   return s.replace(/\s+$/g, "")
 }
 
+export function stripLeft(s: string): string {
+  if (s == null || s === "" || s.length === 0) {
+    return ""
+  }
+  return s.replace(/^[ \t\n\r\f\v]+/g, "")
+}
+
 import git from "isomorphic-git"
 import fs from "node:fs"
 export async function getProjectGitVersion(dir: string = "."): Promise<string> {
