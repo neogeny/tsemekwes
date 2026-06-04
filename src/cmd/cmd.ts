@@ -49,8 +49,8 @@ function joinOutputs(outputs: OutputItem[]): string {
 }
 
 export function writeOutputs(
-  outputs: OutputItem[],
   lang: string,
+  outputs: OutputItem[],
   outputPath: string,
 ): void {
   switch (outputMode(outputPath)) {
@@ -124,6 +124,7 @@ export async function cmdBoot(options: {
   json?: boolean
   pretty?: boolean
   colorize?: boolean
+  output?: string
 }): Promise<{ lang: string; outputs: OutputItem[] }> {
   const g = bootGrammar()
 
@@ -132,6 +133,9 @@ export async function cmdBoot(options: {
   if (options.json) {
     payload = asjsons(g)
     lang = "json"
+  } else if (options.pretty) {
+    payload = g.pretty()
+    lang = "txt"
   } else {
     payload = grammarSummary(g, options.colorize)
     lang = "json"
@@ -158,6 +162,9 @@ export async function cmdGrammar(
   if (options.json) {
     payload = asjsons(g)
     lang = "json"
+  } else if (options.pretty) {
+    payload = g.pretty()
+    lang = "txt"
   } else {
     payload = grammarSummary(g, options.colorize)
     lang = "json"
@@ -180,7 +187,7 @@ export function cmdInfo(): void {
     ["compile", "done", "parseGrammar + Grammar.initialize()"],
     ["parse", "done", "compile + parseInput"],
     ["grammarToJSON", "stub", "Grammar.toJSON()"],
-    ["grammarPretty", "stub", "Grammar.prettyPrint()"],
+    ["grammarPretty", "done", "Grammar.pretty()"],
   ]
   console.log("TS\u2019emekwes v0.0.0 \u2014 Feature Status\n")
   for (const row of features) {
