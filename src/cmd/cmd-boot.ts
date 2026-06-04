@@ -1,3 +1,4 @@
+import { BundledLanguage } from "shiki"
 import { bootGrammar } from "@json"
 import { grammarSummary } from "@peg"
 import { asjsons } from "@util/asjson"
@@ -12,17 +13,17 @@ export async function cmdBoot(options: {
   const g = bootGrammar()
 
   let payload: string
-  let lang: string
+  let lang: BundledLanguage
   if (options.json) {
     payload = asjsons(g)
-    lang = "json"
+    lang = "json" as BundledLanguage
   } else if (options.pretty) {
     payload = g.pretty()
-    lang = "txt"
+    lang = "asciidoc"
   } else {
     payload = grammarSummary(g, options.colorize)
-    lang = "json"
+    lang = "json" as BundledLanguage
   }
 
-  return { lang, outputs: [{ name: "boot", payload }] }
+  return { lang , outputs: [{ name: "boot", payload }] }
 }

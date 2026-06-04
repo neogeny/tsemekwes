@@ -1,10 +1,12 @@
+import { readFile } from "node:fs/promises"
+import path from "node:path"
 import { loadGrammar, parseInput } from "@api"
 import { grammarSummary } from "@peg"
 import { treeToJSONStr } from "@trees"
-import { newCfg, readText } from "@util"
+import { newCfg } from "@util"
 import { asjsons } from "@util/asjson"
-import path from "node:path"
-import { OutputItem, OutputSet } from "./lib"
+import type { OutputItem, OutputSet } from "./lib"
+import { ProgressUI } from "./progress"
 
 export async function cmdRun(
   grammarPath: string,
@@ -14,13 +16,15 @@ export async function cmdRun(
     start?: string
     trace?: boolean
     colorize?: boolean
+    quiet?: boolean
   },
 ): Promise<OutputSet> {
+  const quiet = options.quiet ?? false
   const cfg = newCfg(options)
-  const g = await loadGrammar(grammarPath, cfg)
   const outputs: OutputItem[] = []
 
   if (inputPaths.length === 0) {
+    const g = await loadGrammar(grammarPath, cfg)
     if (options.json) {
       outputs.push({ name: path.basename(grammarPath), payload: asjsons(g) })
       return { lang: "json", outputs }
@@ -32,20 +36,45 @@ export async function cmdRun(
     return { lang: "json", outputs }
   }
 
+  const maxNameLen = inputPaths.reduce(
+    (m, p) => Math.max(m, path.basename(p).length),
+    0,
+  )
+  const prog = new ProgressUI(inputPaths.length, maxNameLen, quiet)
+  const loader = prog.loading("loading grammar")
+  cfg.heartbeat = loader.heartbeat()
+  const g = await loadGrammar(grammarPath, cfg)
+  loader.finish()
+
   let errcount = 0
   for (const inputPath of inputPaths) {
+    const fName = path.basename(inputPath)
+    const fp = prog.addFile(fName, maxNameLen)
+
     try {
-      const inputText = await readText(inputPath)
-      const tree = parseInput(g, inputText, cfg)
+      const data = await readFile(inputPath, "utf-8")
+      fp.setLength(data.length)
+
+      cfg.heartbeat = fp.heartbeat()
+      cfg.source = inputPath
+
+      const tree = parseInput(g, data, cfg)
+      prog.incFiles()
+
+      fp.success()
       outputs.push({
-        name: path.basename(inputPath),
+        name: fName,
         payload: treeToJSONStr(tree),
       })
     } catch (e: unknown) {
       errcount++
+      prog.incFiles()
+      fp.fail()
       console.error(`Error: ${inputPath}: ${(e as Error).message}`)
     }
   }
+
+  prog.finish()
 
   console.error(
     `Parsed ${inputPaths.length} files  ${outputs.length} passed  ${errcount} errors`,

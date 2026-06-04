@@ -3,6 +3,7 @@ import { grammarSummary } from "@peg"
 import { newCfg } from "@util"
 import { asjsons } from "@util/asjson"
 import path from "node:path"
+import {BundledLanguage} from "shiki";
 import { OutputSet } from "./lib"
 
 export async function cmdGrammar(
@@ -19,16 +20,16 @@ export async function cmdGrammar(
   const g = await loadGrammar(grammarPath, cfg)
 
   let payload: string
-  let lang: string
+  let lang: BundledLanguage
   if (options.json) {
     payload = asjsons(g)
-    lang = "json"
+    lang = "json" as BundledLanguage
   } else if (options.pretty) {
     payload = g.pretty()
-    lang = "txt"
+    lang = "asciidoc" as BundledLanguage
   } else {
     payload = grammarSummary(g, options.colorize)
-    lang = "json"
+    lang = "json" as BundledLanguage
   }
 
   return {

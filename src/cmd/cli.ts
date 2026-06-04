@@ -71,6 +71,7 @@ async function command(): Promise<Command> {
     .description("execute a grammar against one or more input files")
     .option("-j, --json", "output the parse tree in JSON format")
     .option("-s, --start <rule>", "name of the start rule", "start")
+    .option("-q, --quiet", "suppress progress bar output")
     .action(async (grammar, inputs, opts, cmd) => {
       opts = getOpts(cmd, opts)
       await writeOutput(await cmdRun(grammar, inputs, opts), opts)

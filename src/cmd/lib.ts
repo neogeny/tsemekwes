@@ -57,7 +57,8 @@ export async function writeOutput(
   },
 ): Promise<void> {
   const { output, colorize } = options
-  switch (outputMode(output)) {
+  const outputpath = output ?? "-"
+  switch (outputMode(outputpath)) {
     case modeStdout:
       for (const o of out.outputs) {
         let payload = colorize
@@ -67,14 +68,14 @@ export async function writeOutput(
       }
       break
     case modeFile:
-      fs.writeFileSync(output, joinOutputs(out.outputs), "utf-8")
+      fs.writeFileSync(outputpath, joinOutputs(out.outputs), "utf-8")
       break
     case modeDir: {
       const ext = langExt(out.lang)
-      fs.mkdirSync(output, { recursive: true })
+      fs.mkdirSync(outputpath, { recursive: true })
       for (const o of out.outputs) {
         const name = replaceExt(o.name, ext)
-        const outPath = path.join(output, name)
+        const outPath = path.join(outputpath, name)
         fs.writeFileSync(outPath, o.payload, "utf-8")
       }
       break
