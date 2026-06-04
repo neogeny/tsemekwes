@@ -1,6 +1,7 @@
 import type { Cfg } from "@config"
 import { type Cursor, Location } from "./cursor.js"
 import { lines, splitlines, stripRight } from "@util"
+import { isAlphabetic, isAlphanumeric } from "@util/strings"
 import XRegExp from "xregexp"
 
 import {
@@ -10,7 +11,8 @@ import {
   type TokenizingPatterns,
 } from "./patterns.js"
 
-const nameCharRe = /^[\p{L}\p{N}_]$/u
+// FIXME
+// const nameCharRe = /^[\p{L}\p{N}_]$/u
 
 export class CursorHeavy {
   ignoreCase = false
@@ -177,19 +179,8 @@ export class StrCursor implements Cursor {
     return String.fromCodePoint(cp)
   }
 
-  peekToken(token: string): boolean {
-    if (this.offset + token.length > this.text.length) {
-      return false
-    }
-    const slice = this.text.slice(this.offset, this.offset + token.length)
-    if (this.heavy.ignoreCase) {
-      return slice.toLowerCase() === token.toLowerCase()
-    }
-    return slice === token
-  }
-
   isNameChar(c: string): boolean {
-    return nameCharRe.test(c) || this.heavy.nameChars.includes(c)
+    return c === "_" || isAlphanumeric(c) || this.heavy.nameChars.includes(c)
   }
 
   isName(token: string): boolean {
@@ -201,13 +192,15 @@ export class StrCursor implements Cursor {
       return false
     }
     const first = String.fromCodePoint(cp)
+
     if (
+      !isAlphabetic(first) &&
       first !== "_" &&
-      !/^\p{L}$/u.test(first) &&
       !this.heavy.nameChars.includes(first)
     ) {
       return false
     }
+
     let i = first.length
     while (i < token.length) {
       const cp = token.codePointAt(i)
@@ -215,6 +208,7 @@ export class StrCursor implements Cursor {
         return false
       }
       const ch = String.fromCodePoint(cp)
+
       if (!this.isNameChar(ch)) {
         return false
       }
@@ -223,27 +217,51 @@ export class StrCursor implements Cursor {
     return true
   }
 
-  matchToken(token: string): boolean {
-    if (!this.peekToken(token)) {
-      return false
+  peekToken(token: string): string | null {
+    if (this.offset + token.length >= this.text.length) {
+      return null
     }
-    const mark = this.offset
-    this.offset += token.length
-    if (this.heavy.nameGuard && this.isName(token)) {
-      if (this.offset < this.text.length) {
-        const cp = this.text.codePointAt(this.offset)
-        if (cp === undefined) {
-          return true // No next char, so no name guard violation
-        }
-        const next = String.fromCodePoint(cp)
-        if (this.isNameChar(next)) {
-          this.offset = mark
-          return false
-        }
+    const slice = this.text.slice(this.offset, this.offset + token.length)
+    if (this.heavy.ignoreCase) {
+      if( slice.toLowerCase() === token.toLowerCase()) {
+        return slice
       }
+    } else if(slice === token) {
+      return slice
     }
-    return true
+    return slice
   }
+
+  matchToken(token: string): string | null {
+    const mark = this.offset
+
+    let slice = this.peekToken(token)
+    if (slice === null) {
+      return null
+    }
+    // NOTE already a match
+    this.offset += token.length
+    if (this.offset >= this.text.length) {
+      return slice
+    }
+
+    if (!this.heavy.nameGuard || !this.isName(token)) {
+      return slice
+    }
+
+    // check righmost boundary
+    const cp = this.text.codePointAt(this.offset)
+    if (cp === undefined) {
+      return slice // No next char, so no name guard violation
+    }
+
+    const next = String.fromCodePoint(cp)
+    if (!this.isNameChar(next)) {
+      return slice
+    }
+    this.offset = mark
+    return null
+}
 
   matchPattern(pattern: string): [string, boolean] {
     const pat = this.getPattern(pattern)
@@ -271,7 +289,7 @@ export class StrCursor implements Cursor {
       return cached
     }
     try {
-      const re = XRegExp(pattern)
+      const re = XRegExp(pattern, "vy")
       this.heavy.patternCache.set(pattern, re as RegExp)
       return re as RegExp
     } catch {

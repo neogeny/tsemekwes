@@ -1,4 +1,4 @@
-import type {TreeValue} from "@trees"
+import type { TreeValue } from "@trees"
 import type { Ctx } from "@context"
 import type { Rule } from "./rule"
 import { Exp, ExpKind } from "./exp"

@@ -3,19 +3,25 @@ import type { Cursor } from "@input"
 import type { CallStack } from "./ctx.js"
 import color from "picocolors"
 
-export class Memento {
+export class Memento extends Error {
   public readonly mark: number
   public readonly callStack: CallStack
 
   constructor(
     public readonly start: number,
-    public readonly msg: string,
+    public readonly cause: Error,
     private readonly cursor: Cursor,
     callStack: CallStack,
     private readonly colorize: boolean = true,
   ) {
+    super(cause.message, {cause: cause})
     this.mark = cursor.mark()
     this.callStack = [...callStack]
+    Object.setPrototypeOf(this, Memento.prototype);
+  }
+
+  override toString(): string {
+    return this.render()
   }
 
   inputSource(): string {
@@ -23,6 +29,10 @@ export class Memento {
   }
 
   error(): string {
+    return this.render()
+  }
+
+  render(): string {
     const pc = color.createColors(this.colorize)
 
     const [line, col] = this.cursor.posAt(this.mark)
@@ -30,7 +40,7 @@ export class Memento {
     const src = source !== "" ? source : "<unknown>"
 
     let result = ""
-    result += `${pc.redBright(`\nerror:`)} ${this.msg}\n`
+    result += `${pc.redBright(`\nerror:`)} ${this.message}\n`
     result += `${pc.blueBright(`   --> `)}${pc.redBright(`${src} `)}[${line}:${col}]\n`
 
     result += pc.blueBright(`      |\n`)
@@ -42,8 +52,8 @@ export class Memento {
       const disp = lines[i].replace(/\t/g, "  ").replace(/[\r\n]$/, "")
       result += `${sprintf("%5d", ln)} ${pc.blueBright(`|`)}  ${disp}\n`
     }
-    const pad = " ".repeat(Math.max(0, col - 1))
-    result += `${pc.blueBright(`      |`)} ${pad}${pc.redBright(`^ ${this.msg}\n`)}`
+    const pad = " ".repeat(Math.max(0, col))
+    result += `${pc.blueBright(`      |`)} ${pad}${pc.redBright(`^ ${this.message}\n`)}`
 
     if (this.callStack.length > 0) {
       result += "\n"

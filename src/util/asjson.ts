@@ -56,7 +56,8 @@ export function repr(obj: any): string {
   if (obj === null) return "null"
   if (typeof obj === "string") return JSON.stringify(obj)
   const name = obj.constructor?.name ?? "Object"
-  if (typeof obj === "function") return name ? `[Function: ${name}]` : "[Function]"
+  if (typeof obj === "function")
+    return name ? `[Function: ${name}]` : "[Function]"
   if (typeof obj === "symbol") return obj.toString()
   if (typeof obj === "bigint") return obj.toString() + "n"
   if (typeof obj === "object" && obj !== null) return `[${name}]`

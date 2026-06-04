@@ -1,8 +1,8 @@
-import {ConsoleTracer, MemoValue, NullTracer, type Tracer} from "@context"
+import {ConsoleTracer, MemoValue, NullTracer, ParseError, type Tracer} from "@context"
 import { type Cfg, defaultCfg } from "@config"
 import type { Cursor } from "@input"
-import {TreeValue} from "@trees";
-import { type CallStack, type Ctx } from "./ctx"
+import { TreeValue } from "@trees"
+import Ctx, { type CallStack } from "./ctx"
 import { ParseFailure } from "./error"
 import { type Memo, type MemoKey, pruneMemoCache } from "./memo"
 
@@ -10,7 +10,7 @@ export function newCtx(cursor: Cursor, cfg?: Cfg): Core {
   return new Core(cursor, cfg)
 }
 export class Core implements Ctx {
-  private _cursor: Cursor
+  private readonly _cursor: Cursor
   private _callStack: CallStack = []
   private cutStack: boolean[] = [false]
   private recursionKey: MemoKey | null = null
@@ -49,26 +49,6 @@ export class Core implements Ctx {
     this.keywords = new Set(kws)
   }
 
-  clone(): Ctx {
-    const c = new Core(this._cursor.clone(), this._cfg)
-    c._callStack = [...this._callStack]
-    c.cutStack = [...this.cutStack]
-    c.recursionKey = this.recursionKey
-    c.recursionDepth = this.recursionDepth
-    c.lookaheadDepth = this.lookaheadDepth
-    c.lastCutMark = this.lastCutMark
-    c.furthest = this.furthest
-    c.memoCache = this.memoCache
-    c._tracer = this._tracer
-    c.keywords = this.keywords
-    return c
-  }
-
-  merge(other: Ctx): void {
-    this._cursor = other.cursor()
-    this.furthest = other.furthestFailure()
-  }
-
   cursor(): Cursor {
     return this._cursor
   }
@@ -88,52 +68,53 @@ export class Core implements Ctx {
     return this._cursor.atEnd()
   }
 
-  next(): [string, boolean] {
-    const ch = this._cursor.next()
-    return ch == null ? ["", false] : [ch, true]
-  }
-
   peek(): [string, boolean] {
     const ch = this._cursor.peek()
     return ch == null ? ["", false] : [ch, true]
   }
 
-  dot(): [string, boolean] {
+  matchDot(): [string, boolean] {
     const mark = this._cursor.mark()
     const ch = this._cursor.next()
     if (ch == null) {
-      this.failure(mark, "expected any character")
-      return ["", false]
+      throw this.failure(mark, new ParseError("expected any character"))
     }
     return [ch, true]
   }
 
   nextToken(): void {
     this._cursor.nextToken()
-  }
-  matchEOL(): boolean {
-    return this._cursor.matchEOL()
+    this.heartbeatTick()
   }
 
-  matchToken(token: string): boolean {
+  matchToken(token: string): string {
     this.nextToken()
-    const result = this._cursor.matchToken(token)
-    this._tracer.traceMatch(this, token, "")
-    return result
+    const start = this.mark()
+    const slice = this._cursor.matchToken(token)
+    if (slice !== null) {
+      this._tracer.traceMatch(this, token, slice)
+      return slice
+    }
+    this.reset(start)
+    this._tracer.traceNoMatch(this, token, "")
+    throw this.failure(start, new ParseError(`expected: "${token}"`))
   }
 
   matchPattern(pattern: string): string | null {
     const mark = this._cursor.mark()
     const [matched, ok] = this._cursor.matchPattern(pattern)
-    if (!ok) {
-      this.failure(mark, `expected pattern ${pattern}`)
-      return null
+
+    let view = pattern.replace(/\//g, "\\/")
+    view = (view.slice(0, 16) + '...').slice(0, view.length)
+    if (ok) {
+      this._tracer.traceMatch(this, view, matched)
+      return matched
     }
-    this._tracer.traceMatch(this, pattern, matched)
-    return matched
+    this._tracer.traceNoMatch(this, view, matched)
+    throw this.failure(mark, new ParseError(`expected pattern /${view}/`))
   }
 
-  void_(): void {
+  matchVoid(): void {
     this.nextToken()
   }
   inLookahead(): boolean {
@@ -146,34 +127,40 @@ export class Core implements Ctx {
     this.lookaheadDepth--
   }
 
-  fail(): ParseFailure {
-    return this.failure(this._cursor.mark(), "fail")
+  matchFail(): ParseFailure {
+    throw this.failure(this._cursor.mark(), new ParseError("fail"))
   }
 
   eof(): boolean {
     return this._cursor.atEnd()
   }
 
-  eofCheck(): void {
+  matchEOF(): boolean {
     const mark = this._cursor.mark()
     this.nextToken()
     if (!this._cursor.atEnd()) {
-      this.failure(mark, "expected end of text")
+      this.reset(mark)
+      throw this.failure(mark, new ParseError("expected end of text"))
     }
+    return true
   }
 
-  eolCheck(): void {
+  matchEOL(): boolean {
     const mark = this._cursor.mark()
     if (!this._cursor.matchEOL()) {
-      this.failure(mark, "expected end of line")
+      this.reset(mark)
+      throw this.failure(mark, new ParseError("expected end of line"))
     }
+    return true
   }
 
-  constant(literal: unknown): TreeValue {
-    if (typeof literal === "string" ||
-        typeof literal === "number" ||
-        typeof literal === "boolean") {
-          return literal
+  mtchConstant(literal: unknown): TreeValue {
+    if (
+      typeof literal === "string" ||
+      typeof literal === "number" ||
+      typeof literal === "boolean"
+    ) {
+      return literal
     }
     if (literal === null) return null
     return String(literal)
@@ -189,9 +176,9 @@ export class Core implements Ctx {
     }
   }
 
-  failure(start: number, msg: string): ParseFailure {
+  failure(start: number, cause: ParseError): ParseFailure {
     this._cursor.reset(start)
-    const err = new ParseFailure(this, start, msg)
+    const err = new ParseFailure(this, start, cause)
     if (this.furthest === null || this.furthest.mark <= this._cursor.mark()) {
       this.setFurthestFailure(err)
     }
@@ -212,14 +199,6 @@ export class Core implements Ctx {
 
   intern(s: string): string {
     return s
-  }
-
-  parseEOF(): boolean {
-    this.enter("__eof__")
-    this.nextToken()
-    const result = this._cursor.atEnd()
-    this.leave()
-    return result
   }
 
   heartbeatTick(): void {

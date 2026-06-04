@@ -1,7 +1,6 @@
-import {
-  NodeTree,
-  type TreeValue,
-} from "../../trees/tree"
+import {TreeArray} from "@trees";
+import { inspect } from 'node:util';
+import { NodeTree, type TreeValue } from "../../trees/tree"
 import {
   AlertExp,
   ChoiceExp,
@@ -47,16 +46,21 @@ class CompileError extends Error {
   }
 }
 
-function node(tree: TreeValue): [string, TreeValue] {
-  if (tree === null) return ["null", null]
-  if (tree instanceof NodeTree) {
-    return [tree.typeName, tree.tree]
+function nodeTree(node: TreeValue): [string, TreeValue] {
+  if (node === null) return ["null", null]
+  if (node instanceof NodeTree) {
+    return [node.typeName, node.tree]
   }
-  throw new CompileError(`expected Node tree, got ${tree}`)
+  if (typeof node === 'object' && 'typeName' in node && 'tree' in node) {
+    const n = node as NodeTree;
+    return [n.typeName, n.tree];
+  }
+  const n = node as NodeTree;
+  throw new CompileError(`expected NodeTree, got ${typeof n} ${inspect(n)}\n${inspect(n)}`)
 }
 
 function nodeCheck(tree: TreeValue, typename: string): TreeValue {
-  const [name, inner] = node(tree)
+  const [name, inner] = nodeTree(tree)
   if (name !== typename) {
     throw new CompileError(`expected ${typename} node, got ${name}`)
   }
@@ -85,8 +89,8 @@ function textValue(tree: TreeValue): string {
   return String(tree)
 }
 
-function listValue(tree: TreeValue): Array<any> {
-  if (Array.isArray(tree)) return tree
+function listValue(tree: TreeValue): TreeArray {
+  if (Array.isArray(tree)) return [...tree]
   return []
 }
 
@@ -184,20 +188,9 @@ function compileRule(tree: TreeValue): Rule {
     throw new CompileError("rule has no name")
   }
 
-  const expTree = mapGet(inner, "exp")
-  if (expTree == null) {
-    throw new CompileError("rule has no exp")
-  }
-
-  const exp = compileExp(expTree)
-
-  const decorators = strListValue(
-    mapGet(inner, "decorators") ?? [],
-  )
+  const decorators = strListValue(mapGet(inner, "decorators") ?? [])
   const params = strListValue(mapGet(inner, "params") ?? [])
-  const kwparams = strPairsListValue(
-    mapGet(inner, "kwparams") ?? [],
-  )
+  const kwparams = strPairsListValue(mapGet(inner, "kwparams") ?? [])
 
   const isName = decorators.includes("name") || decorators.includes("isname")
   const noMemo = decorators.includes("nomemo")
@@ -211,6 +204,13 @@ function compileRule(tree: TreeValue): Rule {
       firstChar !== firstChar.toLowerCase()) ||
     decorators.includes("token") ||
     decorators.includes("tokn")
+
+  const expTree = mapGet(inner, "exp")
+  if (expTree == null) {
+    throw new CompileError("rule has no exp")
+  }
+
+  const exp = compileExp(expTree)
 
   return new Rule(
     name,
@@ -226,15 +226,15 @@ function compileRule(tree: TreeValue): Rule {
   )
 }
 
-function compileExp(tree: TreeValue): Exp {
-  const [typename, inner] = node(tree)
+function compileExp(node: TreeValue): Exp {
+  const [typename, tree] = nodeTree(node)
 
   switch (typename) {
     case "bool":
-      return compileExp(inner)
+      return compileExp(tree)
 
     case "Alert": {
-      const msgTree = mapGet(inner, "message")
+      const msgTree = mapGet(tree, "message")
       if (msgTree == null) throw new CompileError("Alert missing message")
       const msg = compileExp(msgTree)
       if (msg instanceof ConstantExp) {
@@ -256,21 +256,21 @@ function compileExp(tree: TreeValue): Exp {
       return new NilExp()
 
     case "Call":
-      return new CallExp(textValue(inner))
+      return new CallExp(textValue(tree))
 
     case "Choice": {
-      const exps = listValue(inner).map(compileExp)
+      const exps = listValue(tree).map(compileExp)
       return new ChoiceExp(exps)
     }
 
     case "Option":
-      return compileExp(inner)
+      return compileExp(tree)
 
     case "Closure":
-      return new ClosureExp(compileExp(inner))
+      return new ClosureExp(compileExp(tree))
 
     case "Constant":
-      return new ConstantExp(textValue(inner))
+      return new ConstantExp(textValue(tree))
 
     case "Cut":
       return new CutExp()
@@ -293,66 +293,66 @@ function compileExp(tree: TreeValue): Exp {
       return new FailExp()
 
     case "Gather": {
-      const expTreeG = mapGet(inner, "exp")
-      const sepTreeG = mapGet(inner, "sep")
+      const expTreeG = mapGet(tree, "exp")
+      const sepTreeG = mapGet(tree, "sep")
       if (expTreeG == null || sepTreeG == null)
         throw new CompileError("Gather missing exp or sep")
       return new GatherExp(compileExp(expTreeG), compileExp(sepTreeG))
     }
 
     case "Group":
-      return new GroupExp(compileExp(inner))
+      return new GroupExp(compileExp(tree))
 
     case "Join": {
-      const expTreeJ = mapGet(inner, "exp")
-      const sepTreeJ = mapGet(inner, "sep")
+      const expTreeJ = mapGet(tree, "exp")
+      const sepTreeJ = mapGet(tree, "sep")
       if (expTreeJ == null || sepTreeJ == null)
         throw new CompileError("Join missing exp or sep")
       return new JoinExp(compileExp(expTreeJ), compileExp(sepTreeJ))
     }
 
     case "Lookahead":
-      return new LookaheadExp(compileExp(inner))
+      return new LookaheadExp(compileExp(tree))
 
     case "Named": {
-      const nameN = mapGetDefault(inner, "name", "")
-      const expTreeN = mapGet(inner, "exp")
+      const nameN = mapGetDefault(tree, "name", "")
+      const expTreeN = mapGet(tree, "exp")
       if (expTreeN == null) throw new CompileError("Named missing exp")
       return new NamedExp(nameN, compileExp(expTreeN))
     }
 
     case "NamedList": {
-      const nameNL = mapGetDefault(inner, "name", "")
-      const expTreeNL = mapGet(inner, "exp")
+      const nameNL = mapGetDefault(tree, "name", "")
+      const expTreeNL = mapGet(tree, "exp")
       if (expTreeNL == null) throw new CompileError("NamedList missing exp")
       return new NamedListExp(nameNL, compileExp(expTreeNL))
     }
 
     case "NegativeLookahead":
-      return new NegativeLookaheadExp(compileExp(inner))
+      return new NegativeLookaheadExp(compileExp(tree))
 
     case "Optional":
-      return new OptionalExp(compileExp(inner))
+      return new OptionalExp(compileExp(tree))
 
     case "Override":
-      return new OverrideExp(compileExp(inner))
+      return new OverrideExp(compileExp(tree))
 
     case "OverrideList":
-      return new OverrideListExp(compileExp(inner))
+      return new OverrideListExp(compileExp(tree))
 
     case "Pattern":
-      return new PatternExp(textValue(inner))
+      return new PatternExp(textValue(tree))
 
     case "Patterns": {
       let items: TreeValue[]
-      const t = mapGet(inner, "tree")
+      const t = mapGet(tree, "tree")
       if (t != null) {
         items = listValue(t)
       } else {
-        items = listValue(inner)
+        items = listValue(tree)
       }
       if (items.length === 0) {
-        items = [inner]
+        items = [tree]
       }
       const exps = items.map(compileExp)
       const [first] = exps
@@ -361,11 +361,11 @@ function compileExp(tree: TreeValue): Exp {
     }
 
     case "PositiveClosure":
-      return new PositiveClosureExp(compileExp(inner))
+      return new PositiveClosureExp(compileExp(tree))
 
     case "PositiveGather": {
-      const expTreePG = mapGet(inner, "exp")
-      const sepTreePG = mapGet(inner, "sep")
+      const expTreePG = mapGet(tree, "exp")
+      const sepTreePG = mapGet(tree, "sep")
       if (expTreePG == null || sepTreePG == null)
         throw new CompileError("PositiveGather missing exp or sep")
       return new PositiveGatherExp(compileExp(expTreePG), compileExp(sepTreePG))
@@ -374,41 +374,30 @@ function compileExp(tree: TreeValue): Exp {
     case "PositiveJoin":
     case "RightJoin":
     case "LeftJoin": {
-      const expTreePJ = mapGet(inner, "exp")
-      const sepTreePJ = mapGet(inner, "sep")
+      const expTreePJ = mapGet(tree, "exp")
+      const sepTreePJ = mapGet(tree, "sep")
       if (expTreePJ == null || sepTreePJ == null)
         throw new CompileError(`${typename} missing exp or sep`)
       return new PositiveJoinExp(compileExp(expTreePJ), compileExp(sepTreePJ))
     }
 
     case "RuleInclude":
-      return new RuleIncludeExp(textValue(inner))
+      return new RuleIncludeExp(textValue(tree))
 
     case "Sequence": {
-      let items: TreeValue[]
-      const t = mapGet(inner, "tree")
-      if (t != null) {
-        items = listValue(t)
-      } else {
-        items = listValue(inner)
-      }
-      if (items.length === 0) {
-        items = [inner]
-      }
+      let items = listValue(tree)
       const exps = items.map(compileExp)
-      const [first] = exps
-      if (exps.length === 1 && first !== undefined) return first
       return new SeqExp(exps)
     }
 
     case "SkipGroup":
-      return new SkipGroupExp(compileExp(inner))
+      return new SkipGroupExp(compileExp(tree))
 
     case "SkipTo":
-      return new SkipToExp(compileExp(inner))
+      return new SkipToExp(compileExp(tree))
 
     case "Token":
-      return new TokenExp(textValue(inner))
+      return new TokenExp(textValue(tree))
 
     case "Void":
       return new VoidExp()

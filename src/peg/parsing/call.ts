@@ -1,5 +1,7 @@
-import {BOTTOM, Ctx, isBottomEntry, isParseError, ParseError} from "@context"
-import {TreeValue} from "@trees"
+// noinspection ExceptionCaughtLocallyJS
+
+import { BOTTOM, Ctx, isBottomEntry, isParseError, ParseError } from "@context"
+import { TreeValue } from "@trees"
 import type { MemoKey } from "@context"
 import type { Rule } from "../rule"
 
@@ -12,55 +14,49 @@ import type { Rule } from "../rule"
  *   • Name‑rule keyword reservation checks
  */
 export function call(ctx: Ctx, name: string, rule: Rule | null): TreeValue {
-  const start = ctx.mark()
-  ctx.heartbeatTick()
-
-  if (rule === null) {
-    ctx.failure(ctx.mark(), `rule not linked: ${name}`)
-    return null
-  }
-
-  const key = ctx.key(name, rule.isMemoizable())
-
-  if (!rule.isToken()) {
-    ctx.nextToken()
-  }
-
-  if (rule.shouldTrace()) {
-    ctx.tracer().traceEntry(ctx)
-  }
-
-  let tree: TreeValue = null
-  let mark = ctx.mark()
-  try {
   ctx.enter(name)
+  try {
+    if (rule === null) {
+      throw ctx.failure(ctx.mark(), new ParseError(`rule not linked: ${name}`))
+    }
+    if (rule.shouldTrace()) {
+      ctx.tracer().traceEntry(ctx)
+    }
+
+
+    if (!rule.isToken()) {
+      ctx.nextToken()
+    }
+    const start = ctx.mark()
+    const key = ctx.key(name, rule.isMemoizable())
+
+    let tree: TreeValue = null
+    let mark = ctx.mark()
     try {
       tree = doCall(ctx, name, rule)
-    } finally {
-      ctx.leave()
+    } catch (error) {
+      if (isParseError(error)) {
+        ctx.memoize(key, error as ParseError, start)
+        if (rule.shouldTrace()) {
+          ctx.tracer().traceFailure(ctx, (error as ParseError).toString())
+        }
+      }
+      ctx.reset(mark)
+      throw error
     }
-
     let value = tree ? tree.toString() : name
     if (rule.isName && ctx.isKeyword(value)) {
-        ctx.failure(ctx.mark(), `'${value}' is a reserved word`)
+      throw ctx.failure(ctx.mark(), new ParseError(`'${value}' is a reserved word`))
     }
-  } catch (error) {
-    if (isParseError(error)) {
-      ctx.memoize(key, error as ParseError, start)
-      if (rule.shouldTrace()) {
-        ctx.tracer().traceFailure(ctx, (error as ParseError).toString())
-      }
+
+    ctx.memoize(key, tree, ctx.mark())
+    if (rule.shouldTrace()) {
+      ctx.tracer().traceSuccess(ctx)
     }
-    ctx.reset(mark)
-    throw error
+    return tree
+  } finally {
+    ctx.leave()
   }
-
-  ctx.memoize(key, tree, ctx.mark())
-  if (rule.shouldTrace()) {
-    ctx.tracer().traceSuccess(ctx)
-  }
-
-  return tree
 }
 
 /**
@@ -106,17 +102,13 @@ function callRecursive(
   let lastMark = start
   let lastTree: TreeValue = null
 
-  while (true) {
+  while (!ctx.atEnd()) {
     ctx.reset(start)
 
     ctx.track(key)
     if (ctx.recursionDepthExceeded()) {
       ctx.untrack(key)
-      ctx.failure(
-        ctx.mark(),
-        `left recursion depth exceeded for rule: ${key.name}`,
-      )
-      return null
+      throw ctx.failure(ctx.mark(), new ParseError(`left recursion depth exceeded for rule: ${key.name}`))
     }
 
     const result = rule.parse(ctx)

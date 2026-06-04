@@ -1,2 +1,2 @@
-export * from "./misc.js"
-export * from "./helpers.js"
+export * from "./misc"
+export * from "./helpers"

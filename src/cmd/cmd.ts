@@ -75,7 +75,12 @@ export function writeOutputs(
 export async function cmdRun(
   grammarPath: string,
   inputPaths: string[],
-  options: { json?: boolean; start?: string; trace?: boolean; colorize?: boolean },
+  options: {
+    json?: boolean
+    start?: string
+    trace?: boolean
+    colorize?: boolean
+  },
 ): Promise<{ lang: string; outputs: OutputItem[] }> {
   const cfg = newCfg(options)
   const g = await loadGrammar(grammarPath, cfg)
@@ -86,7 +91,10 @@ export async function cmdRun(
       outputs.push({ name: path.basename(grammarPath), payload: asjsons(g) })
       return { lang: "json", outputs }
     }
-    outputs.push({ name: path.basename(grammarPath), payload: grammarSummary(g, options.colorize) })
+    outputs.push({
+      name: path.basename(grammarPath),
+      payload: grammarSummary(g, options.colorize),
+    })
     return { lang: "json", outputs }
   }
 
@@ -111,9 +119,11 @@ export async function cmdRun(
   return { lang: "json", outputs }
 }
 
-export async function cmdBoot(
-  options: { json?: boolean; pretty?: boolean; colorize?: boolean },
-): Promise<{ lang: string; outputs: OutputItem[] }> {
+export async function cmdBoot(options: {
+  json?: boolean
+  pretty?: boolean
+  colorize?: boolean
+}): Promise<{ lang: string; outputs: OutputItem[] }> {
   const g = bootGrammar()
 
   let payload: string
@@ -131,7 +141,12 @@ export async function cmdBoot(
 
 export async function cmdGrammar(
   grammarPath: string,
-  options: { json?: boolean; pretty?: boolean; trace?: boolean; colorize?: boolean },
+  options: {
+    json?: boolean
+    pretty?: boolean
+    trace?: boolean
+    colorize?: boolean
+  },
 ): Promise<{ lang: string; outputs: OutputItem[] }> {
   const cfg = newCfg(options)
   cfg.source = grammarPath

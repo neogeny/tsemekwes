@@ -1,5 +1,5 @@
-import type { Ctx } from "@context"
-import {Closure} from "@trees";
+import {Ctx, isParseFailure, ParseError} from "@context"
+import { Closure } from "@trees"
 
 import {
   Named as NamedTree,
@@ -11,7 +11,7 @@ import {
 import { closure, closureWithSep } from "./parsing/closure.js"
 import { prettyPrintExp } from "./pretty.js"
 import { expToJSON } from "./export.js"
-import {parseChoice, parseOptional} from "./parsing/choice.js"
+import { parseChoice, parseOptional } from "./parsing/choice.js"
 import { sequence } from "./parsing/sequence.js"
 import { asjson } from "../util/asjson"
 
@@ -53,6 +53,7 @@ export enum ExpKind {
   Grammar = "Grammar",
 }
 
+// noinspection JSUnusedGlobalSymbols
 export abstract class Exp {
   abstract readonly kind: ExpKind
   la: string[] = []
@@ -126,49 +127,40 @@ export abstract class Exp {
         return null
 
       case ExpKind.Void:
-        ctx.void_()
+        ctx.matchVoid()
         return null
 
       case ExpKind.Fail:
-        ctx.fail()
+        ctx.matchFail()
         return null
 
       case ExpKind.Dot: {
-        const [ch, ok] = ctx.dot()
+        const [ch, ok] = ctx.matchDot()
         if (!ok) return null
         return ch.toString()
       }
 
       case ExpKind.Eof: {
-        if (ctx.parseEOF()) return null
-        ctx.failure(ctx.mark(), "expected end of input")
-        return null
+        return ctx.matchEOF()
       }
 
       case ExpKind.Eol: {
-        if (ctx.matchEOL()) return null
-        ctx.failure(ctx.mark(), "expected EOL")
-        return null
+        return ctx.matchEOL()
       }
 
       case ExpKind.Token: {
         const token = this as unknown as TokenExp
-        if (ctx.matchToken(token.value)) return token.value
-        ctx.failure(ctx.mark(), `expected: "${token.value}"`)
-        return null
+        return ctx.matchToken(token.value)
       }
 
       case ExpKind.Pattern: {
         const pattern = this as unknown as PatternExp
-        const matched = ctx.matchPattern(pattern.value)
-        if (matched != null) return matched
-        ctx.failure(ctx.mark(), `expected pattern: ${pattern.value}`)
-        return null
+        return ctx.matchPattern(pattern.value)
       }
 
       case ExpKind.Constant: {
         const exp = this as unknown as ConstantExp
-        return ctx.constant(exp.value)
+        return ctx.mtchConstant(exp.value)
       }
 
       case ExpKind.Alert: {
@@ -235,27 +227,33 @@ export abstract class Exp {
         ctx.enterLookahead()
         try {
           la.exp.parse(ctx)
+        } catch (error) {
+          if (isParseFailure(error)) {
+            return null
+          }
+          throw error
+
         } finally {
           ctx.reset(mark)
           ctx.leaveLookahead()
         }
-        ctx.failure(mark, "negative lookahead matched")
-        return null
+        throw ctx.failure(mark, new ParseError("negative lookahead should not match"))
       }
 
       case ExpKind.SkipTo: {
         const skip = this as unknown as SkipToExp
         const mark = ctx.mark()
         while (!ctx.atEnd()) {
-          const result = skip.exp.parse(ctx)
-          if (result != null) return result
-
-          const [_, ok] = ctx.next()
+          try {
+            return skip.exp.parse(ctx)
+          } catch(err) {
+            if (!isParseFailure(err)) throw err
+          }
+          const [_, ok] = ctx.matchDot()
           if (!ok) break
         }
         ctx.reset(mark)
-        ctx.failure(mark, "skipTo failed")
-        return null
+        throw ctx.failure(mark, new ParseError(`cannot skipTo i-> ${skip.exp}`))
       }
 
       case ExpKind.Alt: {
@@ -280,7 +278,7 @@ export abstract class Exp {
 
       case ExpKind.Sequence: {
         const seq = this as unknown as SeqExp
-        return sequence(ctx, seq.sequence)
+        return sequence(ctx, seq)
       }
 
       case ExpKind.Choice: {
@@ -309,12 +307,11 @@ export abstract class Exp {
       }
 
       case ExpKind.RuleInclude: {
-        const include = this as unknown as RuleIncludeExp
-        if (include.exp == null) {
-          ctx.failure(ctx.mark(), `rule not linked: ${include.name}`)
-          return null
+        const rinc = this as unknown as RuleIncludeExp
+        if (rinc.exp == null) {
+          throw ctx.failure(ctx.mark(), new ParseError(`rule not linked: ${rinc.name}`))
         }
-        return include.exp.parse(ctx)
+        return rinc.exp.parse(ctx)
       }
 
       default:
@@ -339,7 +336,7 @@ export abstract class Exp {
   }
 
   lookaheadStr(): string {
-    return this.la.map(s => `\`${s}\``).join(" ")
+    return this.la.map((s) => `\`${s}\``).join(" ")
   }
 }
 

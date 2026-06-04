@@ -1,6 +1,7 @@
-import {Cfg, defaultCfg, SemanticsFunc} from "@config"
-import type { Ctx } from "@context"
-import type {TreeValue} from "@trees"
+import { Cfg, defaultCfg, SemanticsFunc } from "@config"
+import {Ctx, ParseError} from "@context"
+import type { TreeValue } from "@trees"
+import { call } from "./parsing/call"
 import { Exp, ExpKind } from "./exp"
 import { modelToJSONStr as _modelToJSONStr, serializeGrammar } from "./export"
 import { asjson } from "../util/asjson"
@@ -160,9 +161,8 @@ export class Grammar extends Exp {
     const start = acfg.start || "start"
     const rule = this.getRule(start) || this.rules[0]
     if (!rule) {
-      ctx.failure(ctx.mark(), "no rules in grammar")
-      return null
+      throw ctx.failure(ctx.mark(), new ParseError("no rules in grammar"))
     }
-    return rule.parse(ctx)
+    return call(ctx, start, rule)
   }
 }

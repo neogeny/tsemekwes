@@ -1,9 +1,9 @@
-import {isArrayNotClosure, type TreeArray} from "./closure";
-import {Closure} from "./closure";
+import { isArrayNotClosure, type TreeArray } from "./closure"
+import { Closure } from "./closure"
 import { asjson } from "@util/asjson"
 
 export type TreeValue =
-  string
+  | string
   | number
   | boolean
   | null
@@ -11,7 +11,6 @@ export type TreeValue =
   | Tree
   | Closure
   | TreeArray
-
 
 export enum TreeKind {
   Node = "Node",
@@ -58,7 +57,9 @@ export class NodeTree extends Tree {
   constructor(
     public typeName: string,
     public tree: TreeValue,
-  ) { super() }
+  ) {
+    super()
+  }
   fold(_gather: TreeMerge): TreeValue {
     return this
   }
@@ -69,7 +70,9 @@ export class Named extends Tree {
   constructor(
     public name: string,
     public value: TreeValue,
-  ) { super() }
+  ) {
+    super()
+  }
   fold(gather: TreeMerge): TreeValue {
     let val = foldOrGather(this.value, gather)
     gather.insert(this.name, val)
@@ -82,7 +85,9 @@ export class NamedAsList extends Tree {
   constructor(
     public name: string,
     public value: TreeValue,
-  ) { super() }
+  ) {
+    super()
+  }
   fold(gather: TreeMerge): TreeValue {
     const val = foldOrGather(this.value, gather)
     gather.insertAsList(this.name, val)
@@ -92,7 +97,9 @@ export class NamedAsList extends Tree {
 
 export class Override extends Tree {
   readonly kind = TreeKind.Override
-  constructor(public value: TreeValue) { super() }
+  constructor(public value: TreeValue) {
+    super()
+  }
   fold(gather: TreeMerge): TreeValue {
     const val = foldOrGather(this.value, gather)
     gather.root = appendTree(gather.root, val)
@@ -102,7 +109,9 @@ export class Override extends Tree {
 
 export class OverrideAsList extends Tree {
   readonly kind = TreeKind.OverrideAsList
-  constructor(public value: TreeValue) { super() }
+  constructor(public value: TreeValue) {
+    super()
+  }
   fold(gather: TreeMerge): TreeValue {
     const val = foldOrGather(this.value, gather)
     gather.root = appendAsList(gather.root, val)
@@ -116,7 +125,7 @@ function foldOrGather(t: TreeValue, gather: TreeMerge): TreeValue {
   }
   if (isArrayNotClosure(t)) {
     let out: TreeValue = null
-    for (let item of (t as TreeArray)) {
+    for (let item of t as TreeArray) {
       let tree = foldOrGather(item, gather)
       out = treeMerge(out, tree)
     }
@@ -133,7 +142,6 @@ export function treeFold(tree: TreeValue): TreeValue {
   const result = foldOrGather(tree, g)
   return finish(g, result)
 }
-
 
 export function treeMerge(a: TreeValue, b: TreeValue): TreeValue {
   if (b === null) return a
@@ -180,7 +188,8 @@ export function closed(t: TreeValue): TreeValue {
     return null
   }
   if (isArrayNotClosure(t)) {
-    return new Closure(t as TreeArray)
+    let a = t as TreeArray
+    return new Closure(a)
   }
   return t
 }
@@ -224,7 +233,7 @@ export function treeToJSON(t: TreeValue): TreeValue {
         const childObj = child as Record<string, unknown>
         let result = {
           __class__: node.typeName,
-          ...childObj
+          ...childObj,
         }
         result["__class__"] = node.typeName
         return result

@@ -4,4 +4,3 @@ export class LinkError extends Error {
     this.name = "LinkError"
   }
 }
-

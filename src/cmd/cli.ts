@@ -53,7 +53,10 @@ program
     const combinedOpts = { ...parentOpts, ...options }
     const colorize = !combinedOpts.output || combinedOpts.output === "-"
     try {
-      const { lang, outputs } = await cmdRun(grammarPath, inputPaths, { ...options, colorize })
+      const { lang, outputs } = await cmdRun(grammarPath, inputPaths, {
+        ...options,
+        colorize,
+      })
       writeOutputs(outputs, lang, combinedOpts.output ?? "")
     } catch (e) {
       console.error(`Error: ${(e as Error).message}`)
@@ -85,12 +88,15 @@ program
   .option("-j, --json", "print the grammar in JSON format")
   .option("-p, --pretty", "pretty-print the grammar (default)", true)
   .action(async (grammarPath, options, command) => {
-    const parentOpts = command.parent?.opts?.() ?? {}
-    const combinedOpts = { ...parentOpts, ...options }
-    const colorize = !combinedOpts.output || combinedOpts.output === "-"
+    let opts = command.parent?.opts?.() ?? {}
+    opts = { ...opts, ...options }
+    const colorize = !opts.output || opts.output === "-"
     try {
-      const { lang, outputs } = await cmdGrammar(grammarPath, { ...options, colorize })
-      writeOutputs(outputs, lang, combinedOpts.output ?? "")
+      const { lang, outputs } = await cmdGrammar(grammarPath, {
+        ...opts,
+        colorize,
+      })
+      writeOutputs(outputs, lang, opts.output ?? "")
     } catch (e) {
       console.error(`Error: ${(e as Error).message}`)
       process.exit(1)

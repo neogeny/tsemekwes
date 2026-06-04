@@ -1,6 +1,6 @@
-import {TreeValue} from "@trees";
-import {Ctx, isParseFailure} from "@context";
-import {Exp} from "../exp";
+import { TreeValue } from "@trees"
+import { Ctx, isParseFailure } from "@context"
+import { Exp } from "../exp"
 
 export function tryExp(ctx: Ctx, exp: Exp): [TreeValue, boolean] {
   let mark = ctx.mark()
@@ -22,4 +22,3 @@ export function tryExp(ctx: Ctx, exp: Exp): [TreeValue, boolean] {
   }
   return [tree, true]
 }
-

@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises"
 import { ext, readText } from "@util"
 import { type Cfg, defaultCfg } from "@config"
-import {isParseError, isParseFailure, newCtx, ParseFailure} from "@context"
+import { isParseError, isParseFailure, newCtx, ParseFailure } from "@context"
 import { StrCursor } from "@input"
 import { bootGrammar as boot } from "@json"
 import { loadGrammarFromJSON as loadJSON } from "@json"
@@ -29,9 +29,10 @@ export function parseGrammar(grammar: string, cfg?: Cfg): Tree {
     }
     if (isParseFailure(error)) {
       const failure = error as ParseFailure
-      if (failure) throw new ApiError(failure.memento.error())
+      // throw new ApiError(failure.memento.error(), failure)
+      throw failure
     }
-    throw new ApiError("failed to parse grammar", error)
+    throw new ApiError("failed to parse grammar", {cause: error})
   }
 
   if (tree === null) {
@@ -82,7 +83,8 @@ export function parse(grammar: string, text: string, cfg?: Cfg): Tree {
     return parseInput(parser, text, cfg)
   } catch (e) {
     if (e instanceof ApiError) throw e
-    throw new ApiError(`parse failed: ${(e as Error).message}`, e)
+    // throw new ApiError(`parse failed: ${(e as Error).message}`, e)
+    throw e
   }
 }
 

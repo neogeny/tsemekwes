@@ -25,8 +25,8 @@ export interface Cursor extends Configurable {
   atEnd(): boolean
   next(): string | null
   peek(): string | null
-  peekToken(token: string): boolean
-  matchToken(token: string): boolean
+  peekToken(token: string): string | null
+  matchToken(token: string): string | null
   isNameChar(c: string): boolean
   isName(s: string): boolean
   matchPattern(pattern: string): [string, boolean]

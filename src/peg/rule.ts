@@ -1,5 +1,5 @@
 import type { Ctx } from "@context"
-import {treeFold, NodeTree, TreeValue} from "@trees"
+import { treeFold, NodeTree, TreeValue } from "@trees"
 import { BoxExp, type Exp, ExpKind } from "./exp.js"
 import { asjson } from "../util/asjson"
 import { serializeRule } from "./export"
@@ -49,10 +49,10 @@ export class Rule extends BoxExp {
 
   isToken(): boolean {
     if (this.isTokn) return true
-    for (const c of this.name) {
-      if (c !== "_") return c === c.toUpperCase() && c !== c.toLowerCase()
-    }
-    return false
+      let first = this.name.replace(/^_+/, "")[0]
+    return first !== ""
+        && first === first.toUpperCase()
+        && first !== first.toLowerCase()
   }
 
   isLeftRecursive(): boolean {
@@ -64,7 +64,7 @@ export class Rule extends BoxExp {
   }
 
   shouldTrace(): boolean {
-    return !this.noStak && !this.isToken()
+    return !this.noStak
   }
 
   normalize(): void {

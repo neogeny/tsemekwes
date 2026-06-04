@@ -1,4 +1,4 @@
-import type {TreeValue} from "@trees"
+import type { TreeValue } from "@trees"
 
 export interface Configurable {
   configure(cfg: Cfg): void

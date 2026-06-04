@@ -29,9 +29,9 @@ export interface Tracer {
   // TraceCut logs a cut operation.
   traceCut(ctx: Ctx): void
   // TraceMatch logs a successful token match.
-  traceMatch(ctx: Ctx, token: string, name: string): boolean
+  traceMatch(ctx: Ctx, name: string, token: string): boolean
   // TraceNoMatch logs a failed token match.
-  traceNoMatch(ctx: Ctx, token: string, name: string): boolean
+  traceNoMatch(ctx: Ctx, name: string, token: string): boolean
 }
 
 // NullTracer is a no-op tracer used when tracing is disabled.
@@ -50,11 +50,11 @@ export class NullTracer implements Tracer {
 
   traceCut(_ctx: Ctx): void {}
 
-  traceMatch(_ctx: Ctx, _token: string, _name: string): boolean {
+  traceMatch(_ctx: Ctx, _name: string, _token: string): boolean {
     return true
   }
 
-  traceNoMatch(_ctx: Ctx, _token: string, _name: string): boolean {
+  traceNoMatch(_ctx: Ctx, _name: string, _token: string = ""): boolean {
     return false
   }
 }
@@ -111,15 +111,17 @@ export class ConsoleTracer implements Tracer {
       pc.black(ctx.cursor().lookahead(ctx.mark()).replace(/ /g, "·")),
     )
 
-    const cols = process.stdout.columns || 80
+    // FIXME
+    // const cols = process.stderr.columns || 120
+    // const cols = 220
     let cs = ""
     const callStack = ctx.callStack()
     for (let i = callStack.length - 1; i >= 0; i--) {
       cs += pc.bold(pc.white(callStack[i])) + ssym
-      if (cs.length >= cols - 8) {
-        cs += "••"
-        break
-      }
+      // if (cs.length >= cols - 2) {
+      //   cs += "••"
+      //   break
+      // }
     }
 
     const mark = ctx.cursor().mark()
@@ -152,7 +154,7 @@ export class ConsoleTracer implements Tracer {
     this.traceEvent(ctx, Event.Cut, "")
   }
 
-  traceMatch(ctx: Ctx, token: string, name: string): boolean {
+  traceMatch(ctx: Ctx, name: string, token: string): boolean {
     let tag = ""
     if (name !== "") {
       tag = `/${name}/`
@@ -162,7 +164,7 @@ export class ConsoleTracer implements Tracer {
     return true
   }
 
-  traceNoMatch(ctx: Ctx, token: string, name: string): boolean {
+  traceNoMatch(ctx: Ctx, name: string, token: string = ""): boolean {
     const msg =
       token !== "" ? color.red(` '${token}'`) : color.red(` /${name}/`)
     this.traceEvent(ctx, Event.NoMatch, msg)
