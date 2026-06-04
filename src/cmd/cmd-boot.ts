@@ -25,5 +25,5 @@ export async function cmdBoot(options: {
     lang = "json" as BundledLanguage
   }
 
-  return { lang , outputs: [{ name: "boot", payload }] }
+  return { lang, outputs: [{ name: "boot", payload }] }
 }

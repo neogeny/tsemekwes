@@ -9,19 +9,19 @@ import { StrCursor } from "@input"
 import { bootGrammar as boot, loadGrammarFromJSON as loadJSON } from "@json"
 import type { Grammar } from "@peg"
 import { compileGrammar } from "@peg"
-import type { Tree } from "@trees"
+import type { TreeValue } from "@trees"
 import { ext, readText } from "@util"
 import { readFile } from "node:fs/promises"
 import { ApiError } from "./error.js"
 
-export function parseGrammar(grammar: string, cfg?: Cfg): Tree {
+export function parseGrammar(grammar: string, cfg?: Cfg): TreeValue {
   const boot = bootGrammar()
   const cursor = new StrCursor(grammar)
   const merged = cfg ?? undefined
   const ctx = newCtx(cursor, merged)
 
   try {
-    return boot.parse(ctx, merged) as unknown as Tree
+    return boot.parse(ctx, merged)
   } catch (error) {
     if (!isParseError(error)) {
       throw error
@@ -39,13 +39,17 @@ export function compile(grammar: string, cfg?: Cfg): Grammar {
   return compileGrammar(tree)
 }
 
-export function parseInput(parser: Grammar, text: string, cfg?: Cfg): Tree {
+export function parseInput(
+  parser: Grammar,
+  text: string,
+  cfg?: Cfg,
+): TreeValue {
   const cursor = new StrCursor(text)
   const merged = cfg ?? undefined
   const ctx = newCtx(cursor, merged)
 
   try {
-    return parser.parse(ctx, merged) as unknown as Tree
+    return parser.parse(ctx, merged) as unknown as TreeValue
   } catch (error) {
     if (!isParseError(error)) {
       throw error
@@ -61,7 +65,7 @@ export function parseInput(parser: Grammar, text: string, cfg?: Cfg): Tree {
   }
 }
 
-export function parse(grammar: string, text: string, cfg?: Cfg): Tree {
+export function parse(grammar: string, text: string, cfg?: Cfg): TreeValue {
   try {
     const parser = compile(grammar, cfg)
     return parseInput(parser, text, cfg)

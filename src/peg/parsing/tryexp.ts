@@ -1,5 +1,5 @@
 import type { TreeValue } from "@trees"
-import { type Ctx, isParseFailure } from "@context"
+import { type Ctx, isParseError } from "@context"
 import type { Exp } from "../exp"
 
 export function tryExp(ctx: Ctx, exp: Exp): [TreeValue, boolean] {
@@ -15,7 +15,7 @@ export function tryExp(ctx: Ctx, exp: Exp): [TreeValue, boolean] {
     }
   } catch (error) {
     ctx.reset(mark)
-    if (!isParseFailure(error) || cutSeen) {
+    if (!isParseError(error) || cutSeen) {
       throw error
     }
     return [null, false]

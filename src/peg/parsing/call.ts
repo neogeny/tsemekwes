@@ -112,33 +112,39 @@ function callRecursive(
 
   while (!ctx.atEnd()) {
     ctx.reset(start)
-
     ctx.track(key)
-    if (ctx.recursionDepthExceeded()) {
+    try {
+      if (ctx.recursionDepthExceeded()) {
+        throw ctx.failure(
+          ctx.mark(),
+          new ParseError(`left recursion depth exceeded for rule: ${key.name}`),
+        )
+      }
+
+      try {
+        let result = rule.parse(ctx)
+        if (result === BOTTOM) break
+
+        const endMark = ctx.mark()
+        if (endMark <= lastMark) break
+
+        lastMark = endMark
+        lastTree = result
+        ctx.memoize(key, lastTree, lastMark)
+      } catch (error) {
+        if (isParseError(error)) break
+        throw error
+      }
+
+    } finally {
       ctx.untrack(key)
-      throw ctx.failure(
-        ctx.mark(),
-        new ParseError(`left recursion depth exceeded for rule: ${key.name}`),
-      )
     }
-
-    const result = rule.parse(ctx)
-    ctx.untrack(key)
-
-    if (result === null) break
-
-    const endMark = ctx.mark()
-    if (endMark <= lastMark) break
-
-    lastMark = endMark
-    lastTree = result
-    ctx.memoize(key, lastTree, lastMark)
   }
 
   ctx.reset(lastMark)
   ctx.memoize(key, lastTree as TreeValue, lastMark)
 
-  if (lastTree === null || lastTree === BOTTOM) {
+  if (lastTree === BOTTOM) {
     ctx.reset(start)
     return null
   }

@@ -1,12 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { compile, loadGrammarFromJSON, parseInput } from "@api"
-import { treeToJSON, type Tree } from "@trees"
-import { asjsons } from "@util/asjson"
-
-function json(t: Tree): unknown {
-  return treeToJSON(t)
-}
+import {asjson, asjsons} from "@util/asjson"
 
 describe("round trips", () => {
   it("grammar to JSON round trip", () => {
@@ -19,7 +14,7 @@ describe("round trips", () => {
     `
     const grammar = compile(grammarText)
     const tree1 = parseInput(grammar, "x y")
-    const j1 = JSON.stringify(json(tree1))
+    const j1 = JSON.stringify(asjson(tree1))
     assert.ok(j1.includes("x"))
     assert.ok(j1.includes("y"))
   })

@@ -8,6 +8,7 @@ import {
 import { type Cfg, defaultCfg } from "@config"
 import type { Cursor } from "@input"
 import type { TreeValue } from "@trees"
+import { type Heartbeat, NullHeartbeat } from "@util/heartbeat"
 import type Ctx from "./ctx"
 import type { CallStack } from "./ctx"
 import { ParseFailure } from "./error"
@@ -30,6 +31,8 @@ export class Core implements Ctx {
   private memoCache = new Map<string, Memo>()
   private _tracer: Tracer = new NullTracer()
   private keywords = new Set<string>()
+  private _heartbeat: Heartbeat = new NullHeartbeat()
+  private _lastHeartbeat = 0
 
   constructor(cursor: Cursor, cfg?: Cfg) {
     this._cursor = cursor
@@ -49,6 +52,9 @@ export class Core implements Ctx {
       this._tracer = new ConsoleTracer()
     } else {
       this._tracer = new NullTracer()
+    }
+    if (cfg.heartbeat) {
+      this._heartbeat = cfg.heartbeat
     }
   }
 
@@ -210,7 +216,18 @@ export class Core implements Ctx {
   }
 
   heartbeatTick(): void {
-    // noop for now
+    const hb = this._heartbeat
+    if (hb instanceof NullHeartbeat) return
+
+    const now = Date.now()
+    if (now - this._lastHeartbeat < 128) return
+    this._lastHeartbeat = now
+
+    const mark = this._cursor.mark()
+    const total = this._cursor.len()
+    if (total > 0) {
+      hb.tick(mark, total)
+    }
   }
 
   key(name: string, canMemo: boolean): MemoKey {

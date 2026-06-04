@@ -261,6 +261,9 @@ export function treeToJSON(t: TreeValue, seen?: Set<object>): TreeValue {
         !Array.isArray(child)
       ) {
         const childObj = child as Record<string, unknown>
+        if ("__class__" in childObj) {
+          return { __class__: node.typeName, ast: child }
+        }
         const result = {
           __class__: node.typeName,
           ...childObj,
