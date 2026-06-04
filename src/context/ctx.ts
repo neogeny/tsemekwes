@@ -20,8 +20,8 @@ export interface Ctx {
   matchDot(): [string, boolean]
   matchFail(): ParseFailure
   matchVoid(): void
-  matchEOF(): boolean
-  matchEOL(): boolean
+  matchEOF(): null
+  matchEOL(): null
   matchToken(token: string): string
   matchPattern(pattern: string): string
   mtchConstant(literal: unknown): TreeValue

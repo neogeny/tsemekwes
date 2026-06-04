@@ -15,7 +15,8 @@ export class Memento extends Error {
     public readonly colorize?: boolean,
     public readonly err?: Error,
   ) {
-    super(msg, { cause: err })
+    super(msg)
+    // super(msg, { cause: err })
     this.mark = cursor.mark()
     this.callStack = [...callStack]
     Object.setPrototypeOf(this, Memento.prototype)

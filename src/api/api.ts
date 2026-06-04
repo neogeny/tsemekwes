@@ -1,23 +1,14 @@
-import { readFile } from "node:fs/promises"
-import { ext, readText } from "@util"
-import { type Cfg, defaultCfg } from "@config"
-import {
-  isParseError,
-  isParseFailure,
-  newCtx,
-  type ParseFailure,
-} from "@context"
-import { StrCursor } from "@input"
-import { bootGrammar as boot } from "@json"
-import { loadGrammarFromJSON as loadJSON } from "@json"
-import { compileGrammar } from "@peg"
-import type { Grammar } from "@peg"
-import type { Tree } from "@trees"
-import { ApiError } from "./error.js"
+import {type Cfg} from "@config"
+import {isParseError, isParseFailure, newCtx, type ParseFailure,} from "@context"
+import {StrCursor} from "@input"
+import {bootGrammar as boot, loadGrammarFromJSON as loadJSON} from "@json"
+import type {Grammar} from "@peg"
+import {compileGrammar} from "@peg"
+import type {Tree} from "@trees"
+import {ext, readText} from "@util"
+import {readFile} from "node:fs/promises"
+import {ApiError} from "./error.js"
 
-export function defaultConfig(): Cfg {
-  return defaultCfg()
-}
 
 export function parseGrammar(grammar: string, cfg?: Cfg): Tree {
   const boot = bootGrammar()
@@ -25,28 +16,18 @@ export function parseGrammar(grammar: string, cfg?: Cfg): Tree {
   const merged = cfg ?? undefined
   const ctx = newCtx(cursor, merged)
 
-  let tree: Tree | null = null
   try {
-    tree = boot.parse(ctx, merged) as unknown as Tree
+    return boot.parse(ctx, merged) as unknown as Tree
   } catch (error) {
     if (!isParseError(error)) {
       throw error
     }
     if (isParseFailure(error)) {
-      const failure = error as ParseFailure
-      // throw new ApiError(failure.memento.error(), failure)
-      throw failure
+      let failure = error as ParseFailure
+      throw new ApiError(failure.memento.msg, failure)
     }
-    throw new ApiError("failed to parse grammar", { cause: error })
+    throw new ApiError("failed to parse grammar", error)
   }
-
-  if (tree === null) {
-    const failure = ctx.furthestFailure()
-    if (failure) throw new ApiError(failure.memento.error())
-    throw new ApiError("failed to parse grammar")
-  }
-
-  return tree
 }
 
 export function compile(grammar: string, cfg?: Cfg): Grammar {
@@ -65,13 +46,13 @@ export function parseInput(parser: Grammar, text: string, cfg?: Cfg): Tree {
     if (!isParseError(error)) {
       throw error
     }
-    let failure: ParseFailure = null
+    let failure: ParseFailure|null
     if (isParseFailure(error)) {
       failure = error as ParseFailure
     } else {
       failure = ctx.furthestFailure()
     }
-    if (failure !== null) throw new ApiError(failure.memento.error())
+    if (failure !== null) throw new ApiError(failure.memento.msg)
     throw new ApiError("failed to parse grammar", error)
   }
 }

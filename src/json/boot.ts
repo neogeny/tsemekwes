@@ -1,7 +1,7 @@
 import type { Grammar } from "../peg/grammar.js"
 import type { TreeValue } from "../trees/tree.js"
 import { loadGrammarFromJSON } from "./import.js"
-import tatsu from "./tatsu.json" with { type: "json" }
+import tatsu from "../../grammar/tatsu.json" with { type: "json" }
 
 let cached: Grammar | null = null
 
