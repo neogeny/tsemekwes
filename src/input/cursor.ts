@@ -23,21 +23,20 @@ export interface Cursor extends Configurable {
   nameGuard(): boolean
   lookahead(start: number): string
   atEnd(): boolean
-  next(): string | null
-  peek(): string | null
-  peekToken(token: string): string | null
-  matchToken(token: string): string | null
+  next(): [string, boolean]
+  peek(): [string, boolean]
+  peekToken(token: string): [string, boolean]
+  matchToken(token: string): [string, boolean]
+  matchPattern(pattern: string): [string, boolean]
   isNameChar(c: string): boolean
   isName(s: string): boolean
-  matchPattern(pattern: string): [string, boolean]
-  getPattern(pattern: string): RegExp | null
   matchEOL(): boolean
   nextToken(): void
   pos(): [number, number]
   posAt(mark: number): [number, number]
   location(): Location
   locationAt(mark: number): Location
-  setPatterns(patterns: TokenizingPatterns): void
+  setTokenizingPatterns(patterns: TokenizingPatterns): void
   setIgnoreCase(ignore: boolean): void
   clone(): Cursor
 }

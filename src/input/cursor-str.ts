@@ -160,23 +160,24 @@ export class StrCursor implements Cursor {
     return this.offset >= this.text.length
   }
 
-  next(): string | null {
-    const ch = this.peek()
-    if (ch !== null) {
+  next(): [string, boolean] {
+    const [ch, ok] = this.peek()
+    if (ok) {
       this.offset += ch.length
+      return [ch, ok]
     }
-    return ch
+    return ["", false]
   }
 
-  peek(): string | null {
+  peek(): [string, boolean] {
     if (this.atEnd()) {
-      return null
+      return ["", false]
     }
     const cp = this.text.codePointAt(this.offset)
     if (cp === undefined) {
-      return null
+      return ["", false]
     }
-    return String.fromCodePoint(cp)
+    return [String.fromCodePoint(cp), true]
   }
 
   isNameChar(c: string): boolean {
@@ -217,50 +218,50 @@ export class StrCursor implements Cursor {
     return true
   }
 
-  peekToken(token: string): string | null {
-    if (this.offset + token.length >= this.text.length) {
-      return null
+  peekToken(token: string): [string, boolean] {
+    if (this.offset + token.length > this.text.length) {
+      return ["", false]
     }
     const slice = this.text.slice(this.offset, this.offset + token.length)
     if (this.heavy.ignoreCase) {
       if (slice.toLowerCase() === token.toLowerCase()) {
-        return slice
+        return [slice, true]
       }
     } else if (slice === token) {
-      return slice
+      return [slice, true]
     }
-    return slice
+    return ["", false]
   }
 
-  matchToken(token: string): string | null {
+  matchToken(token: string): [string, boolean] {
     const mark = this.offset
 
-    let slice = this.peekToken(token)
-    if (slice === null) {
-      return null
+    let [slice, ok] = this.peekToken(token)
+    if (!ok) {
+      return ["", false]
     }
     // NOTE already a match
     this.offset += token.length
     if (this.offset >= this.text.length) {
-      return slice
+      return [slice, true]
     }
 
-    if (!this.heavy.nameGuard || !this.isName(token)) {
-      return slice
+    if (!(this.heavy.nameGuard && this.isName(token))) {
+      return [slice, true]
     }
 
     // check righmost boundary
     const cp = this.text.codePointAt(this.offset)
     if (cp === undefined) {
-      return slice // No next char, so no name guard violation
+      return [slice, true]
     }
 
     const next = String.fromCodePoint(cp)
     if (!this.isNameChar(next)) {
-      return slice
+      return [slice, true]
     }
     this.offset = mark
-    return null
+    return ["", false]
   }
 
   matchPattern(pattern: string): [string, boolean] {
@@ -366,7 +367,7 @@ export class StrCursor implements Cursor {
     return new Location(this.heavy.source, line, col)
   }
 
-  setPatterns(patterns: TokenizingPatterns | null): void {
+  setTokenizingPatterns(patterns: TokenizingPatterns | null): void {
     if (patterns === null) {
       resetPatterns(this.heavy.patterns)
     } else {

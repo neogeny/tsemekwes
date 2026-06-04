@@ -23,7 +23,7 @@ export interface Ctx {
   matchEOF(): boolean
   matchEOL(): boolean
   matchToken(token: string): string
-  matchPattern(pattern: string): string | null
+  matchPattern(pattern: string): string
   mtchConstant(literal: unknown): TreeValue
 
   enterLookahead(): void

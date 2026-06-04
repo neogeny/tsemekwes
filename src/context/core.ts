@@ -75,14 +75,13 @@ export class Core implements Ctx {
   }
 
   peek(): [string, boolean] {
-    const ch = this._cursor.peek()
-    return ch == null ? ["", false] : [ch, true]
+    return this._cursor.peek()
   }
 
   matchDot(): [string, boolean] {
     const mark = this._cursor.mark()
-    const ch = this._cursor.next()
-    if (ch == null) {
+    const [ch, ok] = this._cursor.next()
+    if (!ok) {
       throw this.failure(mark, new ParseError("expected any character"))
     }
     return [ch, true]
@@ -96,8 +95,8 @@ export class Core implements Ctx {
   matchToken(token: string): string {
     this.nextToken()
     const start = this.mark()
-    const slice = this._cursor.matchToken(token)
-    if (slice !== null) {
+    const [slice, ok] = this._cursor.matchToken(token)
+    if (ok) {
       this._tracer.traceMatch(this, token, slice)
       return slice
     }
@@ -106,17 +105,17 @@ export class Core implements Ctx {
     throw this.failure(start, new ParseError(`expected: "${token}"`))
   }
 
-  matchPattern(pattern: string): string | null {
-    const mark = this._cursor.mark()
-    const [matched, ok] = this._cursor.matchPattern(pattern)
-
+  matchPattern(pattern: string): string {
     let view = pattern.replace(/\//g, "\\/")
     view = (view.slice(0, 16) + "...").slice(0, view.length)
+
+    const mark = this._cursor.mark()
+    const [slice, ok] = this._cursor.matchPattern(pattern)
     if (ok) {
-      this._tracer.traceMatch(this, view, matched)
-      return matched
+      this._tracer.traceMatch(this, view, slice)
+      return slice
     }
-    this._tracer.traceNoMatch(this, view, matched)
+    this._tracer.traceNoMatch(this, view, slice)
     throw this.failure(mark, new ParseError(`expected pattern /${view}/`))
   }
 

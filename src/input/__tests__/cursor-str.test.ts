@@ -101,7 +101,7 @@ describe("StrCursor", () => {
   it("MatchEOL skips whitespace before newline", () => {
     const wsp = /[ \t]+/
     const s = new StrCursor("   \nnext")
-    s.setPatterns(new TokenizingPatterns(wsp, null, null))
+    s.setTokenizingPatterns(new TokenizingPatterns(wsp, null, null))
     assert.equal(s.matchEOL(), true)
     assert.equal(s.mark(), 4)
   })
@@ -205,14 +205,14 @@ describe("StrCursor", () => {
     const cmt = /#[^\n]*/
     const eol = /\r?\n/
     const s = new StrCursor("  # comment \n  hello")
-    s.setPatterns(new TokenizingPatterns(wsp, cmt, eol))
+    s.setTokenizingPatterns(new TokenizingPatterns(wsp, cmt, eol))
     s.nextToken()
     assert.equal(s.matchToken("hello"), true)
   })
 
   it("SetPatterns with null resets to defaults", () => {
     const s = new StrCursor("hello")
-    s.setPatterns(null)
+    s.setTokenizingPatterns(null)
     s.nextToken()
     assert.equal(s.matchToken("hello"), true)
   })
