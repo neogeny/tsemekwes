@@ -1,5 +1,5 @@
-import type { TreeValue } from "@trees"
 import { type Ctx, ParseError } from "@context"
+import type { TreeValue } from "@trees"
 import type { ChoiceExp, Exp } from "../exp"
 import { tryExp } from "./tryexp"
 

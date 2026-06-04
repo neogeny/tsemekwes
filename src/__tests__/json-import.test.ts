@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
+import { readFileSync } from "node:fs"
 import { describe, it } from "node:test"
 import { loadGrammarFromJSON, parseInput } from "@api"
-import { readFileSync } from "node:fs"
 import { asjson } from "@util/asjson"
 
 const tatsuJSON = readFileSync(

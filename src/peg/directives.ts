@@ -1,5 +1,5 @@
-import grammar from "../../grammar/tatsu.json"
 import XRegExp from "xregexp"
+import grammar from "../../grammar/tatsu.json"
 
 export const WHITESPACE_PATTERN = grammar.directives.whitespace
 export const COMMENT_PATTERN = grammar.directives.comments

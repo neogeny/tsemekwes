@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { repr } from "../repr"
 import { BoundedMap } from "../boundedmap"
+import { repr } from "../repr"
 
 class ReprTestStruct {
   constructor(

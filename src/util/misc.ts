@@ -45,8 +45,8 @@ export function stripLeft(s: string): string {
   return s.replace(/^[ \t\n\r\f\v]+/g, "")
 }
 
-import git from "isomorphic-git"
 import fs from "node:fs"
+import git from "isomorphic-git"
 
 export async function getProjectGitVersion(dir: string = "."): Promise<string> {
   try {

@@ -1,5 +1,5 @@
-import { closed, type TreeValue } from "@trees"
 import { type Ctx, ParseError } from "@context"
+import { closed, type TreeValue } from "@trees"
 import type { Exp } from "../exp"
 import { tryExp } from "./tryexp"
 

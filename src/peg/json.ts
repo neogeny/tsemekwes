@@ -1,4 +1,5 @@
 import { asjson } from "@util/asjson"
+import type { CallExp } from "./call"
 import {
   type AlertExp,
   type ChoiceExp,
@@ -28,14 +29,13 @@ import {
 } from "./exp.js"
 import type { Grammar } from "./grammar.js"
 import type { Rule } from "./rule.js"
-import type { CallExp } from "./call"
 
 function mapClass(
   cls: string,
   ...fields: [string, any][]
 ): Record<string, unknown> {
   const out: Record<string, any> = { __class__: cls }
-  for (let kv of fields) {
+  for (const kv of fields) {
     out[kv[0]] = kv[1]
   }
   return out

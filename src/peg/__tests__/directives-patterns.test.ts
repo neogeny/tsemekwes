@@ -1,14 +1,13 @@
+import { expect } from "bun:test"
 import test, { describe } from "node:test"
 import {
-  WHITESPACE_REGEX,
+  COMMENT_PATTERN,
   COMMENT_REGEX,
+  EOL_COMMENT_PATTERN,
   EOL_COMMENT_REGEX,
   WHITESPACE_PATTERN,
-  COMMENT_PATTERN,
-  EOL_COMMENT_PATTERN,
+  WHITESPACE_REGEX,
 } from "../directives.js"
-
-import { expect } from "bun:test"
 
 describe("Grammar directive regular expressions", () => {
   test("whitespace regex matches spaces, tabs, and newlines (multiline)", () => {
@@ -24,9 +23,9 @@ describe("Grammar directive regular expressions", () => {
   test("comment regex matches block comments and (* ... *) style", () => {
     const block1 = "/* this is a block comment */"
     const block2 = "(* another block comment *)"
-    let matches = (block1 + " followed by more").match(COMMENT_REGEX)
+    let matches = `${block1} followed by more`.match(COMMENT_REGEX)
     expect(matches?.[0]).toBe(block1)
-    matches = (block2 + " must be at start").match(COMMENT_REGEX)
+    matches = `${block2} must be at start`.match(COMMENT_REGEX)
     expect(matches?.[0]).toBe(block2)
     expect(COMMENT_PATTERN).toContain("[*]") // simple sanity check on pattern string
   })

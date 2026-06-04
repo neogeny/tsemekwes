@@ -1,8 +1,8 @@
 import type { Ctx } from "@context"
-import { treeFold, NodeTree, type TreeValue } from "@trees"
+import { NodeTree, type TreeValue, treeFold } from "@trees"
+import { asjson } from "../util/asjson"
 import { computeLA } from "./analysis/lookahead"
 import { BoxExp, type Exp, ExpKind } from "./exp.js"
-import { asjson } from "../util/asjson"
 import { serializeRule } from "./json"
 
 export class Rule extends BoxExp {

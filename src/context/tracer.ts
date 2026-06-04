@@ -1,6 +1,6 @@
 import type { Ctx } from "@context"
-import type { Colors } from "picocolors/types"
 import color from "picocolors"
+import type { Colors } from "picocolors/types"
 
 export enum Event {
   Entry = 0,

@@ -1,5 +1,5 @@
 import { isBaseArray } from "@util"
-import { asjson, JSONSerializable } from "@util/asjson"
+import { asjson, type JSONSerializable } from "@util/asjson"
 
 export class TreeArray extends Array<TreeValue> {
   constructor(value: TreeValue[]) {
@@ -268,7 +268,7 @@ export function treeToJSON(t: TreeValue, seen?: Set<object>): TreeValue {
           __class__: node.typeName,
           ...childObj,
         }
-        result["__class__"] = node.typeName
+        result.__class__ = node.typeName
         return result
       }
       return { __class__: node.typeName, ast: child }

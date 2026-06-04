@@ -35,8 +35,8 @@ export function fold(
   }
 
   const indent = " ".repeat(opt.amount ?? 2)
-  const indented = parts.map((p) => indent + p.replace(/\n/g, "\n" + indent))
-  return prefix + lbrack + "\n" + indented.join(",\n") + ",\n" + prefix + rbrack
+  const indented = parts.map((p) => indent + p.replace(/\n/g, `\n${indent}`))
+  return `${prefix + lbrack}\n${indented.join(",\n")},\n${prefix}${rbrack}`
 }
 
 export function pubMapOf(v: any): any {
@@ -60,7 +60,7 @@ function classKeys(m: Record<string, any>): [string, string[]] {
   const keys = Object.keys(m).sort()
   let typeName = ""
   if (keys.length > 0 && keys[0] === "__class__") {
-    typeName = String(m["__class__"])
+    typeName = String(m.__class__)
     keys.shift()
   }
   return [typeName, keys]
@@ -70,7 +70,7 @@ function reprFold(parts: string[], typeName: string): string {
   if (typeName === "") {
     return fold("", parts, "map[string]any{", "}")
   }
-  return fold("", parts, typeName + "{", "}")
+  return fold("", parts, `${typeName}{`, "}")
 }
 
 export function repr(v: any): string {
@@ -118,7 +118,7 @@ function reprValueImpl(v: any, seen: Set<object>): string {
   if (typeof v === "string") return JSON.stringify(v)
   if (typeof v === "boolean") return v ? "true" : "false"
   if (typeof v === "number") return String(v)
-  if (typeof v === "bigint") return v.toString() + "n"
+  if (typeof v === "bigint") return `${v.toString()}`
 
   if (v === null || v === undefined) return "nil"
 
@@ -132,7 +132,7 @@ function reprValueImpl(v: any, seen: Set<object>): string {
 
   const pm = pubMapOf(v)
   if (pm instanceof BoundedMap) {
-    return "&" + reprOrderedMap(pm, seen)
+    return `&${reprOrderedMap(pm, seen)}`
   }
 
   if (typeof pm === "object" && pm.constructor === Object) {
@@ -145,7 +145,7 @@ function reprValueImpl(v: any, seen: Set<object>): string {
 function reprArray(arr: any[], seen: Set<object>): string {
   const parts = arr.map((e) => reprValue(e, seen))
   const typeStr = arrTypeString(arr)
-  return fold("", parts, typeStr + "{", "}")
+  return fold("", parts, `${typeStr}{`, "}")
 }
 
 function reprOrderedMap(
@@ -163,7 +163,7 @@ function reprOrderedMap(
   }
   if (keys.length === 0) {
     if (typeName === "") return "map[string]any{}"
-    return typeName + "{}"
+    return `${typeName}{}`
   }
   const parts = keys.map((k) => {
     const item = om.get(k)

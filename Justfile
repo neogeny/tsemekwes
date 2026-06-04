@@ -19,8 +19,8 @@ fmt:
 
 # Check both structural code metrics and type definitions
 lint: fmt
-    biome lint --write .
     bun x tsc --noEmit
+    biome check --write ./src
 
 # Compile the TypeScript codebase down into a single high-performance binary artifact
 build: clean
@@ -32,7 +32,7 @@ run script:
     bun run -- {{ script }}
 
 # Run the entire test pipeline directly using Bun
-test:
+test: build
     bun test --only-failures --dots \
       src/__tests__/*.test.ts \
       src/__tests__/**/*.test.ts \
@@ -42,3 +42,8 @@ test:
 prof script:
     node --prof --cpu-prof {{script}}
 
+tools:
+    curl -fsSL https://bun.com/install | bash
+    bun install -g typescript
+    bun install -g tsc
+    bun install bun-types

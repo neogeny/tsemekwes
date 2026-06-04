@@ -1,16 +1,16 @@
+import { describe, expect, it } from "bun:test"
 import { isComplex } from "@util"
-import { describe, it, expect } from "bun:test"
 import { BOTTOM } from "../../context"
 import {
-  treeFold,
-  treeToJSONStr,
+  isTreeArray,
   Named,
   NamedAsList,
   NodeTree,
   Override,
-  type TreeValue,
-  isTreeArray,
   TreeArray,
+  type TreeValue,
+  treeFold,
+  treeToJSONStr,
 } from "../tree"
 
 const text = (s: string) => s

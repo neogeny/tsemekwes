@@ -1,8 +1,8 @@
-import { Cfg } from "@config"
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { TokenizingPatterns } from "../patterns"
+import { Cfg } from "@config"
 import { StrCursor } from "../cursor-str.js"
+import { TokenizingPatterns } from "../patterns"
 
 describe("StrCursor", () => {
   it("MatchPattern returns false when pattern does not match at position", () => {

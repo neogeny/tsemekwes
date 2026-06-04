@@ -1,5 +1,9 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
+import { linkRule } from "@peg"
+import { markLeftRecursion } from "../analysis/leftrec.js"
+import { isNullable } from "../analysis/nullability.js"
+import { CallExp } from "../call"
 import {
   AlertExp,
   AltExp,
@@ -36,11 +40,7 @@ import {
   TokenExp,
   VoidExp,
 } from "../exp.js"
-import { markLeftRecursion } from "../analysis/leftrec.js"
-import { isNullable } from "../analysis/nullability.js"
 import { Rule } from "../rule.js"
-import { CallExp } from "../call"
-import { linkRule } from "@peg"
 
 function wrap(exp: Exp, kind: ExpKind): Exp {
   switch (kind) {

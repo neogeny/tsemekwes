@@ -1,7 +1,7 @@
-import { asjson } from "@util/asjson"
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { compile, parseInput } from "@api"
+import { asjson } from "@util/asjson"
 
 describe("string", () => {
   it("multiline", () => {

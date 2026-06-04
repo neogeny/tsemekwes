@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { StrCursor } from "@input"
 import { Memento } from "@context"
+import { StrCursor } from "@input"
 
 describe("Memento", () => {
   it("captures start, mark, msg, callstack", () => {

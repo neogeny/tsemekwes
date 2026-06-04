@@ -1,3 +1,4 @@
+import { CallExp } from "@peg/call"
 import {
   AlertExp,
   ChoiceExp,
@@ -34,7 +35,6 @@ import {
 } from "../peg/exp.js"
 import { Grammar } from "../peg/grammar.js"
 import { Rule } from "../peg/rule.js"
-import { CallExp } from "@peg/call"
 
 export class ImportError extends Error {
   constructor(msg: string) {

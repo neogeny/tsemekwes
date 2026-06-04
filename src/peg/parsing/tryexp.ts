@@ -1,5 +1,5 @@
-import type { TreeValue } from "@trees"
 import { type Ctx, isParseError } from "@context"
+import type { TreeValue } from "@trees"
 import type { Exp } from "../exp"
 
 export function tryExp(ctx: Ctx, exp: Exp): [TreeValue, boolean] {

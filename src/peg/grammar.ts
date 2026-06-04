@@ -1,14 +1,14 @@
 import { Cfg, defaultCfg, type SemanticsFunc } from "@config"
 import { type Ctx, ParseError } from "@context"
 import type { TreeValue } from "@trees"
-import { call } from "./parsing/call"
-import { Exp, ExpKind } from "./exp"
 import { markLeftRecursion } from "./analysis/leftrec"
-import { prettyPrintGrammar } from "./pretty"
-import type { Rule } from "./rule"
 import { linkGrammar } from "./analysis/link"
 import { CallExp } from "./call"
+import { Exp, ExpKind } from "./exp"
 import { serializeGrammar } from "./json"
+import { call } from "./parsing/call"
+import { prettyPrintGrammar } from "./pretty"
+import type { Rule } from "./rule"
 
 export class Grammar extends Exp {
   readonly kind = ExpKind.Grammar

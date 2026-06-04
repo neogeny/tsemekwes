@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
+import { readFileSync } from "node:fs"
 import { describe, it } from "node:test"
 import { loadGrammarFromJSON } from "@api"
-import { readFileSync } from "node:fs"
 
 const tatsuJSON = readFileSync(
   new URL("../tiexiu/grammar/tatsu.json", import.meta.url),

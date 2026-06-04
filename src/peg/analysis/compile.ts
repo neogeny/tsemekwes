@@ -1,5 +1,6 @@
 import { inspect } from "node:util"
 import { NodeTree, type TreeValue } from "../../trees/tree"
+import { CallExp } from "../call"
 import {
   AlertExp,
   ChoiceExp,
@@ -36,7 +37,6 @@ import {
 } from "../exp"
 import { Grammar } from "../grammar"
 import { Rule } from "../rule"
-import { CallExp } from "../call"
 
 class CompileError extends Error {
   constructor(msg: string) {

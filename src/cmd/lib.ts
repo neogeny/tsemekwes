@@ -1,7 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { codeToANSI } from "@shikijs/cli"
-import { BundledLanguage } from "shiki"
+import type { BundledLanguage } from "shiki"
 
 export const modeStdout = 0
 export const modeFile = 1
@@ -61,7 +61,7 @@ export async function writeOutput(
   switch (outputMode(outputpath)) {
     case modeStdout:
       for (const o of out.outputs) {
-        let payload = colorize
+        const payload = colorize
           ? await codeToANSI(o.payload, out.lang, "nord")
           : o.payload
         console.log(payload)

@@ -1,19 +1,18 @@
-import { asjson, asjsons, JSONSerializable } from "@util/asjson"
 import { type Ctx, isParseFailure, ParseError } from "@context"
 import { TreeArray } from "@trees"
-import { closure, closureWithSep } from "./parsing/closure"
-import { prettyPrintExp } from "./pretty"
-import { serializeExp } from "./json"
-import { parseChoice, parseOptional } from "./parsing/choice"
-import { sequence } from "./parsing/sequence"
-
+import { asjson, asjsons, type JSONSerializable } from "@util/asjson"
 import {
-  Named as NamedTree,
   NamedAsList as NamedAsListTree,
-  Override as OverrideTree,
+  Named as NamedTree,
   OverrideAsList as OverrideAsListTree,
+  Override as OverrideTree,
   type TreeValue,
 } from "../trees/tree.js"
+import { serializeExp } from "./json"
+import { parseChoice, parseOptional } from "./parsing/choice"
+import { closure, closureWithSep } from "./parsing/closure"
+import { sequence } from "./parsing/sequence"
+import { prettyPrintExp } from "./pretty"
 
 export enum ExpKind {
   Nil = "Nil",

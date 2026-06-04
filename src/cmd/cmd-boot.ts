@@ -1,8 +1,8 @@
-import { BundledLanguage } from "shiki"
 import { bootGrammar } from "@json"
 import { grammarSummary } from "@peg"
 import { asjsons } from "@util/asjson"
-import { OutputSet } from "./lib"
+import type { BundledLanguage } from "shiki"
+import type { OutputSet } from "./lib"
 
 export async function cmdBoot(options: {
   json?: boolean

@@ -1,7 +1,7 @@
-import { asjson, asjsons } from "@util/asjson"
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { parseGrammar, compile, parseInput, parse } from "@api"
+import { compile, parse, parseGrammar, parseInput } from "@api"
+import { asjson, asjsons } from "@util/asjson"
 
 describe("bootstrap :: parse grammar", () => {
   it("simple grammar", () => {

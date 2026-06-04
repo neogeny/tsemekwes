@@ -1,7 +1,7 @@
-import { sprintf } from "sprintf-js"
 import type { Cursor } from "@input"
-import type { CallStack } from "./ctx.js"
 import color from "picocolors"
+import { sprintf } from "sprintf-js"
+import type { CallStack } from "./ctx.js"
 
 export class Memento extends Error {
   public readonly mark: number

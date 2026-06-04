@@ -1,4 +1,5 @@
-import { type Cfg } from "@config"
+import { readFile } from "node:fs/promises"
+import type { Cfg } from "@config"
 import {
   isParseError,
   isParseFailure,
@@ -11,7 +12,6 @@ import type { Grammar } from "@peg"
 import { compileGrammar } from "@peg"
 import type { TreeValue } from "@trees"
 import { ext, readText } from "@util"
-import { readFile } from "node:fs/promises"
 import { ApiError } from "./error.js"
 
 export function parseGrammar(grammar: string, cfg?: Cfg): TreeValue {
@@ -27,7 +27,7 @@ export function parseGrammar(grammar: string, cfg?: Cfg): TreeValue {
       throw error
     }
     if (isParseFailure(error)) {
-      let failure = error as ParseFailure
+      const failure = error as ParseFailure
       throw new ApiError(failure.memento.msg, failure)
     }
     throw new ApiError("failed to parse grammar", error)

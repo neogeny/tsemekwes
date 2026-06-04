@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
+import { getProjectGitVersion } from "@util"
 import { Command, Help, Option } from "commander"
 import picocolors from "picocolors"
-import { getProjectGitVersion } from "@util"
 import { cmdBoot } from "./cmd-boot"
-import { cmdInfo } from "./cmd-info"
 import { cmdGrammar } from "./cmd-grammar"
-import { writeOutput } from "./lib"
+import { cmdInfo } from "./cmd-info"
 import { cmdRun } from "./cmd-run"
+import { writeOutput } from "./lib"
 
 async function main() {
   const program = await command()

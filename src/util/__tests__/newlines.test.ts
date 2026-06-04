@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { takeLinebreakLen, takeBlankLineLen, takeDedentLen } from "../newlines"
+import { takeBlankLineLen, takeDedentLen, takeLinebreakLen } from "../newlines"
 
 function eq(label: string, got: number, want: number): void {
   assert.equal(got, want, label)

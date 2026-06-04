@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { compile, parseInput, ApiError } from "@api"
+import { ApiError, compile, parseInput } from "@api"
 
 describe("error handling", () => {
   it("invalid input fails", () => {

@@ -1,3 +1,4 @@
+import type { CallExp } from "../call"
 import {
   type AlertExp,
   type ConstantExp,
@@ -7,7 +8,6 @@ import {
   type SeqExp,
   type TokenExp,
 } from "../exp"
-import type { CallExp } from "../call"
 import { isNullable, unboxExp } from "./nullability"
 
 const sentinelEOF = "\uFF04"

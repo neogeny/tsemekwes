@@ -1,5 +1,6 @@
 // noinspection ExceptionCaughtLocallyJS
 
+import type { MemoKey } from "@context"
 import {
   BOTTOM,
   type Ctx,
@@ -8,7 +9,6 @@ import {
   ParseError,
 } from "@context"
 import type { TreeValue } from "@trees"
-import type { MemoKey } from "@context"
 import type { Rule } from "../rule"
 
 /**
@@ -122,7 +122,7 @@ function callRecursive(
       }
 
       try {
-        let result = rule.parse(ctx)
+        const result = rule.parse(ctx)
         if (result === BOTTOM) break
 
         const endMark = ctx.mark()
@@ -135,7 +135,6 @@ function callRecursive(
         if (isParseError(error)) break
         throw error
       }
-
     } finally {
       ctx.untrack(key)
     }

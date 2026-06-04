@@ -1,5 +1,5 @@
-import { type TreeValue, treeMerge } from "@trees"
 import type { Ctx } from "@context"
+import { type TreeValue, treeMerge } from "@trees"
 import { ExpKind, type SeqExp } from "../exp"
 
 export function sequence(ctx: Ctx, seq: SeqExp): TreeValue {

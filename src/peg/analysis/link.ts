@@ -1,17 +1,17 @@
 import { asjsons } from "@util/asjson"
+import type { CallExp } from "../call"
+import { LinkError } from "../error"
 import {
-  ExpKind,
-  type Exp,
   type BoxExp,
-  type SepBoxExp,
   type ChoiceExp,
+  type Exp,
+  ExpKind,
   type RuleIncludeExp,
+  type SepBoxExp,
   type SeqExp,
 } from "../exp"
-import type { Rule } from "../rule"
-import { LinkError } from "../error"
 import type { Grammar } from "../grammar"
-import type { CallExp } from "../call"
+import type { Rule } from "../rule"
 
 export function linkExp(exp: Exp | null, rules: Map<string, Rule>): void {
   if (exp == null) return

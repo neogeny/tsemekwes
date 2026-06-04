@@ -1,3 +1,4 @@
+import type { CallExp } from "./call"
 import {
   type AlertExp,
   type ChoiceExp,
@@ -27,7 +28,6 @@ import {
 } from "./exp.js"
 import type { Grammar } from "./grammar.js"
 import type { Rule } from "./rule.js"
-import type { CallExp } from "./call"
 
 const pep8llen = 72
 

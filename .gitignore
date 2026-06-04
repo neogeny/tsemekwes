@@ -30,6 +30,7 @@ tatsu
 tiexiu
 grammar/java.*
 
-# IA
+# AI
 .corpus/
 .antigravitycli/
+.opencode/
