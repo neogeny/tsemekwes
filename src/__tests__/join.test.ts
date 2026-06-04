@@ -1,11 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { parse, ApiError } from "@api"
-import { treeToJSON, type Tree } from "@trees"
-
-function json(tree: Tree): unknown {
-  return treeToJSON(tree)
-}
+import { asjson } from "@util/asjson"
 
 describe("join", () => {
   it("positive join", () => {
@@ -13,7 +9,7 @@ describe("join", () => {
 @@nameguard :: False
 start = ','%{'x' 'y'}+ ;`
     const result = parse(grammar, "x y, x y")
-    assert.deepStrictEqual(json(result), [["x", "y"], ",", ["x", "y"]])
+    assert.deepStrictEqual(asjson(result), [["x", "y"], ",", ["x", "y"]])
   })
 
   it("positive join single match", () => {
@@ -21,7 +17,7 @@ start = ','%{'x' 'y'}+ ;`
 @@nameguard :: False
 start = ','%{'x' 'y'}+ ;`
     const result = parse(grammar, "x y x y")
-    assert.deepStrictEqual(json(result), [["x", "y"]])
+    assert.deepStrictEqual(asjson(result), [["x", "y"]])
   })
 
   it("positive join fails without match", () => {

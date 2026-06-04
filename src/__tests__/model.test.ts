@@ -1,11 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { compile, parseInput } from "@api"
-import { treeToJSON, type Tree } from "@trees"
-
-function json(t: Tree): unknown {
-  return treeToJSON(t)
-}
+import { asjson } from "@util/asjson"
 
 describe("model", () => {
   it("children", () => {
@@ -17,7 +13,7 @@ describe("model", () => {
     `
     const model = compile(grammar)
     const ast = parseInput(model, "x")
-    assert.equal(json(ast), "x")
+    assert.equal(asjson(ast), "x")
   })
 
   it("node kwargs", () => {
@@ -26,6 +22,6 @@ describe("model", () => {
     `
     const model = compile(grammar)
     const ast = parseInput(model, "value")
-    assert.equal(json(ast), "value")
+    assert.equal(asjson(ast), "value")
   })
 })

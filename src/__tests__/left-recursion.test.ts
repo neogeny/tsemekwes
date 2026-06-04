@@ -1,11 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { parse, ApiError } from "@api"
-import { treeToJSON, type Tree } from "@trees"
-
-function json(tree: Tree): unknown {
-  return treeToJSON(tree)
-}
+import { asjson } from "@util/asjson"
 
 describe("left recursion", () => {
   it("direct left recursion", () => {
@@ -16,7 +12,7 @@ expression = expression '+' factor | expression '-' factor | factor ;
 factor = number ;
 number = /[0-9]+/ ;`
     const result = parse(grammar, "10 - 20")
-    assert.deepStrictEqual(json(result), ["10", "-", "20"])
+    assert.deepStrictEqual(asjson(result), ["10", "-", "20"])
   })
 
   it("indirect left recursion y", () => {
@@ -26,7 +22,7 @@ start = A $ ;
 A = B | 'x' ;
 B = A | 'y' ;`
     const result = parse(grammar, "y")
-    assert.equal(json(result), "y")
+    assert.equal(asjson(result), "y")
   })
 
   it("indirect left recursion x", () => {
@@ -36,7 +32,7 @@ start = A $ ;
 A = B | 'x' ;
 B = A | 'y' ;`
     const result = parse(grammar, "x")
-    assert.equal(json(result), "x")
+    assert.equal(asjson(result), "x")
   })
 
   it("LR disabled via directive", () => {
@@ -56,6 +52,6 @@ start = expr $ ;
 expr = '(' expr ')' | number ;
 number = /[0-9]+/ ;`
     const result = parse(grammar, "((1))")
-    assert.deepStrictEqual(json(result), ["(", ["(", "1", ")"], ")"])
+    assert.deepStrictEqual(asjson(result), ["(", ["(", "1", ")"], ")"])
   })
 })

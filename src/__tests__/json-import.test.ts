@@ -2,11 +2,7 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { loadGrammarFromJSON, parseInput } from "@api"
 import { readFileSync } from "node:fs"
-import { treeToJSON, type Tree } from "@trees"
-
-function json(t: Tree): unknown {
-  return treeToJSON(t)
-}
+import { asjson } from "@util/asjson"
 
 const tatsuJSON = readFileSync(
   new URL("../tiexiu/grammar/tatsu.json", import.meta.url),
@@ -47,6 +43,6 @@ describe("json import", () => {
   it("load grammar and parse using it", () => {
     const grammar = loadGrammarFromJSON(calcJSON)
     const tree = parseInput(grammar, "1 + 2")
-    assert.ok(json(tree) != null)
+    assert.ok(asjson(tree) != null)
   })
 })

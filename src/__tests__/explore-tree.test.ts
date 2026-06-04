@@ -1,11 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { compile, parseInput } from "@api"
-import { treeToJSON, type Tree } from "@trees"
-
-function json(tree: Tree): unknown {
-  return treeToJSON(tree)
-}
+import { asjson } from "@util/asjson"
 
 function treeSummary(v: unknown): unknown {
   if (v === null || v === undefined) return null
@@ -52,7 +48,7 @@ describe("explore tree", () => {
     const inputs = ["42", "1 + 2", "1 + 2 * 3", "(1 + 2) * 3"]
     for (const input of inputs) {
       const result = parseInput(g, input)
-      const j = treeSummary(json(result))
+      const j = treeSummary(asjson(result))
       assert.ok(j !== null, `parse of "${input}" should return a result`)
     }
   })

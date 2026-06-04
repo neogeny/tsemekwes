@@ -1,11 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { compile, parseInput } from "@api"
-import { treeToJSON, type Tree } from "@trees"
-
-function json(tree: Tree): unknown {
-  return treeToJSON(tree)
-}
+import { asjson } from "@util/asjson"
 
 describe("defines", () => {
   it("name in option", () => {
@@ -18,10 +14,10 @@ describe("defines", () => {
       expr = /[\\d]+/
     `)
     assert.deepEqual(
-      json(parseInput(g, "1 .. 10")) as Record<string, unknown>,
+      asjson(parseInput(g, "1 .. 10")) as Record<string, unknown>,
       { from: "1", to: "10" },
     )
-    assert.equal(json(parseInput(g, "10")), "10")
+    assert.equal(asjson(parseInput(g, "10")), "10")
   })
 
   it("mixed return", () => {
@@ -29,9 +25,12 @@ describe("defines", () => {
       @@grammar :: Test
       start := ('a' b='b') 'c' d='d'?
     `)
-    assert.deepEqual(json(parseInput(g, "a b c")) as Record<string, unknown>, {
-      b: "b",
-      d: null,
-    })
+    assert.deepEqual(
+      asjson(parseInput(g, "a b c")) as Record<string, unknown>,
+      {
+        b: "b",
+        d: null,
+      },
+    )
   })
 })

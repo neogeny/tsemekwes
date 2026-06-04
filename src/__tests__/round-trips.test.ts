@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { compile, loadGrammarFromJSON, parseInput } from "@api"
-import {asjson, asjsons} from "@util/asjson"
+import { asjson, asjsons } from "@util/asjson"
 
 describe("round trips", () => {
   it("grammar to JSON round trip", () => {

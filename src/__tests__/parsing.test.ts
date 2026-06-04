@@ -1,11 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { compile, parse, parseInput, ApiError } from "@api"
-import { treeToJSON, type Tree } from "@trees"
-
-function json(tree: Tree): unknown {
-  return treeToJSON(tree)
-}
+import { asjson } from "@util/asjson"
 
 describe("parsing", () => {
   it("escape sequences in tokens", () => {
@@ -13,7 +9,7 @@ describe("parsing", () => {
 start = 'hello\\nworld' $ ;`
     const parser = compile(grammar)
     const result = parseInput(parser, "hello\\nworld")
-    assert.equal(json(result), "hello\\nworld")
+    assert.equal(asjson(result), "hello\\nworld")
   })
 
   it("start rule with constant", () => {
@@ -21,7 +17,7 @@ start = 'hello\\nworld' $ ;`
 true = 'test' @:\`True\` $ ;
 false = 'test' @:\`False\` $ ;`
     const tree = parse(grammar, "test")
-    assert.equal(json(tree), "True")
+    assert.equal(asjson(tree), "True")
   })
 
   it("skip whitespace", () => {
@@ -40,7 +36,7 @@ id = /[a-z]+/ ;`
 start = 'test' $ ;`
     const parser = compile(grammar)
     const ast = parseInput(parser, "test")
-    const j = json(ast)
+    const j = asjson(ast)
     assert.equal(j, "test")
   })
 
@@ -49,7 +45,7 @@ start = 'test' $ ;`
 start = 'test' $ ;`
     const parser = compile(grammar)
     const ast = parseInput(parser, "test")
-    assert.equal(json(ast), "test")
+    assert.equal(asjson(ast), "test")
   })
 
   it("parseinfo false", () => {
@@ -57,7 +53,7 @@ start = 'test' $ ;`
 start = 'test' $ ;`
     const parser = compile(grammar)
     const ast = parseInput(parser, "test")
-    assert.equal(json(ast), "test")
+    assert.equal(asjson(ast), "test")
   })
 
   it("cut scope", () => {
@@ -73,6 +69,6 @@ one =
 two = 'something' ;`
     const parser = compile(grammar)
     const ast = parseInput(parser, "something")
-    assert.equal(json(ast), "something")
+    assert.equal(asjson(ast), "something")
   })
 })

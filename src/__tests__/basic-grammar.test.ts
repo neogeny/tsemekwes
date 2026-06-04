@@ -1,11 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { compile, parseInput } from "@api"
-import { treeToJSON, type Tree } from "@trees"
-
-function json(tree: Tree): unknown {
-  return treeToJSON(tree)
-}
+import { asjson } from "@util/asjson"
 
 describe("basic grammar", () => {
   it("simple grammar", () => {
@@ -13,7 +9,7 @@ describe("basic grammar", () => {
 start: 'hello'`
     const parser = compile(grammar)
     const result = parseInput(parser, "hello")
-    assert.equal(json(result), "hello")
+    assert.equal(asjson(result), "hello")
   })
 
   it("multiple rules", () => {
@@ -26,7 +22,7 @@ choice:
     | 'c'`
     const parser = compile(grammar)
     const result = parseInput(parser, "a")
-    assert.equal(json(result), "a")
+    assert.equal(asjson(result), "a")
   })
 
   it("rule references", () => {
@@ -34,7 +30,7 @@ choice:
 start: 'hello' 'world'`
     const parser = compile(grammar)
     const result = parseInput(parser, "helloworld")
-    assert.deepStrictEqual(json(result), ["hello", "world"])
+    assert.deepStrictEqual(asjson(result), ["hello", "world"])
   })
 
   it("empty input with optional", () => {
@@ -42,6 +38,6 @@ start: 'hello' 'world'`
 start: 'test'?`
     const parser = compile(grammar)
     const result = parseInput(parser, "")
-    assert.equal(json(result), null)
+    assert.equal(asjson(result), null)
   })
 })

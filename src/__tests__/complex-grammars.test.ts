@@ -1,11 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { compile, parseInput } from "@api"
-import { treeToJSON, type Tree } from "@trees"
-
-function json(t: Tree): unknown {
-  return treeToJSON(t)
-}
+import { asjson } from "@util/asjson"
 
 describe("complex grammars", () => {
   it("calculator grammar", () => {
@@ -18,7 +14,7 @@ factor = NUMBER | '(' expression ')' ;
 NUMBER = /\\d+/ ;`
     const model = compile(grammar)
     const tree = parseInput(model, "3 + 5 * (10 - 20 )")
-    const val = json(tree)
+    const val = asjson(tree)
     assert.notEqual(val, null)
   })
 
@@ -37,7 +33,7 @@ CONTENT = /[^"]*/ ;
 number = /-?\\d+(\\.\\d+)?/ ;`
     const model = compile(grammar)
     const tree = parseInput(model, '{"key": "value"}')
-    const val = json(tree)
+    const val = asjson(tree)
     assert.notEqual(val, null)
   })
 
@@ -52,7 +48,7 @@ atom = WORD ;
 WORD = /\\w+/ ;`
     const model = compile(grammar)
     const tree = parseInput(model, "(hello world)")
-    const val = json(tree)
+    const val = asjson(tree)
     assert.notEqual(val, null)
   })
 })

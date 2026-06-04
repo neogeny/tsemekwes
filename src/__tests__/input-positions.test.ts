@@ -1,11 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import { compile, parseInput } from "@api"
-import { treeToJSON, type Tree } from "@trees"
-
-function json(t: Tree): unknown {
-  return treeToJSON(t)
-}
+import { asjson } from "@util/asjson"
 
 describe("input positions", () => {
   it("basic position tracking", () => {
@@ -14,7 +10,7 @@ describe("input positions", () => {
     `
     const model = compile(grammar)
     const tree = parseInput(model, "hello")
-    assert.equal(json(tree), "hello")
+    assert.equal(asjson(tree), "hello")
   })
 
   it("multiline input", () => {
@@ -23,6 +19,6 @@ describe("input positions", () => {
       start: 'hello' 'world'
     `
     const tree = parseInput(compile(grammar), "hello\nworld")
-    assert.deepStrictEqual(json(tree), ["hello", "world"])
+    assert.deepStrictEqual(asjson(tree), ["hello", "world"])
   })
 })
