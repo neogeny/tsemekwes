@@ -33,7 +33,7 @@ run script:
 
 # Run the entire test pipeline directly using Bun
 test:
-    bun test \
+    bun test --only-failures --dots \
       src/__tests__/*.test.ts \
       src/__tests__/**/*.test.ts \
       src/**/__tests__/*.test.ts \
