@@ -1,7 +1,7 @@
 @@grammar :: TatSu
 @@whitespace :: /(?m)\s+/
-@@comments :: ?"(?ms)[(][*]\s*(.*?)\s*[*][)]|[/][*]\s*(.*?)\s*[*][/]"
-@@eol_comments :: ?"(?ms)(?:[#]|[/][/])(.*?)$"
+@@comments :: ?"(?ms)[(][*]\\s*(.*?)\\s*[*][)]|[\\/][*]\\s*(.*?)\\s*[*][\\/]"
+@@eol_comments :: ?"(?ms)(?:[#]|[\/][\/])(.*?)$"
 @@parseinfo :: True
 @@left_recursion :: False
 
@@ -159,7 +159,7 @@ positive_closure[PositiveClosure]:
     | '{' =expre '}' !/\+=/ /[+-]/ ~
     | =atom !/\+=/ /[+]/ ~
 
-closure[Types]: '{' =expre '}' ['*'] ~ | =atom '*' ~
+closure[Closure]: '{' =expre '}' ['*'] ~ | =atom '*' ~
 
 empty_closure[EmptyClosure]: '{}' ~ =()
 
@@ -247,7 +247,7 @@ int: /[-+]?\d+/
 
 path: /[_a-zA-Z]\w*(?:::[_a-zA-Z]\w*)+/
 
-word: /[_a-zA-Z]\w*/
+word: /[_a-zA-Z][_\w\d]*/
 
 dot[Dot]: '/./'
 
