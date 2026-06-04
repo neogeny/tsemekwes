@@ -198,9 +198,7 @@ function compileRule(tree: TreeValue): Rule {
   const noMemo = decorators.includes("nomemo")
   const noStak = decorators.includes("nostak")
 
-  const isTokn =
-    decorators.includes("token") ||
-    decorators.includes("tokn")
+  const isTokn = decorators.includes("token") || decorators.includes("tokn")
 
   const expTree = mapGet(inner, "exp")
   if (expTree == null) {

@@ -108,10 +108,8 @@ export function grammarToJSON(): string {
   )
 }
 
-export function grammarPretty(): string {
-  throw new ApiError(
-    "grammarPretty is not yet implemented — needs Grammar.prettyPrint().",
-  )
+export function grammarPretty(grammar: Grammar): string {
+  return grammar.pretty()
 }
 
 export async function loadGrammar(

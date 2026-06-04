@@ -1,6 +1,6 @@
 import { isArrayNotClosure, type TreeArray } from "./closure"
 import { Closure } from "./closure"
-import {asjson, JSONSerializable} from "@util/asjson"
+import { asjson, JSONSerializable } from "@util/asjson"
 
 export type TreeValue =
   | string

@@ -32,7 +32,7 @@ export function splitlines(s: string, keepends: boolean = false): string[] {
 }
 
 export function stripRight(s: string): string {
-  if (s == null ||s === "" || s.length === 0) {
+  if (s == null || s === "" || s.length === 0) {
     return ""
   }
   return s.replace(/\s+$/g, "")
