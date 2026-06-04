@@ -198,12 +198,7 @@ function compileRule(tree: TreeValue): Rule {
   const noMemo = decorators.includes("nomemo")
   const noStak = decorators.includes("nostak")
 
-  const trimmed = name.replace(/^_+/, "")
-  const firstChar = trimmed.length > 0 ? trimmed[0] : ""
   const isTokn =
-    (firstChar !== "" &&
-      firstChar === firstChar.toUpperCase() &&
-      firstChar !== firstChar.toLowerCase()) ||
     decorators.includes("token") ||
     decorators.includes("tokn")
 

@@ -43,7 +43,7 @@ export function call(ctx: Ctx, name: string, rule: Rule | null): TreeValue {
       if (isParseError(error)) {
         ctx.memoize(key, error as ParseError, start)
         if (rule.shouldTrace()) {
-          ctx.tracer().traceFailure(ctx, (error as ParseError).toString())
+          ctx.tracer().traceFailure(ctx, name)
         }
       }
       ctx.reset(mark)

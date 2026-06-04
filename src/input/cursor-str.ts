@@ -290,7 +290,7 @@ export class StrCursor implements Cursor {
       return cached
     }
     try {
-      const re = XRegExp(pattern, "y")
+      const re = XRegExp(pattern)
       this.heavy.patternCache.set(pattern, re as RegExp)
       return re as RegExp
     } catch {

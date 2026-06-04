@@ -102,7 +102,7 @@ export class Core implements Ctx {
       return slice
     }
     this.reset(start)
-    this._tracer.traceNoMatch(this, token, "")
+    this._tracer.traceNoMatch(this, "", token)
     throw this.failure(start, new ParseError(`expected: "${token}"`))
   }
 

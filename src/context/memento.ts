@@ -13,9 +13,9 @@ export class Memento extends Error {
     private readonly cursor: Cursor,
     callStack: CallStack,
     public readonly colorize?: boolean,
-    public readonly cause?: Error,
+    public readonly err?: Error,
   ) {
-    super(msg, { cause: cause })
+    super(msg, { cause: err })
     this.mark = cursor.mark()
     this.callStack = [...callStack]
     Object.setPrototypeOf(this, Memento.prototype)
@@ -42,7 +42,7 @@ export class Memento extends Error {
 
     let result = ""
     result += `${pc.redBright(`\nerror:`)} ${this.msg}\n`
-    result += `${pc.blueBright(`   --> `)}${pc.redBright(`${src} `)}[${line}:${col}]\n`
+    result += `${pc.blueBright(`   --> `)}${pc.whiteBright(`${src} `)}[${line}:${col}]\n`
 
     result += pc.blueBright(`      |\n`)
 
@@ -51,7 +51,8 @@ export class Memento extends Error {
     for (let i = 0; i < lines.length; i++) {
       const ln = startLine0 + i + 1
       const disp = lines[i].replace(/\t/g, "  ").replace(/[\r\n]$/, "")
-      result += `${sprintf("%5d", ln)} ${pc.blueBright(`|`)}  ${disp}\n`
+      result +=
+          `${pc.blueBright(sprintf("%5d", ln))} ${pc.blueBright(`|`)}  ${pc.white(disp)}\n`
     }
     const pad = " ".repeat(Math.max(0, col))
     result += `${pc.blueBright(`      |`)} ${pad}${pc.redBright(`^ ${this.msg}\n`)}`
