@@ -15,16 +15,16 @@ export interface OutputSet {
   outputs: OutputItem[]
 }
 
-export function outputMode(outputPath: string): number {
-  if (!outputPath || outputPath === "-") return modeStdout
+export function outputMode(output: string): number {
+  if (!output || output === "-") return modeStdout
   try {
-    const stat = fs.statSync(outputPath)
+    const stat = fs.statSync(output)
     if (stat.isDirectory()) return modeDir
     return modeFile
   } catch {
     // path doesn't exist
   }
-  if (!path.extname(outputPath)) return modeDir
+  if (!path.extname(output)) return modeDir
   return modeFile
 }
 
@@ -47,20 +47,26 @@ function joinOutputs(outputs: OutputItem[]): string {
   return outputs.map((o) => o.payload).join("\n")
 }
 
-export function writeOutput(out: OutputSet, outputPath: string): void {
-  switch (outputMode(outputPath)) {
+export function writeOutput(out: OutputSet, options: {
+  json?: boolean
+  pretty?: boolean
+  colorize?: boolean
+  output?: string
+}): void {
+  const { output } = options
+  switch (outputMode(output)) {
     case modeStdout:
       for (const o of out.outputs) console.log(o.payload)
       break
     case modeFile:
-      fs.writeFileSync(outputPath, joinOutputs(out.outputs), "utf-8")
+      fs.writeFileSync(output, joinOutputs(out.outputs), "utf-8")
       break
     case modeDir: {
       const ext = langExt(out.lang)
-      fs.mkdirSync(outputPath, { recursive: true })
+      fs.mkdirSync(output, { recursive: true })
       for (const o of out.outputs) {
         const name = replaceExt(o.name, ext)
-        const outPath = path.join(outputPath, name)
+        const outPath = path.join(output, name)
         fs.writeFileSync(outPath, o.payload, "utf-8")
       }
       break
