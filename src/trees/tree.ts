@@ -1,6 +1,28 @@
-import { isArrayNotClosure, type TreeArray } from "./closure"
-import { Closure } from "./closure"
+import { isBaseArray } from "@util"
 import { asjson, JSONSerializable } from "@util/asjson"
+
+export class TreeArray extends Array<TreeValue> {
+  constructor(value: TreeValue[]) {
+    super(...value)
+    Object.setPrototypeOf(this, TreeArray.prototype)
+  }
+
+  public isTreeArray(): boolean {
+    return (
+      Array.isArray(this) &&
+      this instanceof TreeArray &&
+      this.constructor === TreeArray
+    )
+  }
+}
+
+export function isTreeArray(obj: any): boolean {
+  return (
+    Array.isArray(obj) &&
+    obj instanceof TreeArray &&
+    (obj as TreeArray).isTreeArray()
+  )
+}
 
 export type TreeValue =
   | string
@@ -9,7 +31,7 @@ export type TreeValue =
   | null
   | object
   | Tree
-  | Closure
+  | TreeValue[]
   | TreeArray
 
 export enum TreeKind {
@@ -123,9 +145,16 @@ function foldOrGather(t: TreeValue, gather: TreeMerge): TreeValue {
   if (t === null) {
     return null
   }
-  if (isArrayNotClosure(t)) {
+  if (Array.isArray(t)) {
+    if (t instanceof TreeArray) {
+      const items: TreeValue[] = []
+      for (const item of t) {
+        items.push(foldOrGather(item, gather))
+      }
+      return new TreeArray(items)
+    }
     let out: TreeValue = null
-    for (const item of t as TreeArray) {
+    for (const item of t) {
       const tree = foldOrGather(item, gather)
       out = treeMerge(out, tree)
     }
@@ -147,17 +176,17 @@ export function treeMerge(a: TreeValue, b: TreeValue): TreeValue {
   if (b === null) return a
   if (a === null) return b
 
-  const aIsArr = isArrayNotClosure(a)
-  const bIsArr = isArrayNotClosure(b)
+  const aIsArr = isBaseArray(a)
+  const bIsArr = isBaseArray(b)
 
   if (aIsArr && bIsArr) {
-    return [...(a as TreeArray), ...(b as TreeArray)]
+    return [...(a as TreeValue[]), ...(b as TreeValue[])]
   }
   if (aIsArr) {
-    return [...(a as TreeArray), b]
+    return [...(a as TreeValue[]), b]
   }
   if (bIsArr) {
-    return [a, ...(b as TreeArray)]
+    return [a, ...(b as TreeValue[])]
   }
   return [a, b]
 }
@@ -166,19 +195,19 @@ function appendTree(a: TreeValue | null, b: TreeValue): TreeValue {
   if (a === null) return b
   if (b === null) return a
 
-  if (isArrayNotClosure(a)) {
-    return [...(a as TreeArray), b]
+  if (isBaseArray(a)) {
+    return [...(a as TreeValue[]), b]
   }
   return [a, b]
 }
 
-function appendAsList(a: TreeValue, b: TreeValue): TreeArray {
+function appendAsList(a: TreeValue, b: TreeValue): TreeValue[] {
   if (a === null) {
     return [b]
   }
 
-  if (isArrayNotClosure(a)) {
-    return [...(a as TreeArray), b]
+  if (isBaseArray(a)) {
+    return [...(a as TreeValue[]), b]
   }
   return [a, b]
 }
@@ -187,9 +216,8 @@ export function closed(t: TreeValue): TreeValue {
   if (t === null) {
     return null
   }
-  if (isArrayNotClosure(t)) {
-    const a = t as TreeArray
-    return new Closure(a)
+  if (isBaseArray(t)) {
+    return new TreeArray(t as TreeValue[])
   }
   return t
 }

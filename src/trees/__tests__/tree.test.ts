@@ -1,6 +1,6 @@
+import { isComplex } from "@util"
 import { describe, it, expect } from "bun:test"
 import { BOTTOM } from "../../context"
-import { Closure, isClosure, isComplex, type TreeArray } from "../closure"
 import {
   treeFold,
   treeToJSONStr,
@@ -9,12 +9,13 @@ import {
   NodeTree,
   Override,
   type TreeValue,
+  isTreeArray,
+  TreeArray,
 } from "../tree"
 
-// Helpers remain for brevity
 const text = (s: string) => s
-const seq = (...items: TreeArray) => items
-const closure = (...items: TreeValue[]) => new Closure(items)
+const seq = (...items: TreeValue[]) => items
+const closure = (...items: TreeValue[]) => new TreeArray(items)
 
 describe("fold", () => {
   it("Nil", () => {
@@ -40,16 +41,16 @@ describe("fold", () => {
   it("Seq to Array", () => {
     const result = treeFold(seq(text("a"), text("b"), text("c")))
     console.error("result", result)
-    expect(isClosure(result)).toBe(true)
+    expect(isTreeArray(result)).toBe(true)
     expect(result).toHaveLength(3)
-    expect((result as Closure)[0]).toBe("a")
+    expect((result as TreeArray)[0]).toBe("a")
   })
 
   it("Closure to Array", () => {
     const result = treeFold(closure(text("a"), text("b"), text("c")))
-    expect(isClosure(result)).toBe(true)
-    expect(result as Closure).toHaveLength(3)
-    expect((result as Closure)[0]).toBe("a")
+    expect(isTreeArray(result)).toBe(true)
+    expect(result as TreeArray).toHaveLength(3)
+    expect((result as TreeArray)[0]).toBe("a")
   })
 
   it("Named to Map", () => {
