@@ -1,9 +1,9 @@
-import { TreeValue } from "@trees"
-import { Ctx, isParseFailure } from "@context"
-import { Exp } from "../exp"
+import type { TreeValue } from "@trees"
+import { type Ctx, isParseFailure } from "@context"
+import type { Exp } from "../exp"
 
 export function tryExp(ctx: Ctx, exp: Exp): [TreeValue, boolean] {
-  let mark = ctx.mark()
+  const mark = ctx.mark()
   let tree: TreeValue = null
   let cutSeen = false
   try {

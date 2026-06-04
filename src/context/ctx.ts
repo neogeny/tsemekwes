@@ -1,7 +1,7 @@
 import type { Cfg } from "@config"
 import type { Cursor } from "@input"
 import type { TreeValue } from "@trees"
-import { ParseError, ParseFailure } from "./error"
+import type { ParseError, ParseFailure } from "./error"
 import type { Memo, MemoKey } from "./memo.js"
 import type { Tracer } from "./tracer"
 

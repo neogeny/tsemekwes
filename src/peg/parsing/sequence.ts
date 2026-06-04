@@ -1,9 +1,9 @@
-import { TreeValue, treeMerge } from "@trees"
+import { type TreeValue, treeMerge } from "@trees"
 import type { Ctx } from "@context"
-import { ExpKind, SeqExp } from "../exp"
+import { ExpKind, type SeqExp } from "../exp"
 
 export function sequence(ctx: Ctx, seq: SeqExp): TreeValue {
-  let start = ctx.mark()
+  const start = ctx.mark()
   let out: TreeValue = null
   for (const item of seq.sequence) {
     if (item.kind === ExpKind.Cut) {
@@ -11,7 +11,7 @@ export function sequence(ctx: Ctx, seq: SeqExp): TreeValue {
       continue
     }
     try {
-      let tree = item.parse(ctx)
+      const tree = item.parse(ctx)
       if (tree === null) {
         // NOTE This is handled by treeMerge()
         continue

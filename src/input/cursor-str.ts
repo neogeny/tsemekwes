@@ -236,7 +236,7 @@ export class StrCursor implements Cursor {
   matchToken(token: string): [string, boolean] {
     const mark = this.offset
 
-    let [slice, ok] = this.peekToken(token)
+    const [slice, ok] = this.peekToken(token)
     if (!ok) {
       return ["", false]
     }

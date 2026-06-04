@@ -1,6 +1,6 @@
-import { TreeValue } from "@trees"
-import { Ctx, ParseError } from "@context"
-import { ChoiceExp, Exp } from "../exp"
+import type { TreeValue } from "@trees"
+import { type Ctx, ParseError } from "@context"
+import type { ChoiceExp, Exp } from "../exp"
 import { tryExp } from "./tryexp"
 
 export function parseChoice(ctx: Ctx, choice: ChoiceExp): TreeValue {
@@ -8,7 +8,7 @@ export function parseChoice(ctx: Ctx, choice: ChoiceExp): TreeValue {
   const mark = ctx.mark()
   for (const opt of options) {
     ctx.reset(mark)
-    let [tree, ok] = tryExp(ctx, opt)
+    const [tree, ok] = tryExp(ctx, opt)
     if (ok) {
       return tree
     }
@@ -18,6 +18,6 @@ export function parseChoice(ctx: Ctx, choice: ChoiceExp): TreeValue {
 }
 
 export function parseOptional(ctx: Ctx, exp: Exp): TreeValue {
-  let [tree, ok] = tryExp(ctx, exp)
+  const [tree, ok] = tryExp(ctx, exp)
   return ok ? tree : null
 }

@@ -1,4 +1,4 @@
-import { TreeArray } from "@trees"
+import type { TreeArray } from "@trees"
 import { inspect } from "node:util"
 import { NodeTree, type TreeValue } from "../../trees/tree"
 import {
@@ -387,7 +387,7 @@ function compileExp(node: TreeValue): Exp {
       return new RuleIncludeExp(textValue(tree))
 
     case "Sequence": {
-      let items = listValue(tree)
+      const items = listValue(tree)
       const exps = items.map(compileExp)
       return new SeqExp(exps)
     }

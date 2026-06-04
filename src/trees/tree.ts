@@ -74,7 +74,7 @@ export class Named extends Tree {
     super()
   }
   fold(gather: TreeMerge): TreeValue {
-    let val = foldOrGather(this.value, gather)
+    const val = foldOrGather(this.value, gather)
     gather.insert(this.name, val)
     return val
   }
@@ -125,8 +125,8 @@ function foldOrGather(t: TreeValue, gather: TreeMerge): TreeValue {
   }
   if (isArrayNotClosure(t)) {
     let out: TreeValue = null
-    for (let item of t as TreeArray) {
-      let tree = foldOrGather(item, gather)
+    for (const item of t as TreeArray) {
+      const tree = foldOrGather(item, gather)
       out = treeMerge(out, tree)
     }
     return out
@@ -188,7 +188,7 @@ export function closed(t: TreeValue): TreeValue {
     return null
   }
   if (isArrayNotClosure(t)) {
-    let a = t as TreeArray
+    const a = t as TreeArray
     return new Closure(a)
   }
   return t
@@ -209,13 +209,15 @@ export function treeToJSON(t: TreeValue): TreeValue {
     return t
   }
   switch (t.kind) {
-    case TreeKind.Named:
+    case TreeKind.Named: {
       const m = t as Named
       return { [m.name]: treeToJSON(m.value) }
+    }
 
-    case TreeKind.NamedAsList:
+    case TreeKind.NamedAsList: {
       const ml = t as NamedAsList
       return { [ml.name]: treeToJSON(ml.value) }
+    }
 
     case TreeKind.Override:
       return treeToJSON((t as Override).value)
@@ -231,7 +233,7 @@ export function treeToJSON(t: TreeValue): TreeValue {
         !Array.isArray(child)
       ) {
         const childObj = child as Record<string, unknown>
-        let result = {
+        const result = {
           __class__: node.typeName,
           ...childObj,
         }

@@ -1,7 +1,12 @@
 import { readFile } from "node:fs/promises"
 import { ext, readText } from "@util"
 import { type Cfg, defaultCfg } from "@config"
-import { isParseError, isParseFailure, newCtx, ParseFailure } from "@context"
+import {
+  isParseError,
+  isParseFailure,
+  newCtx,
+  type ParseFailure,
+} from "@context"
 import { StrCursor } from "@input"
 import { bootGrammar as boot } from "@json"
 import { loadGrammarFromJSON as loadJSON } from "@json"

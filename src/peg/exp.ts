@@ -1,4 +1,4 @@
-import { Ctx, isParseFailure, ParseError } from "@context"
+import { type Ctx, isParseFailure, ParseError } from "@context"
 import { Closure } from "@trees"
 
 import {
@@ -6,7 +6,7 @@ import {
   NamedAsList as NamedAsListTree,
   Override as OverrideTree,
   OverrideAsList as OverrideAsListTree,
-  TreeValue,
+  type TreeValue,
 } from "../trees/tree.js"
 import { closure, closureWithSep } from "./parsing/closure.js"
 import { prettyPrintExp } from "./pretty.js"

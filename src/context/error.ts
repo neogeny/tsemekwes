@@ -1,4 +1,4 @@
-import Ctx from "./ctx"
+import type Ctx from "./ctx"
 import { Memento } from "./memento"
 
 export class ParseError extends Error {
@@ -45,12 +45,13 @@ export class ParseFailure extends ParseError {
     public readonly start: number,
     public readonly cause: ParseError,
   ) {
-    let memento = new Memento(
+    const memento = new Memento(
       start,
-      cause,
+      cause.message,
       ctx.cursor(),
       ctx.callStack(),
       ctx.cfg().colorize as boolean,
+      cause,
     )
     super(memento.render(), { cause: memento })
     this.name = "ParseFailure"

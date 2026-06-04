@@ -1,5 +1,5 @@
 import type { Ctx } from "@context"
-import { treeFold, NodeTree, TreeValue } from "@trees"
+import { treeFold, NodeTree, type TreeValue } from "@trees"
 import { BoxExp, type Exp, ExpKind } from "./exp.js"
 import { asjson } from "../util/asjson"
 import { serializeRule } from "./export"
@@ -49,7 +49,7 @@ export class Rule extends BoxExp {
 
   isToken(): boolean {
     if (this.isTokn) return true
-    let first = this.name.replace(/^_+/, "")[0]
+    const first = this.name.replace(/^_+/, "")[0]
     return (
       first !== "" &&
       first === first.toUpperCase() &&

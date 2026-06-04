@@ -1,5 +1,5 @@
-import { Cfg, defaultCfg, SemanticsFunc } from "@config"
-import { Ctx, ParseError } from "@context"
+import { Cfg, defaultCfg, type SemanticsFunc } from "@config"
+import { type Ctx, ParseError } from "@context"
 import type { TreeValue } from "@trees"
 import { call } from "./parsing/call"
 import { Exp, ExpKind } from "./exp"

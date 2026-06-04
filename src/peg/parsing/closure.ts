@@ -1,5 +1,5 @@
-import { closed, TreeValue } from "@trees"
-import { Ctx, ParseError } from "@context"
+import { closed, type TreeValue } from "@trees"
+import { type Ctx, ParseError } from "@context"
 import type { Exp } from "../exp"
 import { tryExp } from "./tryexp"
 
@@ -12,7 +12,7 @@ export function closure(ctx: Ctx, exp: Exp, positive: boolean): TreeValue {
 
   while (!ctx.atEnd()) {
     const mark = ctx.mark()
-    let [tree, ok] = tryExp(ctx, exp)
+    const [tree, ok] = tryExp(ctx, exp)
     if (!ok) break
     if (mark === ctx.mark()) {
       throw ctx.failure(

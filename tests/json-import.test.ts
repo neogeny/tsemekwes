@@ -17,13 +17,6 @@ const calcJSON = readFileSync(
   "utf-8",
 )
 
-const _ruleIncludeNoNameJSON = readFileSync(
-  new URL(
-    "../tiexiu/tests/fixtures/rule_include_no_name.json",
-    import.meta.url,
-  ),
-  "utf-8",
-)
 const ruleIncludeWithExpJSON = readFileSync(
   new URL(
     "../tiexiu/tests/fixtures/rule_include_with_exp.json",

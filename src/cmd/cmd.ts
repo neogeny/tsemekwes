@@ -60,7 +60,7 @@ export function writeOutputs(
     case modeFile:
       fs.writeFileSync(outputPath, joinOutputs(outputs), "utf-8")
       break
-    case modeDir:
+    case modeDir: {
       const ext = langExt(lang)
       fs.mkdirSync(outputPath, { recursive: true })
       for (const o of outputs) {
@@ -69,6 +69,7 @@ export function writeOutputs(
         fs.writeFileSync(outPath, o.payload, "utf-8")
       }
       break
+    }
   }
 }
 

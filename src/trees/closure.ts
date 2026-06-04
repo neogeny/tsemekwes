@@ -1,4 +1,4 @@
-import { TreeValue } from "./tree"
+import type { TreeValue } from "./tree"
 
 export type TreeArray = Array<TreeValue>
 

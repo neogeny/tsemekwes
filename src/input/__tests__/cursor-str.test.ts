@@ -13,26 +13,26 @@ describe("StrCursor", () => {
 
   it("MatchToken consumes matching token", () => {
     const s = new StrCursor("hello world")
-    assert.equal(s.matchToken("hello"), true)
+    assert.deepEqual(s.matchToken("hello"), ["hello", true])
     assert.equal(s.mark(), 5)
   })
 
   it("PeekToken checks without consuming", () => {
     const s = new StrCursor("hello")
-    assert.equal(s.peekToken("hello"), true)
+    assert.deepEqual(s.peekToken("hello"), ["hello", true])
     assert.equal(s.mark(), 0)
   })
 
   it("PeekToken returns false for wrong token", () => {
     const s = new StrCursor("hello")
-    assert.equal(s.peekToken("world"), false)
+    assert.deepEqual(s.peekToken("world"), ["", false])
   })
 
   it("Next and Peek advance correctly", () => {
     const s = new StrCursor("ab")
-    const r1 = s.peek()
+    const [r1] = s.peek()
     assert.equal(r1, "a")
-    const r2 = s.next()
+    const [r2] = s.next()
     assert.equal(r2, "a")
     assert.equal(s.mark(), 1)
   })
@@ -207,14 +207,14 @@ describe("StrCursor", () => {
     const s = new StrCursor("  # comment \n  hello")
     s.setTokenizingPatterns(new TokenizingPatterns(wsp, cmt, eol))
     s.nextToken()
-    assert.equal(s.matchToken("hello"), true)
+    assert.deepEqual(s.matchToken("hello"), ["hello", true])
   })
 
   it("SetPatterns with null resets to defaults", () => {
     const s = new StrCursor("hello")
     s.setTokenizingPatterns(null)
     s.nextToken()
-    assert.equal(s.matchToken("hello"), true)
+    assert.deepEqual(s.matchToken("hello"), ["hello", true])
   })
 
   it("Reset moves position", () => {
@@ -254,12 +254,12 @@ describe("StrCursor", () => {
 
   it("Peek returns null at end", () => {
     const s = new StrCursor("")
-    assert.equal(s.peek(), null)
+    assert.deepEqual(s.peek(), ["", false])
   })
 
   it("Next returns null at end", () => {
     const s = new StrCursor("")
-    assert.equal(s.next(), null)
+    assert.deepEqual(s.next(), ["", false])
   })
 
   it("NextToken with default patterns skips whitespace", () => {
@@ -338,7 +338,7 @@ describe("StrCursor", () => {
     const cfg = new Cfg()
     cfg.nameChars = "_"
     s.configure(cfg)
-    assert.equal(s.matchToken("hello"), false)
+    assert.deepEqual(s.matchToken("hello"), ["", false])
     assert.equal(s.mark(), 0)
   })
 
@@ -352,7 +352,7 @@ describe("StrCursor", () => {
 
   it("PeekToken is case-sensitive by default", () => {
     const s = new StrCursor("Hello")
-    assert.equal(s.peekToken("hello"), false)
+    assert.deepEqual(s.peekToken("hello"), ["", false])
   })
 
   it("PeekToken is case-insensitive with ignoreCase", () => {
@@ -360,7 +360,7 @@ describe("StrCursor", () => {
     const cfg = new Cfg()
     cfg.ignoreCase = true
     s.configure(cfg)
-    assert.equal(s.peekToken("hello"), true)
+    assert.deepEqual(s.peekToken("hello"), ["Hello", true])
   })
 
   it("LineAt empty string returns empty lines", () => {

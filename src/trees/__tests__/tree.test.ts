@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { BOTTOM } from "../../context"
-import { Closure, isClosure, isComplex, TreeArray } from "../closure"
+import { Closure, isClosure, isComplex, type TreeArray } from "../closure"
 import {
   treeFold,
   treeToJSONStr,
@@ -8,7 +8,7 @@ import {
   NamedAsList,
   NodeTree,
   Override,
-  TreeValue,
+  type TreeValue,
 } from "../tree"
 
 // Helpers remain for brevity
@@ -42,14 +42,14 @@ describe("fold", () => {
     console.error("result", result)
     expect(isClosure(result)).toBe(true)
     expect(result).toHaveLength(3)
-    expect(result[0]).toBe("a")
+    expect((result as Closure)[0]).toBe("a")
   })
 
   it("Closure to Array", () => {
     const result = treeFold(closure(text("a"), text("b"), text("c")))
     expect(isClosure(result)).toBe(true)
     expect(result as Closure).toHaveLength(3)
-    expect(result[0]).toBe("a")
+    expect((result as Closure)[0]).toBe("a")
   })
 
   it("Named to Map", () => {

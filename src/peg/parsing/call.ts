@@ -1,7 +1,13 @@
 // noinspection ExceptionCaughtLocallyJS
 
-import { BOTTOM, Ctx, isBottomEntry, isParseError, ParseError } from "@context"
-import { TreeValue } from "@trees"
+import {
+  BOTTOM,
+  type Ctx,
+  isBottomEntry,
+  isParseError,
+  ParseError,
+} from "@context"
+import type { TreeValue } from "@trees"
 import type { MemoKey } from "@context"
 import type { Rule } from "../rule"
 
@@ -30,7 +36,7 @@ export function call(ctx: Ctx, name: string, rule: Rule | null): TreeValue {
     const key = ctx.key(name, rule.isMemoizable())
 
     let tree: TreeValue = null
-    let mark = ctx.mark()
+    const mark = ctx.mark()
     try {
       tree = doCall(ctx, name, rule)
     } catch (error) {
@@ -43,7 +49,7 @@ export function call(ctx: Ctx, name: string, rule: Rule | null): TreeValue {
       ctx.reset(mark)
       throw error
     }
-    let value = tree ? tree.toString() : name
+    const value = tree ? tree.toString() : name
     if (rule.isName && ctx.isKeyword(value)) {
       throw ctx.failure(
         ctx.mark(),

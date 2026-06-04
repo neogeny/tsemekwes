@@ -58,29 +58,29 @@ export async function getProjectGitVersion(dir: string = "."): Promise<string> {
 export function pybool(value: any): boolean {
   // Handle null and undefined (Python's None)
   if (value === null || value === undefined) {
-    return false;
+    return false
   }
 
   // Handle numbers (0 is False)
-  if (typeof value === 'number') {
-    return value !== 0;
+  if (typeof value === "number") {
+    return value !== 0
   }
 
   // Handle strings (Empty is False)
-  if (typeof value === 'string') {
-    return value.length > 0;
+  if (typeof value === "string") {
+    return value.length > 0
   }
 
   // Handle arrays (Empty is False)
   if (Array.isArray(value)) {
-    return value.length > 0;
+    return value.length > 0
   }
 
   // Handle objects (Empty is False)
-  if (typeof value === 'object') {
-    return Object.keys(value).length > 0;
+  if (typeof value === "object") {
+    return Object.keys(value).length > 0
   }
 
   // Everything else (functions, classes, true) is True
-  return true;
+  return true
 }

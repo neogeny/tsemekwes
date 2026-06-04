@@ -1,5 +1,5 @@
-import { TreeValue } from "@trees"
-import { isParseError, ParseError } from "./error"
+import type { TreeValue } from "@trees"
+import { isParseError, type ParseError } from "./error"
 
 export interface MemoKey {
   mark: number

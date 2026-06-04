@@ -9,12 +9,13 @@ export class Memento extends Error {
 
   constructor(
     public readonly start: number,
-    public readonly cause: Error,
+    public readonly msg: string,
     private readonly cursor: Cursor,
     callStack: CallStack,
-    private readonly colorize: boolean = true,
+    public readonly colorize?: boolean,
+    public readonly cause?: Error,
   ) {
-    super(cause.message, { cause: cause })
+    super(msg, { cause: cause })
     this.mark = cursor.mark()
     this.callStack = [...callStack]
     Object.setPrototypeOf(this, Memento.prototype)
@@ -33,14 +34,14 @@ export class Memento extends Error {
   }
 
   render(): string {
-    const pc = color.createColors(this.colorize)
+    const pc = color.createColors(!!this.colorize)
 
     const [line, col] = this.cursor.posAt(this.mark)
     const source = this.inputSource()
     const src = source !== "" ? source : "<unknown>"
 
     let result = ""
-    result += `${pc.redBright(`\nerror:`)} ${this.message}\n`
+    result += `${pc.redBright(`\nerror:`)} ${this.msg}\n`
     result += `${pc.blueBright(`   --> `)}${pc.redBright(`${src} `)}[${line}:${col}]\n`
 
     result += pc.blueBright(`      |\n`)
@@ -53,7 +54,7 @@ export class Memento extends Error {
       result += `${sprintf("%5d", ln)} ${pc.blueBright(`|`)}  ${disp}\n`
     }
     const pad = " ".repeat(Math.max(0, col))
-    result += `${pc.blueBright(`      |`)} ${pad}${pc.redBright(`^ ${this.message}\n`)}`
+    result += `${pc.blueBright(`      |`)} ${pad}${pc.redBright(`^ ${this.msg}\n`)}`
 
     if (this.callStack.length > 0) {
       result += "\n"

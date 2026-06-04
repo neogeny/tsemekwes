@@ -1,14 +1,15 @@
 import {
   ConsoleTracer,
-  MemoValue,
+  type MemoValue,
   NullTracer,
   ParseError,
   type Tracer,
 } from "@context"
 import { type Cfg, defaultCfg } from "@config"
 import type { Cursor } from "@input"
-import { TreeValue } from "@trees"
-import Ctx, { type CallStack } from "./ctx"
+import type { TreeValue } from "@trees"
+import type Ctx from "./ctx"
+import type { CallStack } from "./ctx"
 import { ParseFailure } from "./error"
 import { type Memo, type MemoKey, pruneMemoCache } from "./memo"
 
