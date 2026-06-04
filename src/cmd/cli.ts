@@ -3,18 +3,18 @@
 import { Command, Help, Option } from "commander"
 import picocolors from "picocolors"
 import { getProjectGitVersion } from "@util"
-import {cmdBoot} from "./cmd-boot";
+import { cmdBoot } from "./cmd-boot"
 import { cmdInfo } from "./cmd-info"
-import {cmdGrammar} from "./cmd-grammar";
-import {writeOutput} from "./lib";
-import {cmdRun} from "./cmd-run";
+import { cmdGrammar } from "./cmd-grammar"
+import { writeOutput } from "./lib"
+import { cmdRun } from "./cmd-run"
 
 async function main() {
-  const program = await command();
+  const program = await command()
   await program.parseAsync(process.argv)
 }
 
-await main();
+await main()
 
 async function command(): Promise<Command> {
   const program = new Command()
@@ -48,11 +48,11 @@ async function command(): Promise<Command> {
     .default("auto")
 
   function getOpts(cmd: any, opts: any): object {
-    opts = {...cmd.optsWithGlobals(), ...opts}
+    opts = { ...cmd.optsWithGlobals(), ...opts }
     const colorize =
       opts.color === "always" ||
       (opts.color === "auto" && !opts.output && process.stdout.isTTY)
-    return {...opts, colorize}
+    return { ...opts, colorize }
   }
 
   program
@@ -73,10 +73,7 @@ async function command(): Promise<Command> {
     .option("-s, --start <rule>", "name of the start rule", "start")
     .action(async (grammar, inputs, opts, cmd) => {
       opts = getOpts(cmd, opts)
-      writeOutput(
-        await cmdRun(grammar, inputs, opts),
-        opts.output ?? "",
-      )
+      writeOutput(await cmdRun(grammar, inputs, opts), opts.output ?? "")
     })
 
   program
@@ -86,10 +83,7 @@ async function command(): Promise<Command> {
     .option("-p, --pretty", "pretty-print the boot grammar", true)
     .action(async (opts, cmd) => {
       opts = getOpts(cmd, opts)
-      writeOutput(
-        await cmdBoot(opts),
-        opts.output ?? "",
-      )
+      writeOutput(await cmdBoot(opts), opts.output ?? "")
     })
 
   program
@@ -99,10 +93,7 @@ async function command(): Promise<Command> {
     .option("-p, --pretty", "pretty-print the grammar (default)", true)
     .action(async (grammar, opts, cmd) => {
       opts = getOpts(cmd, opts)
-      writeOutput(
-        await cmdGrammar(grammar, opts),
-        opts.output ?? "",
-      )
+      writeOutput(await cmdGrammar(grammar, opts), opts.output ?? "")
     })
 
   program
@@ -111,5 +102,5 @@ async function command(): Promise<Command> {
     .action(() => {
       cmdInfo()
     })
-  return program;
+  return program
 }

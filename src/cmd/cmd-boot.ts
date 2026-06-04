@@ -1,7 +1,7 @@
-import {bootGrammar} from "@json";
-import {grammarSummary} from "@peg";
-import {asjsons} from "@util/asjson";
-import {OutputSet} from "./lib";
+import { bootGrammar } from "@json"
+import { grammarSummary } from "@peg"
+import { asjsons } from "@util/asjson"
+import { OutputSet } from "./lib"
 
 export async function cmdBoot(options: {
   json?: boolean
@@ -24,5 +24,5 @@ export async function cmdBoot(options: {
     lang = "json"
   }
 
-  return {lang, outputs: [{name: "boot", payload}]}
+  return { lang, outputs: [{ name: "boot", payload }] }
 }

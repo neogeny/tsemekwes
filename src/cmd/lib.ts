@@ -1,5 +1,5 @@
-import fs from "node:fs";
-import path from "node:path";
+import fs from "node:fs"
+import path from "node:path"
 
 export const modeStdout = 0
 export const modeFile = 1
@@ -11,7 +11,7 @@ export interface OutputItem {
 }
 
 export interface OutputSet {
-  lang: string,
+  lang: string
   outputs: OutputItem[]
 }
 
@@ -47,10 +47,7 @@ function joinOutputs(outputs: OutputItem[]): string {
   return outputs.map((o) => o.payload).join("\n")
 }
 
-export function writeOutput(
-    out: OutputSet,
-    outputPath: string,
-): void {
+export function writeOutput(out: OutputSet, outputPath: string): void {
   switch (outputMode(outputPath)) {
     case modeStdout:
       for (const o of out.outputs) console.log(o.payload)
@@ -60,7 +57,7 @@ export function writeOutput(
       break
     case modeDir: {
       const ext = langExt(out.lang)
-      fs.mkdirSync(outputPath, {recursive: true})
+      fs.mkdirSync(outputPath, { recursive: true })
       for (const o of out.outputs) {
         const name = replaceExt(o.name, ext)
         const outPath = path.join(outputPath, name)

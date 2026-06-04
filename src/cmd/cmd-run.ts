@@ -1,10 +1,10 @@
-import {loadGrammar, parseInput} from "@api";
-import {grammarSummary} from "@peg";
-import {treeToJSONStr} from "@trees";
-import {newCfg, readText} from "@util";
-import {asjsons} from "@util/asjson";
-import path from "node:path";
-import {OutputItem, OutputSet} from "./lib";
+import { loadGrammar, parseInput } from "@api"
+import { grammarSummary } from "@peg"
+import { treeToJSONStr } from "@trees"
+import { newCfg, readText } from "@util"
+import { asjsons } from "@util/asjson"
+import path from "node:path"
+import { OutputItem, OutputSet } from "./lib"
 
 export async function cmdRun(
   grammarPath: string,
@@ -22,14 +22,14 @@ export async function cmdRun(
 
   if (inputPaths.length === 0) {
     if (options.json) {
-      outputs.push({name: path.basename(grammarPath), payload: asjsons(g)})
-      return {lang: "json", outputs}
+      outputs.push({ name: path.basename(grammarPath), payload: asjsons(g) })
+      return { lang: "json", outputs }
     }
     outputs.push({
       name: path.basename(grammarPath),
       payload: grammarSummary(g, options.colorize),
     })
-    return {lang: "json", outputs}
+    return { lang: "json", outputs }
   }
 
   let errcount = 0
@@ -50,5 +50,5 @@ export async function cmdRun(
   console.error(
     `Parsed ${inputPaths.length} files  ${outputs.length} passed  ${errcount} errors`,
   )
-  return {lang: "json", outputs}
+  return { lang: "json", outputs }
 }
