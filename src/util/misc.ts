@@ -1,6 +1,6 @@
 // noinspection JSUnusedGlobalSymbols
 
-const linesre = /([^\n\r]+)(?:\r?\n)?|\r?\)/g
+const linesre = /([^\n\r]+)(?:\r?\n)?|\r?\n/g
 
 /**
  * Splits a string into lines yielding chunks lazily.
