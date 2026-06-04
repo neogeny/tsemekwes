@@ -52,10 +52,10 @@ export class ParseFailure extends ParseError {
       ctx.callStack(),
       ctx.cfg().colorize as boolean,
     )
-    super(memento.render(), {cause: memento})
+    super(memento.render(), { cause: memento })
     this.name = "ParseFailure"
     this.memento = memento
-    Object.setPrototypeOf(this, ParseFailure.prototype);
+    Object.setPrototypeOf(this, ParseFailure.prototype)
   }
 
   override toString(): string {

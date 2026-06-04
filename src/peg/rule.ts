@@ -49,10 +49,12 @@ export class Rule extends BoxExp {
 
   isToken(): boolean {
     if (this.isTokn) return true
-      let first = this.name.replace(/^_+/, "")[0]
-    return first !== ""
-        && first === first.toUpperCase()
-        && first !== first.toLowerCase()
+    let first = this.name.replace(/^_+/, "")[0]
+    return (
+      first !== "" &&
+      first === first.toUpperCase() &&
+      first !== first.toLowerCase()
+    )
   }
 
   isLeftRecursive(): boolean {

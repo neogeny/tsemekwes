@@ -23,7 +23,6 @@ export function call(ctx: Ctx, name: string, rule: Rule | null): TreeValue {
       ctx.tracer().traceEntry(ctx)
     }
 
-
     if (!rule.isToken()) {
       ctx.nextToken()
     }
@@ -46,7 +45,10 @@ export function call(ctx: Ctx, name: string, rule: Rule | null): TreeValue {
     }
     let value = tree ? tree.toString() : name
     if (rule.isName && ctx.isKeyword(value)) {
-      throw ctx.failure(ctx.mark(), new ParseError(`'${value}' is a reserved word`))
+      throw ctx.failure(
+        ctx.mark(),
+        new ParseError(`'${value}' is a reserved word`),
+      )
     }
 
     ctx.memoize(key, tree, ctx.mark())
@@ -108,7 +110,10 @@ function callRecursive(
     ctx.track(key)
     if (ctx.recursionDepthExceeded()) {
       ctx.untrack(key)
-      throw ctx.failure(ctx.mark(), new ParseError(`left recursion depth exceeded for rule: ${key.name}`))
+      throw ctx.failure(
+        ctx.mark(),
+        new ParseError(`left recursion depth exceeded for rule: ${key.name}`),
+      )
     }
 
     const result = rule.parse(ctx)

@@ -3,7 +3,7 @@ export class ApiError extends Error {
     msg: string,
     public readonly cause?: unknown,
   ) {
-    super(msg, {cause:cause})
+    super(msg, { cause: cause })
     this.name = "ApiError"
   }
 }

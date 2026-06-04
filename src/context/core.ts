@@ -1,4 +1,10 @@
-import {ConsoleTracer, MemoValue, NullTracer, ParseError, type Tracer} from "@context"
+import {
+  ConsoleTracer,
+  MemoValue,
+  NullTracer,
+  ParseError,
+  type Tracer,
+} from "@context"
 import { type Cfg, defaultCfg } from "@config"
 import type { Cursor } from "@input"
 import { TreeValue } from "@trees"
@@ -105,7 +111,7 @@ export class Core implements Ctx {
     const [matched, ok] = this._cursor.matchPattern(pattern)
 
     let view = pattern.replace(/\//g, "\\/")
-    view = (view.slice(0, 16) + '...').slice(0, view.length)
+    view = (view.slice(0, 16) + "...").slice(0, view.length)
     if (ok) {
       this._tracer.traceMatch(this, view, matched)
       return matched

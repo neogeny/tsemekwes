@@ -1,5 +1,5 @@
 import { closed, TreeValue } from "@trees"
-import {Ctx, ParseError} from "@context"
+import { Ctx, ParseError } from "@context"
 import type { Exp } from "../exp"
 import { tryExp } from "./tryexp"
 
@@ -15,7 +15,10 @@ export function closure(ctx: Ctx, exp: Exp, positive: boolean): TreeValue {
     let [tree, ok] = tryExp(ctx, exp)
     if (!ok) break
     if (mark === ctx.mark()) {
-      throw ctx.failure(ctx.mark(), new ParseError(`closure matched empty input ${exp}`))
+      throw ctx.failure(
+        ctx.mark(),
+        new ParseError(`closure matched empty input ${exp}`),
+      )
     }
     out.push(tree)
   }
@@ -42,7 +45,10 @@ export function closureWithSep(
       return closed([])
     }
     if (mark === ctx.mark()) {
-      throw ctx.failure(ctx.mark(), new ParseError(`closure matched empty input ${exp}`))
+      throw ctx.failure(
+        ctx.mark(),
+        new ParseError(`closure matched empty input ${exp}`),
+      )
     }
     out.push(first)
   }

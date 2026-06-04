@@ -223,10 +223,10 @@ export class StrCursor implements Cursor {
     }
     const slice = this.text.slice(this.offset, this.offset + token.length)
     if (this.heavy.ignoreCase) {
-      if( slice.toLowerCase() === token.toLowerCase()) {
+      if (slice.toLowerCase() === token.toLowerCase()) {
         return slice
       }
-    } else if(slice === token) {
+    } else if (slice === token) {
       return slice
     }
     return slice
@@ -261,7 +261,7 @@ export class StrCursor implements Cursor {
     }
     this.offset = mark
     return null
-}
+  }
 
   matchPattern(pattern: string): [string, boolean] {
     const pat = this.getPattern(pattern)
@@ -289,7 +289,7 @@ export class StrCursor implements Cursor {
       return cached
     }
     try {
-      const re = XRegExp(pattern, "vy")
+      const re = XRegExp(pattern, "y")
       this.heavy.patternCache.set(pattern, re as RegExp)
       return re as RegExp
     } catch {

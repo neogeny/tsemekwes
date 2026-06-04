@@ -1,4 +1,4 @@
-import {Ctx, isParseFailure, ParseError} from "@context"
+import { Ctx, isParseFailure, ParseError } from "@context"
 import { Closure } from "@trees"
 
 import {
@@ -232,12 +232,14 @@ export abstract class Exp {
             return null
           }
           throw error
-
         } finally {
           ctx.reset(mark)
           ctx.leaveLookahead()
         }
-        throw ctx.failure(mark, new ParseError("negative lookahead should not match"))
+        throw ctx.failure(
+          mark,
+          new ParseError("negative lookahead should not match"),
+        )
       }
 
       case ExpKind.SkipTo: {
@@ -246,7 +248,7 @@ export abstract class Exp {
         while (!ctx.atEnd()) {
           try {
             return skip.exp.parse(ctx)
-          } catch(err) {
+          } catch (err) {
             if (!isParseFailure(err)) throw err
           }
           const [_, ok] = ctx.matchDot()
@@ -309,7 +311,10 @@ export abstract class Exp {
       case ExpKind.RuleInclude: {
         const rinc = this as unknown as RuleIncludeExp
         if (rinc.exp == null) {
-          throw ctx.failure(ctx.mark(), new ParseError(`rule not linked: ${rinc.name}`))
+          throw ctx.failure(
+            ctx.mark(),
+            new ParseError(`rule not linked: ${rinc.name}`),
+          )
         }
         return rinc.exp.parse(ctx)
       }

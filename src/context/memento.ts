@@ -14,10 +14,10 @@ export class Memento extends Error {
     callStack: CallStack,
     private readonly colorize: boolean = true,
   ) {
-    super(cause.message, {cause: cause})
+    super(cause.message, { cause: cause })
     this.mark = cursor.mark()
     this.callStack = [...callStack]
-    Object.setPrototypeOf(this, Memento.prototype);
+    Object.setPrototypeOf(this, Memento.prototype)
   }
 
   override toString(): string {

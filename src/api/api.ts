@@ -32,7 +32,7 @@ export function parseGrammar(grammar: string, cfg?: Cfg): Tree {
       // throw new ApiError(failure.memento.error(), failure)
       throw failure
     }
-    throw new ApiError("failed to parse grammar", {cause: error})
+    throw new ApiError("failed to parse grammar", { cause: error })
   }
 
   if (tree === null) {

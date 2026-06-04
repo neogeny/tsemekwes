@@ -1,5 +1,5 @@
-import {TreeArray} from "@trees";
-import { inspect } from 'node:util';
+import { TreeArray } from "@trees"
+import { inspect } from "node:util"
 import { NodeTree, type TreeValue } from "../../trees/tree"
 import {
   AlertExp,
@@ -51,12 +51,14 @@ function nodeTree(node: TreeValue): [string, TreeValue] {
   if (node instanceof NodeTree) {
     return [node.typeName, node.tree]
   }
-  if (typeof node === 'object' && 'typeName' in node && 'tree' in node) {
-    const n = node as NodeTree;
-    return [n.typeName, n.tree];
+  if (typeof node === "object" && "typeName" in node && "tree" in node) {
+    const n = node as NodeTree
+    return [n.typeName, n.tree]
   }
-  const n = node as NodeTree;
-  throw new CompileError(`expected NodeTree, got ${typeof n} ${inspect(n)}\n${inspect(n)}`)
+  const n = node as NodeTree
+  throw new CompileError(
+    `expected NodeTree, got ${typeof n} ${inspect(n)}\n${inspect(n)}`,
+  )
 }
 
 function nodeCheck(tree: TreeValue, typename: string): TreeValue {
