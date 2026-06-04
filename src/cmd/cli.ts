@@ -73,7 +73,7 @@ async function command(): Promise<Command> {
     .option("-s, --start <rule>", "name of the start rule", "start")
     .action(async (grammar, inputs, opts, cmd) => {
       opts = getOpts(cmd, opts)
-      writeOutput(await cmdRun(grammar, inputs, opts), opts)
+      await writeOutput(await cmdRun(grammar, inputs, opts), opts)
     })
 
   program
@@ -83,7 +83,7 @@ async function command(): Promise<Command> {
     .option("-p, --pretty", "pretty-print the boot grammar", true)
     .action(async (opts, cmd) => {
       opts = getOpts(cmd, opts)
-      writeOutput(await cmdBoot(opts), opts)
+      await writeOutput(await cmdBoot(opts), opts)
     })
 
   program
@@ -93,7 +93,7 @@ async function command(): Promise<Command> {
     .option("-p, --pretty", "pretty-print the grammar (default)", true)
     .action(async (grammar, opts, cmd) => {
       opts = getOpts(cmd, opts)
-      writeOutput(await cmdGrammar(grammar, opts), opts)
+      await writeOutput(await cmdGrammar(grammar, opts), opts)
     })
 
   program

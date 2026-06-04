@@ -1,14 +1,18 @@
-import {type Cfg} from "@config"
-import {isParseError, isParseFailure, newCtx, type ParseFailure,} from "@context"
-import {StrCursor} from "@input"
-import {bootGrammar as boot, loadGrammarFromJSON as loadJSON} from "@json"
-import type {Grammar} from "@peg"
-import {compileGrammar} from "@peg"
-import type {Tree} from "@trees"
-import {ext, readText} from "@util"
-import {readFile} from "node:fs/promises"
-import {ApiError} from "./error.js"
-
+import { type Cfg } from "@config"
+import {
+  isParseError,
+  isParseFailure,
+  newCtx,
+  type ParseFailure,
+} from "@context"
+import { StrCursor } from "@input"
+import { bootGrammar as boot, loadGrammarFromJSON as loadJSON } from "@json"
+import type { Grammar } from "@peg"
+import { compileGrammar } from "@peg"
+import type { Tree } from "@trees"
+import { ext, readText } from "@util"
+import { readFile } from "node:fs/promises"
+import { ApiError } from "./error.js"
 
 export function parseGrammar(grammar: string, cfg?: Cfg): Tree {
   const boot = bootGrammar()
@@ -46,7 +50,7 @@ export function parseInput(parser: Grammar, text: string, cfg?: Cfg): Tree {
     if (!isParseError(error)) {
       throw error
     }
-    let failure: ParseFailure|null
+    let failure: ParseFailure | null
     if (isParseFailure(error)) {
       failure = error as ParseFailure
     } else {

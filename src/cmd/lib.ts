@@ -1,5 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
+import { codeToANSI } from "@shikijs/cli"
+import { BundledLanguage } from "shiki"
 
 export const modeStdout = 0
 export const modeFile = 1
@@ -11,7 +13,7 @@ export interface OutputItem {
 }
 
 export interface OutputSet {
-  lang: string
+  lang: BundledLanguage
   outputs: OutputItem[]
 }
 
@@ -47,16 +49,22 @@ function joinOutputs(outputs: OutputItem[]): string {
   return outputs.map((o) => o.payload).join("\n")
 }
 
-export function writeOutput(out: OutputSet, options: {
-  json?: boolean
-  pretty?: boolean
-  colorize?: boolean
-  output?: string
-}): void {
-  const { output } = options
+export async function writeOutput(
+  out: OutputSet,
+  options: {
+    colorize: boolean
+    output?: string
+  },
+): Promise<void> {
+  const { output, colorize } = options
   switch (outputMode(output)) {
     case modeStdout:
-      for (const o of out.outputs) console.log(o.payload)
+      for (const o of out.outputs) {
+        let payload = colorize
+          ? await codeToANSI(o.payload, out.lang, "nord")
+          : o.payload
+        console.log(payload)
+      }
       break
     case modeFile:
       fs.writeFileSync(output, joinOutputs(out.outputs), "utf-8")
