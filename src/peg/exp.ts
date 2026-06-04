@@ -339,7 +339,7 @@ export abstract class Exp implements JSONSerializable {
   }
 
   lookaheadStr(): string {
-    return this.la.map((s) => `\`${s}\``).join(" ")
+    return this.la.map((s) => `${s}`).join(" ")
   }
 }
 

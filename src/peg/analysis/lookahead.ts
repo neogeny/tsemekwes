@@ -18,16 +18,16 @@ export function computeLA(exp: Exp): string[] {
 
   switch (exp.kind) {
     case ExpKind.Token:
-      la = [(exp as TokenExp).value]
+      la = [`'${(exp as TokenExp).value}'`]
       break
     case ExpKind.Pattern:
-      la = [(exp as PatternExp).value]
+      la = [`/${(exp as PatternExp).value}/`]
       break
     case ExpKind.Constant:
       la = [String((exp as ConstantExp).value)]
       break
     case ExpKind.Alert:
-      la = [(exp as AlertExp).value]
+      la = [`^\`${(exp as AlertExp).value}\``]
       break
     case ExpKind.Eof:
       la = [sentinelEOF]
@@ -102,6 +102,5 @@ function mergeLA(a: string[], b: string[]): string[] {
       a.push(s)
     }
   }
-  a.sort()
-  return a
+  return a.sort()
 }

@@ -59,7 +59,14 @@ export class Grammar extends Exp {
     if (!this.hasNoLeftRecursion()) {
       markLeftRecursion(this.rules)
     }
+    this.computeLA()
     this.analyzed = true
+  }
+
+  private computeLA(): void {
+    for (const rule of this.rules) {
+      rule.computeLA()
+    }
   }
 
   private validateLinked(): void {

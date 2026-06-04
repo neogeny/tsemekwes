@@ -24,11 +24,10 @@ describe("Grammar directive regular expressions", () => {
   test("comment regex matches block comments and (* ... *) style", () => {
     const block1 = "/* this is a block comment */"
     const block2 = "(* another block comment *)"
-    const text = `${block1} code ${block2}`
-    const matches = text.match(COMMENT_REGEX)
+    let matches = (block1 + " followed by more").match(COMMENT_REGEX)
     expect(matches?.[0]).toBe(block1)
-    // expect(matches).toContain(block1);
-    // expect(matches).toContain(block2);
+    matches = (block2 + " must be at start").match(COMMENT_REGEX)
+    expect(matches?.[0]).toBe(block2)
     expect(COMMENT_PATTERN).toContain("[*]") // simple sanity check on pattern string
   })
 
