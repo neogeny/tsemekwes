@@ -11,6 +11,7 @@ process.env.FORCE_COLOR = "1"
 const pc = picocolors.createColors(true)
 
 const baseHelp = new Help()
+baseHelp.showGlobalOptions = true
 program.configureHelp({
   commandDescription: (cmd) => pc.dim(cmd.description()),
   optionDescription: (option) => pc.dim(option.description),
@@ -24,6 +25,7 @@ program.configureHelp({
       .replace(/(-\w|--\w[\w-]+)/g, pc.yellow("$1"))
       .replace(/^Usage:/gm, pc.cyanBright("Usage:"))
       .replace(/^Commands:/gm, pc.cyanBright("Commands:"))
+      .replace(/^Global Options:/gm, pc.cyanBright("Global Options:"))
       .replace(/^Options:/gm, pc.cyanBright("Options:"))
   },
 })
