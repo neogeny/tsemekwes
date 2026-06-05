@@ -30,7 +30,7 @@ parentPort?.on("message", async (msg) => {
 
   const fileCfg = baseCfg.override({
     heartbeat: {
-      tick: (mark: number, total: number) => {
+      beat: (mark: number, total: number) => {
         parentPort?.postMessage({ type: "heartbeat", fileId, mark, total })
       },
     },

@@ -226,7 +226,7 @@ export class Core implements Ctx {
     const mark = this._cursor.mark()
     const total = this._cursor.len()
     if (total > 0) {
-      hb.tick(mark, total)
+      hb.beat(mark, total)
     }
   }
 

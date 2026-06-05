@@ -86,7 +86,7 @@ export async function cmdRun(
       if (msg.type === "heartbeat") {
         const entry = pending.get(msg.fileId)
         if (!entry) return
-        entry.fp.heartbeat().tick(msg.mark, msg.total)
+        entry.fp.heartbeat().beat(msg.mark, msg.total)
         return
       }
       if (msg.type !== "result") return

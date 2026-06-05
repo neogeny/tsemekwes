@@ -6,7 +6,7 @@ class CliHeartbeat implements Heartbeat {
 
   constructor(private bar: cliProgress.SingleBar | null) {}
 
-  tick(mark: number, total: number): void {
+  beat(mark: number, total: number): void {
     if (this.bar == null) return
     if (mark <= this.lastMark) return
     if (total > 0) this.bar.setTotal(total)
@@ -29,8 +29,8 @@ export class LoadProgress {
       { msg },
       {
         format: " {msg} {bar}",
-        barCompleteChar: "─",
         barIncompleteChar: ".",
+        barCompleteChar: "-",
       },
     ) as cliProgress.SingleBar
     this.hb = new CliHeartbeat(this.bar)
