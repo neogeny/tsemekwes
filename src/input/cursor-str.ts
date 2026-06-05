@@ -1,6 +1,11 @@
 import type { Cfg } from "@config"
-import { lines, splitlines, stripRight } from "@util"
-import { isAlphabetic, isAlphanumeric } from "@util/strings"
+import {
+  isAlphabetic,
+  isAlphanumeric,
+  lines,
+  splitlines,
+  stripRight,
+} from "@util/strings"
 import XRegExp from "xregexp"
 import { type Cursor, Location } from "./cursor.js"
 

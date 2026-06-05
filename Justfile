@@ -23,7 +23,7 @@ lint: fmt
     biome check --write ./src
 
 # Compile the TypeScript codebase down into a single high-performance binary artifact
-build: clean
+build: clean lint
     #bun build ./src/cmd/cli.ts ./src/tsemekwes.ts --outdir ./dist --target bun
     bun tsc --declaration --emitDeclarationOnly --outDir ./dist
 

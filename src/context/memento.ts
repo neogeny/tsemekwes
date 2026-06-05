@@ -52,7 +52,7 @@ export class Memento extends Error {
     for (let i = 0; i < lines.length; i++) {
       const ln = startLine0 + i + 1
       const disp = lines[i].replace(/\t/g, "  ").replace(/[\r\n]$/, "")
-      result += `${pc.blueBright(sprintf("%5d", ln))} ${pc.blueBright(`|`)}  ${pc.white(disp)}\n`
+      result += `${pc.blueBright(sprintf("%5d", ln))} ${pc.blueBright(`|`)} ${pc.white(disp)}\n`
     }
     const pad = " ".repeat(Math.max(0, col))
     result += `${pc.blueBright(`      |`)} ${pad}${pc.redBright(`^ ${this.msg}\n`)}`

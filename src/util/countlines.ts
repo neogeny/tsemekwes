@@ -1,4 +1,4 @@
-import { stripLeft } from "./misc"
+import { stripLeft } from "./strings"
 
 export interface LineCounts {
   total: number

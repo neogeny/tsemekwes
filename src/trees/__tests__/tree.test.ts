@@ -40,7 +40,6 @@ describe("fold", () => {
 
   it("Seq to Array", () => {
     const result = treeFold(seq(text("a"), text("b"), text("c")))
-    console.error("result", result)
     expect(isTreeArray(result)).toBe(true)
     expect(result).toHaveLength(3)
     expect((result as TreeArray)[0]).toBe("a")

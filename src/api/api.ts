@@ -12,11 +12,12 @@ import type { Grammar } from "@peg"
 import { compileGrammar } from "@peg"
 import type { TreeValue } from "@trees"
 import { ext, readText } from "@util"
+import { dedent } from "@util/strings"
 import { ApiError } from "./error.js"
 
 export function parseGrammar(grammar: string, cfg?: Cfg): TreeValue {
   const boot = bootGrammar()
-  const cursor = new StrCursor(grammar)
+  const cursor = new StrCursor(dedent(grammar))
   const merged = cfg ?? undefined
   const ctx = newCtx(cursor, merged)
 
@@ -61,19 +62,12 @@ export function parseInput(
       failure = ctx.furthestFailure()
     }
     if (failure !== null) throw new ApiError(failure.memento.msg)
-    throw new ApiError("failed to parse grammar", error)
+    throw new ApiError("failed to parse input", error)
   }
 }
 
 export function parse(grammar: string, text: string, cfg?: Cfg): TreeValue {
-  try {
-    const parser = compile(grammar, cfg)
-    return parseInput(parser, text, cfg)
-  } catch (e) {
-    if (e instanceof ApiError) throw e
-    // throw new ApiError(`parse failed: ${(e as Error).message}`, e)
-    throw e
-  }
+  return parseInput(compile(grammar, cfg), text, cfg)
 }
 
 export function bootGrammar(): Grammar {
@@ -83,12 +77,6 @@ export function bootGrammar(): Grammar {
 export function loadGrammarFromJSON(json: string): Grammar {
   const data = JSON.parse(json)
   return loadJSON(data)
-}
-
-export function grammarToJSON(): string {
-  throw new ApiError(
-    "grammarToJSON is not yet implemented — needs Grammar.toJSON() serialization.",
-  )
 }
 
 export function grammarPretty(grammar: Grammar): string {

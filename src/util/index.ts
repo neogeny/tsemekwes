@@ -5,3 +5,7 @@ export * from "./helpers"
 export * from "./misc"
 export * from "./newlines"
 export * from "./repr"
+
+export class lines {}
+
+export class splitlines {}
