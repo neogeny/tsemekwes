@@ -82,3 +82,49 @@ export async function writeOutput(
     }
   }
 }
+
+export class Semaphore {
+  private _active = 0
+  private _queue: Array<() => void> = []
+
+  constructor(private _max: number) {}
+
+  async acquire(): Promise<void> {
+    if (this._active < this._max) {
+      this._active++
+      return
+    }
+    await new Promise<void>((resolve) => {
+      this._queue.push(resolve)
+    })
+  }
+
+  release(): void {
+    const next = this._queue.shift()
+    if (next) {
+      next()
+    } else {
+      this._active--
+    }
+  }
+}
+
+export class AsyncLock {
+  private _lock: Promise<void> = Promise.resolve();
+
+  async acquire<T>(task: () => Promise<T>): Promise<T> {
+    // Wait for the current promise chain to complete
+    const result = this._lock.then(async () => {
+      try {
+        return await task();
+      } catch (err) {
+        throw err;
+      }
+    });
+
+    // Update the lock to represent the completion of this new task
+    this._lock = result.then(() => {}, () => {});
+
+    return result;
+  }
+}

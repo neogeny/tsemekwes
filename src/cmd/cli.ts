@@ -72,6 +72,12 @@ async function command(): Promise<Command> {
     .option("-j, --json", "output the parse tree in JSON format")
     .option("-s, --start <rule>", "name of the start rule", "start")
     .option("-q, --quiet", "suppress progress bar output")
+    .option(
+      "-n, --nproc <number>",
+      "number of concurrent workers (default: CPU count)",
+      (v) => parseInt(v, 10),
+      0,
+    )
     .action(async (grammar, inputs, opts, cmd) => {
       opts = getOpts(cmd, opts)
       await writeOutput(await cmdRun(grammar, inputs, opts), opts)

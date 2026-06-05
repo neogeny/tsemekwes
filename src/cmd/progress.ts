@@ -10,24 +10,27 @@ class CliHeartbeat implements Heartbeat {
     if (this.bar == null) return
     if (mark > this.lastMark) {
       this.bar.update(mark)
+      ;(this.bar as cliProgress.GenericBar).render(true)
       this.lastMark = mark
     }
   }
 }
 
 export class LoadProgress {
+  private parent: cliProgress.MultiBar | null = null
   private bar: cliProgress.SingleBar | null = null
   private hb: Heartbeat | null = null
 
   constructor(p: cliProgress.MultiBar | null, msg: string) {
     if (p == null) return
+    this.parent = p
     this.bar = p.create(
       100,
       0,
       { msg },
       {
         format: " {msg}",
-        barCompleteChar: "",
+        barCompleteChar: "-",
         barIncompleteChar: "",
       },
     ) as cliProgress.SingleBar
@@ -39,19 +42,22 @@ export class LoadProgress {
   }
 
   finish(): void {
-    if (this.bar == null) return
+    if (this.bar == null || this.parent == null) return
     this.bar.update(100)
-    this.bar.stop()
+    this.parent.remove(this.bar)
+    this.bar = null
   }
 }
 
 export class FileProgress {
+  private parent: cliProgress.MultiBar | null = null
   private bar: cliProgress.SingleBar | null = null
   private hb: Heartbeat | null = null
   private length = 0
 
   constructor(p: cliProgress.MultiBar | null, name: string, maxLen: number) {
     if (p == null) return
+    this.parent = p
     const padded = name.padEnd(maxLen)
     this.bar = p.create(
       100,
@@ -75,14 +81,16 @@ export class FileProgress {
   }
 
   success(): void {
-    if (this.bar == null) return
+    if (this.bar == null || this.parent == null) return
     this.bar.update(1 + this.length)
-    this.bar.stop()
+    this.parent.remove(this.bar)
+    this.bar = null
   }
 
   fail(): void {
-    if (this.bar == null) return
-    this.bar.stop()
+    if (this.bar == null || this.parent == null) return
+    this.parent.remove(this.bar)
+    this.bar = null
   }
 }
 
