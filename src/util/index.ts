@@ -1,4 +1,5 @@
 export * from "./boundedmap"
+export * from "./compress"
 export * from "./countlines"
 export * from "./heartbeat"
 export * from "./helpers"
