@@ -47,7 +47,7 @@ export async function cmdRun(
     0,
   )
   const prog: ProgressUI = new UI(inputPaths.length, maxNameLen, quiet)
-  const loader = prog.loading("loading grammar...")
+  const loader = prog.loading("loading grammar")
   cfg.heartbeat = loader.heartbeat()
   const grammarJson = await getCompressedGrammarPayload(grammarPath, cfg)
   loader.finish()

@@ -6,12 +6,12 @@ class CliHeartbeat implements Heartbeat {
 
   constructor(private bar: cliProgress.SingleBar | null) {}
 
-  tick(mark: number, _total: number): void {
+  tick(mark: number, total: number): void {
     if (this.bar == null) return
-    if (mark > this.lastMark) {
-      this.bar.update(mark)
-      this.lastMark = mark
-    }
+    if (mark <= this.lastMark) return
+    if (total > 0) this.bar.setTotal(total)
+    this.bar.update(mark)
+    this.lastMark = mark
   }
 }
 
@@ -28,9 +28,9 @@ export class LoadProgress {
       0,
       { msg },
       {
-        format: " {msg}",
-        barCompleteChar: "",
-        barIncompleteChar: "",
+        format: " {msg} {bar}",
+        barCompleteChar: "─",
+        barIncompleteChar: ".",
       },
     ) as cliProgress.SingleBar
     this.hb = new CliHeartbeat(this.bar)
@@ -65,7 +65,7 @@ export class FileProgress {
       { filename: padded },
       {
         format: " {filename} º {bar} º {percentage}%",
-        barCompleteChar: "-",
+        barCompleteChar: "─",
         barIncompleteChar: " ",
       },
     ) as cliProgress.SingleBar
