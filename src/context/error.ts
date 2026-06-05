@@ -1,7 +1,8 @@
+import { TSemekwesError } from "@error"
 import type Ctx from "./ctx"
 import { Memento } from "./memento"
 
-export class ParseError extends Error {
+export class ParseError extends TSemekwesError {
   // Brand the class to ensure detection even across bundles
   get __isParseError(): boolean {
     return true

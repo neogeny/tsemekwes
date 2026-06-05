@@ -94,9 +94,6 @@ function doCall(ctx: Ctx, name: string, rule: Rule): TreeValue {
   return rule.parse(ctx)
 }
 
-/**
- * Left‑recursive handling using the seed‑grow algorithm.
- */
 function callRecursive(
   ctx: Ctx,
   _name: string,

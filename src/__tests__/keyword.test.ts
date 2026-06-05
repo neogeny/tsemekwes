@@ -8,6 +8,6 @@ describe("keywords", () => {
     const grammar = `start = whitespace ;
 whitespace = {'x'}+ ;`
     const result = parse(grammar, "x")
-    assert.equal(asjson(result), "x")
+    assert.deepStrictEqual(asjson(result), ["x"])
   })
 })

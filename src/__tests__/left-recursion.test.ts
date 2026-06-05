@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { ApiError, parse } from "@api"
+import { parse } from "@api"
+import { LeftRecursionError } from "@peg"
 import { asjson } from "@util/asjson"
 
 describe("left recursion", () => {
@@ -36,13 +37,14 @@ B = A | 'y' ;`
   })
 
   it("LR disabled via directive", () => {
-    const grammar = `@@left_recursion :: False
+    const grammar = `
+@@left_recursion :: False
 @@whitespace :: /\\s+/
 start = expression $ ;
 expression = expression '+' factor | expression '-' factor | factor ;
 factor = number ;
 number = /[0-9]+/ ;`
-    assert.throws(() => parse(grammar, "10 - 20"), ApiError)
+    assert.throws(() => parse(grammar, "10 - 20"), LeftRecursionError)
   })
 
   it("LR disabled with parens", () => {

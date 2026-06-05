@@ -22,6 +22,8 @@
     "paths": {
       "@tsemekwes": ["./src"],
       "@tsemekwes/*": ["./src/*"],
+      "@error": ["./src/error"],
+      "@error/*": ["./src/error/*"],
       "@api": ["./src/api"],
       "@config": ["./src/config"],
       "@config/*": ["./src/config/*"],

@@ -1,4 +1,6 @@
-export class ApiError extends Error {
+import { TSemekwesError } from "@error"
+
+export class ApiError extends TSemekwesError {
   constructor(
     msg: string,
     public readonly cause?: unknown,

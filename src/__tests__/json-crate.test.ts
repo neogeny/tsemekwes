@@ -4,7 +4,7 @@ import { describe, it } from "node:test"
 import { loadGrammarFromJSON } from "@api"
 
 const tatsuJSON = readFileSync(
-  new URL("../tiexiu/grammar/tatsu.json", import.meta.url),
+  new URL("../../grammar/tatsu.json", import.meta.url),
   "utf-8",
 )
 

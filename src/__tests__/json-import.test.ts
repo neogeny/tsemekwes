@@ -5,19 +5,16 @@ import { loadGrammarFromJSON, parseInput } from "@api"
 import { asjson } from "@util/asjson"
 
 const tatsuJSON = readFileSync(
-  new URL("../tiexiu/grammar/tatsu.json", import.meta.url),
+  new URL("../../grammar/tatsu.json", import.meta.url),
   "utf-8",
 )
 const calcJSON = readFileSync(
-  new URL("../tiexiu/grammar/calc.json", import.meta.url),
+  new URL("../../grammar/calc.json", import.meta.url),
   "utf-8",
 )
 
 const ruleIncludeWithExpJSON = readFileSync(
-  new URL(
-    "../tiexiu/tests/fixtures/rule_include_with_exp.json",
-    import.meta.url,
-  ),
+  new URL("./rule_include_with_exp.json", import.meta.url),
   "utf-8",
 )
 

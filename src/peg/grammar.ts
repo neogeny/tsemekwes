@@ -4,6 +4,7 @@ import type { TreeValue } from "@trees"
 import { markLeftRecursion } from "./analysis/leftrec"
 import { linkGrammar } from "./analysis/link"
 import { CallExp } from "./call"
+import { LeftRecursionError } from "./error"
 import { Exp, ExpKind } from "./exp"
 import { serializeGrammar } from "./json"
 import { call } from "./parsing/call"
@@ -12,6 +13,7 @@ import type { Rule } from "./rule"
 
 export class Grammar extends Exp {
   readonly kind = ExpKind.Grammar
+  private _isLeftRecursive?: boolean
   constructor(
     public name: string,
     public rules: Rule[] = [],
@@ -41,12 +43,21 @@ export class Grammar extends Exp {
     }
   }
 
-  private hasNoLeftRecursion(): boolean {
+  private leftRecursionDisabled(): boolean {
     for (const dir of this.directives) {
       if (dir.length < 2) continue
       if (dir[0] === "left_recursion") {
         const s = dir[1]
-        if (s !== "True" && s !== "true" && s !== "1") return true
+        if (
+          s === "False" ||
+          s === "false" ||
+          s === "0" ||
+          s === "NO" ||
+          s === "No" ||
+          s === "oo" ||
+          s === "None"
+        )
+          return true
       }
     }
     return false
@@ -56,11 +67,37 @@ export class Grammar extends Exp {
     this.normalize()
     linkGrammar(this)
     this.validateLinked()
-    if (!this.hasNoLeftRecursion()) {
-      markLeftRecursion(this.rules)
-    }
+    this.markLeftRecursion()
     this.computeLA()
     this.analyzed = true
+  }
+
+  private markLeftRecursion(): void {
+    markLeftRecursion(this.rules)
+  }
+
+  public isLeftRecursive(): boolean {
+    if (this._isLeftRecursive === undefined) {
+      for (const r of this.rules) {
+        if (r.isLeftRecursive()) {
+          this._isLeftRecursive = true
+          return true
+        }
+      }
+      this._isLeftRecursive = false
+    }
+    return this._isLeftRecursive
+  }
+
+  public leftRecursionEnabled(): boolean {
+    return !this.leftRecursionDisabled()
+  }
+
+  public validateLeftRecursiveParse(): void {
+    if (this.isLeftRecursive() && !this.leftRecursionEnabled())
+      throw new LeftRecursionError(
+        "Parse on left-recursive grammar with left recursion disabled",
+      )
   }
 
   private computeLA(): void {
@@ -154,6 +191,8 @@ export class Grammar extends Exp {
   }
 
   parse(ctx: Ctx, extraCfg?: Partial<Cfg>): TreeValue {
+    this.validateLeftRecursiveParse()
+
     let acfg = defaultCfg()
     acfg = acfg.override(this.cfgFromDirectives())
     acfg = acfg.override(extraCfg ?? {})

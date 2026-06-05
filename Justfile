@@ -25,7 +25,7 @@ lint: fmt
 # Compile the TypeScript codebase down into a single high-performance binary artifact
 build: clean
     #bun build ./src/cmd/cli.ts ./src/tsemekwes.ts --outdir ./dist --target bun
-    tsc --declaration --emitDeclarationOnly --outDir ./dist
+    bun tsc --declaration --emitDeclarationOnly --outDir ./dist
 
 # Execute a specific script file instantly through the native bun runtime engine
 run script:
@@ -44,6 +44,6 @@ prof script:
 
 tools:
     curl -fsSL https://bun.com/install | bash
-    bun install -g typescript
-    bun install -g tsc
+    bun install npm
+    bun npm install typescript
     bun install bun-types
