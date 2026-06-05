@@ -34,7 +34,7 @@ export class Cfg {
   heart?: Heart
   semantics?: SemanticsFunc | null
 
-  override(other: Partial<Cfg>): Cfg {
+  merge(other: Partial<Cfg>): Cfg {
     const c = new Cfg()
     c.name = other.name !== undefined ? other.name : this.name
     c.source = other.source !== undefined ? other.source : this.source

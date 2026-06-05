@@ -194,8 +194,8 @@ export class Grammar extends Exp {
     this.validateLeftRecursiveParse()
 
     let acfg = defaultCfg()
-    acfg = acfg.override(this.cfgFromDirectives())
-    acfg = acfg.override(cfg ?? {})
+    acfg = acfg.merge(this.cfgFromDirectives())
+    acfg = acfg.merge(cfg ?? {})
     acfg.keywords = this.keywords
     ctx.configure(acfg)
 

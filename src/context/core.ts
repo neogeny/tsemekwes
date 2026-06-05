@@ -36,7 +36,7 @@ export class Core implements Ctx {
 
   constructor(cursor: Cursor, cfg?: Cfg) {
     this._cursor = cursor
-    this._cfg = cfg ? defaultCfg().override(cfg) : defaultCfg()
+    this._cfg = cfg ? defaultCfg().merge(cfg) : defaultCfg()
     this._cursor.configure(this._cfg)
   }
 
@@ -45,7 +45,7 @@ export class Core implements Ctx {
   }
 
   configure(cfg: Cfg): void {
-    this._cfg = this._cfg.override(cfg)
+    this._cfg = this._cfg.merge(cfg)
     this._cursor.configure(cfg)
     this.setKeywords(cfg.keywords ?? [])
     if (cfg.trace) {

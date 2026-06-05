@@ -16,11 +16,11 @@ export class LoadProgress {
   private bar: cliProgress.SingleBar | null = null
   private readonly hb: Heart | null = null
 
-  constructor(p: cliProgress.MultiBar | null, msg: string) {
+  constructor(p: cliProgress.MultiBar | null, msg: string, total: number) {
     if (p == null) return
     this.parent = p
     this.bar = p.create(
-      100,
+      total / 20,
       0,
       { msg },
       {
@@ -33,7 +33,7 @@ export class LoadProgress {
     this.bar.render()
   }
 
-  heartbeat(): Heart {
+  heart(): Heart {
     return this.hb ?? new DeadHeart()
   }
 
@@ -68,7 +68,7 @@ export class FileProgress {
     this.hb = new ProgressHeart(this.bar)
   }
 
-  heartbeat(): Heart {
+  heart(): Heart {
     return this.hb ?? new DeadHeart()
   }
 
@@ -108,21 +108,29 @@ export class ProgressUI {
       barCompleteChar: ".",
       barIncompleteChar: " ",
       hideCursor: true,
+      clearOnComplete: true,
+      stopOnComplete: true,
     })
     this.files = this.p.create(
       total,
       0,
       { pad },
       {
-        format: "{value}/{total} {bar}",
+        format: "{value}/{total} {bar}º",
         barsize: barWidth,
+        hideCursor: true,
+        barCompleteChar: ".",
+        barIncompleteChar: " ",
+        clearOnComplete: true,
       },
     ) as cliProgress.SingleBar
   }
 
-  loading(msg: string): LoadProgress {
-    if (this.p == null) return new LoadProgress(null, msg)
-    return new LoadProgress(this.p, msg)
+  loading(msg: string, total: number): LoadProgress {
+    if (this.p == null) {
+      throw Error("CANT'T HAPPEN")
+    }
+    return new LoadProgress(this.p, msg, total)
   }
 
   addFile(name: string, maxLen: number): FileProgress {
@@ -137,7 +145,7 @@ export class ProgressUI {
 
   finish(): void {
     if (this.p == null || this.files == null) return
-    this.p.remove(this.files)
     this.p.stop()
+    this.p.remove(this.files)
   }
 }

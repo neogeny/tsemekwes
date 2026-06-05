@@ -28,7 +28,7 @@ parentPort?.on("message", async (msg) => {
     }
   }
 
-  const fileCfg = baseCfg.override({
+  const fileCfg = baseCfg.merge({
     heart: {
       heartbeat: (mark: number, total: number) => {
         parentPort?.postMessage({ type: "heartbeat", fileId, mark, total })

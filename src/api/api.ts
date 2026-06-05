@@ -23,7 +23,7 @@ function cacheKey(text: string): string {
 }
 
 export function parseGrammar(grammar: string, cfg?: Cfg): TreeValue {
-  const acfg = defaultCfg().override(cfg ?? {})
+  const acfg = defaultCfg().merge(cfg ?? {})
 
   const boot = bootGrammar()
   const cursor = new StrCursor(dedent(grammar))
