@@ -15,12 +15,12 @@ clean:
 
 # Format code with Biome
 fmt:
-    biome format src/ --write
+    bun x biome format src/ --write
 
 # Check both structural code metrics and type definitions
 lint: fmt
     bun x tsc --noEmit
-    biome check --write ./src
+    bun x biome check --write ./src
 
 # Compile the TypeScript codebase down into a single high-performance binary artifact
 build: clean lint
@@ -47,3 +47,4 @@ tools:
     bun install npm
     bun npm install typescript
     bun install bun-types
+    bun install biome
