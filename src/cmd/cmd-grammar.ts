@@ -1,5 +1,5 @@
 import path from "node:path"
-import { loadGrammar } from "@api"
+import { loadGrammarFromPath } from "@api"
 import { grammarSummary } from "@peg"
 import { newCfg } from "@util"
 import { asjsons } from "@util/asjson"
@@ -17,7 +17,7 @@ export async function cmdGrammar(
 ): Promise<OutputSet> {
   const cfg = newCfg(options)
   cfg.source = grammarPath
-  const g = await loadGrammar(grammarPath, cfg)
+  const g = await loadGrammarFromPath(grammarPath, cfg)
 
   let payload: string
   let lang: BundledLanguage

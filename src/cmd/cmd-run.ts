@@ -2,7 +2,7 @@ import { stat } from "node:fs/promises"
 import { availableParallelism } from "node:os"
 import path from "node:path"
 import { Worker } from "node:worker_threads"
-import { loadGrammar } from "@api"
+import { loadGrammarFromPath } from "@api"
 import type { Cfg } from "@config"
 import { newCfg } from "@util"
 import { asjsons } from "@util/asjson"
@@ -19,11 +19,11 @@ type WorkerMessage =
   | { type: "result"; fileId: number; parseError: true; error: string }
   | { type: "result"; fileId: number; name: string; payload: string }
 
-async function getCompressedGrammarPayload(
+async function loadGrammarFromPathToCompressed(
   grammarPath: string,
   cfg: Cfg,
 ): Promise<Uint8Array> {
-  const grammar = await loadGrammar(grammarPath, cfg)
+  const grammar = await loadGrammarFromPath(grammarPath, cfg)
   return compress(asjsons(grammar))
 }
 
@@ -51,7 +51,7 @@ export async function cmdRun(
   const { size } = await stat(grammarPath)
   const ldprog = prog.loading("loading grammar", size)
   const loadCfg = cfg.merge({ heart: ldprog.heart() })
-  const grammarPalyload = await getCompressedGrammarPayload(
+  const grammarPalyload = await loadGrammarFromPathToCompressed(
     grammarPath,
     loadCfg,
   )
@@ -98,41 +98,42 @@ export async function cmdRun(
   let errcount = 0
   await Promise.all(
     inputPaths.map(async (inputPath) => {
-      await sem.acquire()
-
+      const fileId = nextFileId++
       const fName = path.basename(inputPath)
       const { size } = await stat(inputPath)
+
+      await sem.acquire()
       const fp = prog.addFile(fName, maxNameLen)
       fp.setLength(size)
 
-      const fileId = nextFileId++
       const postMsg: Record<string, unknown> = {
         type: "parse",
         fileId,
         inputPath,
       }
-
       const msg = await new Promise<WorkerMessage>((resolve) => {
         pending.set(fileId, { fp, resolve })
         workers[fileId % maxWorkers].postMessage(postMsg)
       })
-      sem.release()
-
-      if (msg.type !== "result") return
-      prog.incFiles()
-      if ("readError" in msg) {
-        fp.fail()
-        errcount++
-        return
+      try {
+        if (msg.type !== "result") return
+        prog.incFiles()
+        if ("readError" in msg) {
+          fp.fail()
+          errcount++
+          return
+        }
+        if ("parseError" in msg) {
+          fp.fail()
+          errcount++
+          console.error(`Error: ${inputPath}: ${msg.error}`)
+          return
+        }
+        fp.success()
+        outputs.push({ name: msg.name, payload: msg.payload })
+      } finally {
+        sem.release()
       }
-      if ("parseError" in msg) {
-        fp.fail()
-        errcount++
-        console.error(`Error: ${inputPath}: ${msg.error}`)
-        return
-      }
-      fp.success()
-      outputs.push({ name: msg.name, payload: msg.payload })
     }),
   )
 

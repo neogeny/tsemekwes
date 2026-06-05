@@ -6,8 +6,12 @@ import { defaultCfg } from "@config"
 import { treeToJSONStr } from "@trees"
 import { decompress } from "@util/compress"
 
-const json = await decompress(workerData.grammarJson as Uint8Array)
-const grammar = loadGrammarFromJSON(json)
+async function loadGrammarFromCompressed() {
+  const json = await decompress(workerData.grammarJson as Uint8Array)
+  return loadGrammarFromJSON(json)
+}
+
+const grammar = await loadGrammarFromCompressed()
 
 const baseCfg = defaultCfg()
 baseCfg.start = (workerData.start as string | undefined) ?? baseCfg.start

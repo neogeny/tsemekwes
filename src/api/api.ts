@@ -1,4 +1,3 @@
-import { readFile } from "node:fs/promises"
 import { gzipSync } from "node:zlib"
 import { type Cfg, defaultCfg } from "@config"
 import {
@@ -12,7 +11,7 @@ import { bootGrammar as boot, loadGrammarFromJSON as loadJSON } from "@json"
 import type { Grammar } from "@peg"
 import { compileGrammar } from "@peg"
 import type { TreeValue } from "@trees"
-import { ext, readText } from "@util"
+import { ext, readPath } from "@util"
 import { dedent } from "@util/strings"
 import { ApiError } from "./error.js"
 
@@ -81,7 +80,7 @@ export function parseInput(
     } else {
       failure = ctx.furthestFailure()
     }
-    if (failure !== null) throw new ApiError(failure.memento.msg)
+    if (failure !== null) throw new ApiError(failure.memento.msg, failure)
     throw new ApiError("failed to parse input", error)
   }
 }
@@ -108,19 +107,16 @@ export function grammarPretty(grammar: Grammar): string {
   return grammar.pretty()
 }
 
-export async function loadGrammar(
-  grammarPath: string,
+export async function loadGrammarFromPath(
+  path: string,
   cfg?: Cfg,
 ): Promise<Grammar> {
-  if (grammarPath === "-") {
-    const text = await readText(grammarPath)
+  const text = await readPath(path)
+  if (path === "-") {
     return compile(text, cfg)
   }
-  const e = ext(grammarPath)
-  if (e === "json") {
-    const raw = await readFile(grammarPath, "utf-8")
-    return loadGrammarFromJSON(raw)
+  if (ext(path) === "json") {
+    return loadGrammarFromJSON(text)
   }
-  const text = await readFile(grammarPath, "utf-8")
   return compile(text, cfg)
 }

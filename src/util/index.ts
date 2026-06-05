@@ -7,6 +7,8 @@ export * from "./misc"
 export * from "./newlines"
 export * from "./repr"
 export * from "./stdin"
+export { readPath } from "./fs"
+export { ext } from "./fs"
 
 export class lines {}
 
