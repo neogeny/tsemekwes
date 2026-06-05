@@ -1,5 +1,6 @@
 import { DeadHeart, type Heart } from "@util/heartbeat"
 import cliProgress from "cli-progress"
+import picocolors from "picocolors"
 
 class ProgressHeart implements Heart {
   constructor(private bar: cliProgress.SingleBar | null) {}
@@ -55,13 +56,15 @@ export class FileProgress {
     if (p == null) return
     this.parent = p
     const padded = name.padEnd(maxLen)
+    const pc = picocolors.createColors(true)
     this.bar = p.create(
       100,
       0,
       { filename: padded },
       {
         format: " {filename} º {bar} º {percentage}%",
-        barCompleteChar: "─",
+        barCompleteString: `${pc.green("─")}${pc.reset("")}`,
+        barCompleteChar: "⎯",
         barIncompleteChar: " ",
       },
     ) as cliProgress.SingleBar
