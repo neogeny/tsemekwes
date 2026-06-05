@@ -64,7 +64,7 @@ export async function writeOutput(
         const payload = colorize
           ? await codeToANSI(o.payload, out.lang, "nord")
           : o.payload
-        console.log(payload)
+        console.error(payload)
       }
       break
     case modeFile:
@@ -110,21 +110,20 @@ export class Semaphore {
 }
 
 export class AsyncLock {
-  private _lock: Promise<void> = Promise.resolve();
+  private _lock: Promise<void> = Promise.resolve()
 
   async acquire<T>(task: () => Promise<T>): Promise<T> {
     // Wait for the current promise chain to complete
     const result = this._lock.then(async () => {
-      try {
-        return await task();
-      } catch (err) {
-        throw err;
-      }
-    });
+      return await task()
+    })
 
     // Update the lock to represent the completion of this new task
-    this._lock = result.then(() => {}, () => {});
+    this._lock = result.then(
+      () => {},
+      () => {},
+    )
 
-    return result;
+    return result
   }
 }

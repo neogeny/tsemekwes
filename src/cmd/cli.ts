@@ -47,11 +47,13 @@ async function command(): Promise<Command> {
     .choices(["auto", "always", "never"])
     .default("auto")
 
-  function getOpts(cmd: any, opts: any): object {
+  function getOpts(
+    cmd: Command,
+    opts: Record<string, unknown>,
+  ): Record<string, unknown> {
     opts = { ...cmd.optsWithGlobals(), ...opts }
     const colorize =
-      opts.color === "always" ||
-      (opts.color === "auto" && !opts.output && process.stdout.isTTY)
+      opts.color === "always" || (opts.color === "auto" && process.stderr.isTTY)
     return { ...opts, colorize }
   }
 

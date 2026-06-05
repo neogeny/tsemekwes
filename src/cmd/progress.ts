@@ -10,16 +10,15 @@ class CliHeartbeat implements Heartbeat {
     if (this.bar == null) return
     if (mark > this.lastMark) {
       this.bar.update(mark)
-      ;(this.bar as cliProgress.GenericBar).render(true)
       this.lastMark = mark
     }
   }
 }
 
 export class LoadProgress {
-  private parent: cliProgress.MultiBar | null = null
+  private readonly parent: cliProgress.MultiBar | null = null
   private bar: cliProgress.SingleBar | null = null
-  private hb: Heartbeat | null = null
+  private readonly hb: Heartbeat | null = null
 
   constructor(p: cliProgress.MultiBar | null, msg: string) {
     if (p == null) return
@@ -30,7 +29,7 @@ export class LoadProgress {
       { msg },
       {
         format: " {msg}",
-        barCompleteChar: "-",
+        barCompleteChar: "",
         barIncompleteChar: "",
       },
     ) as cliProgress.SingleBar
@@ -50,9 +49,9 @@ export class LoadProgress {
 }
 
 export class FileProgress {
-  private parent: cliProgress.MultiBar | null = null
+  private readonly parent: cliProgress.MultiBar | null = null
   private bar: cliProgress.SingleBar | null = null
-  private hb: Heartbeat | null = null
+  private readonly hb: Heartbeat | null = null
   private length = 0
 
   constructor(p: cliProgress.MultiBar | null, name: string, maxLen: number) {
@@ -64,7 +63,9 @@ export class FileProgress {
       0,
       { filename: padded },
       {
-        format: " {filename} | {bar} | {percentage}%",
+        format: " {filename} º {bar} º {percentage}%",
+        barCompleteChar: "-",
+        barIncompleteChar: " ",
       },
     ) as cliProgress.SingleBar
     this.hb = new CliHeartbeat(this.bar)
@@ -94,28 +95,30 @@ export class FileProgress {
   }
 }
 
+// noinspection JSUnusedGlobalSymbols
 export class ProgressUI {
-  private p: cliProgress.MultiBar | null = null
-  private files: cliProgress.SingleBar | null = null
+  private readonly p: cliProgress.MultiBar | null = null
+  private readonly files: cliProgress.SingleBar | null = null
 
   constructor(total: number, maxNameLen: number, quiet: boolean) {
     if (quiet) return
-    const barWidth = Math.max(
-      10,
-      (process.stderr.columns || 80) - maxNameLen - 4,
-    )
+    // const barWidth = Math.max(
+    //   10,
+    //   (process.stderr.columns || 80) - maxNameLen - 16,
+    // )
     const pad = " ".repeat(maxNameLen + 3)
     this.p = new cliProgress.MultiBar({
-      barCompleteChar: "\u2588",
-      barIncompleteChar: "\u2591",
+      barCompleteChar: ".",
+      barIncompleteChar: " ",
+      hideCursor: true,
     })
     this.files = this.p.create(
       total,
       0,
       { pad },
       {
-        format: " {pad}{bar}",
-        barsize: barWidth,
+        format: "{value}/{total} {bar}",
+        // barsize: barWidth,
       },
     ) as cliProgress.SingleBar
   }
@@ -136,7 +139,8 @@ export class ProgressUI {
   }
 
   finish(): void {
-    if (this.p == null) return
+    if (this.p == null || this.files == null) return
+    this.p.remove(this.files)
     this.p.stop()
   }
 }

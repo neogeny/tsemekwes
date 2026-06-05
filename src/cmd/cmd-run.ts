@@ -1,16 +1,20 @@
-import { readFile } from "node:fs/promises"
+import { stat } from "node:fs/promises"
 import { availableParallelism } from "node:os"
 import path from "node:path"
-import { loadGrammar, parseInput } from "@api"
-import { grammarSummary } from "@peg"
-import { treeToJSONStr } from "@trees"
+import { Worker } from "node:worker_threads"
+import { loadGrammar } from "@api"
 import { newCfg } from "@util"
-import { asjsons } from "@util/asjson"
 import color from "picocolors"
 import type { OutputItem, OutputSet } from "./lib"
 import { Semaphore } from "./lib"
 import type { ProgressUI } from "./progress"
 import { ProgressUI as UI } from "./progress"
+
+type WorkerMessage =
+  | { type: "heartbeat"; fileId: number; mark: number; total: number }
+  | { type: "result"; fileId: number; readError: true }
+  | { type: "result"; fileId: number; parseError: true; error: string }
+  | { type: "result"; fileId: number; name: string; payload: string }
 
 export async function cmdRun(
   grammarPath: string,
@@ -24,23 +28,9 @@ export async function cmdRun(
     nproc?: number
   },
 ): Promise<OutputSet> {
+  const pc = color.createColors(options.colorize ?? true)
   const quiet = options.quiet ?? false
   const cfg = newCfg(options)
-  const outputs: OutputItem[] = []
-
-  if (inputPaths.length === 0) {
-    const g = await loadGrammar(grammarPath, cfg)
-    if (options.json) {
-      outputs.push({ name: path.basename(grammarPath), payload: asjsons(g) })
-      return { lang: "json", outputs }
-    }
-    outputs.push({
-      name: path.basename(grammarPath),
-      payload: grammarSummary(g, options.colorize),
-    })
-    return { lang: "json", outputs }
-  }
-
   const maxNameLen = inputPaths.reduce(
     (m, p) => Math.max(m, path.basename(p).length),
     0,
@@ -48,50 +38,104 @@ export async function cmdRun(
   const prog: ProgressUI = new UI(inputPaths.length, maxNameLen, quiet)
   const loader = prog.loading("loading grammar")
   cfg.heartbeat = loader.heartbeat()
-  const g = await loadGrammar(grammarPath, cfg)
+  await loadGrammar(grammarPath, cfg)
   loader.finish()
 
-  const maxWorkers = (options.nproc ?? 0) || availableParallelism() || 4
+  const maxWorkers = (options.nproc ?? 0) || availableParallelism() || 8
   const sem = new Semaphore(maxWorkers)
-
-  const results = await Promise.all(
-    inputPaths.map(async (inputPath) => {
-      await sem.acquire()
-      const fName = path.basename(inputPath)
-      const fp = prog.addFile(fName, maxNameLen)
-      try {
-        const data = await readFile(inputPath, "utf-8")
-        fp.setLength(data.length)
-        const fileCfg = cfg.override({
-          heartbeat: fp.heartbeat(),
-          source: inputPath,
-        })
-        const tree = parseInput(g, data, fileCfg)
-        prog.incFiles()
-        fp.success()
-        return { name: fName, payload: treeToJSONStr(tree) }
-      } catch (e: unknown) {
-        prog.incFiles()
-        fp.fail()
-        console.error(`Error: ${inputPath}: ${(e as Error).message}`)
-        return null
-      } finally {
-        sem.release()
-      }
-    }),
-  )
-  prog.finish()
-
+  const outputs: OutputItem[] = []
   let errcount = 0
-  for (const r of results) {
-    if (r) {
-      outputs.push(r)
-    } else {
-      errcount++
-    }
+
+  const workers = Array.from(
+    { length: maxWorkers },
+    () =>
+      new Worker(new URL("./parse-worker.ts", import.meta.url), {
+        workerData: {
+          grammarPath,
+          start: options.start,
+          trace: options.trace,
+        },
+      }),
+  )
+
+  type FileProgress = ReturnType<typeof prog.addFile>
+  const pending = new Map<
+    number,
+    { fp: FileProgress; resolve: (msg: WorkerMessage) => void }
+  >()
+  let nextFileId = 0
+
+  for (const w of workers) {
+    w.on("message", (msg: WorkerMessage) => {
+      if (msg.type === "heartbeat") {
+        const entry = pending.get(msg.fileId)
+        if (!entry) return
+        entry.fp.heartbeat().tick(msg.mark, msg.total)
+        return
+      }
+      if (msg.type !== "result") return
+      const entry = pending.get(msg.fileId)
+      if (!entry) return
+      pending.delete(msg.fileId)
+      entry.resolve(msg)
+    })
   }
 
-  const pc = color.createColors(options.colorize ?? true)
+  await Promise.all(
+    inputPaths.map(async (inputPath) => {
+      await sem.acquire()
+
+      const fName = path.basename(inputPath)
+      const fp = prog.addFile(fName, maxNameLen)
+
+      const fileId = nextFileId++
+      const postMsg: Record<string, unknown> = {
+        type: "parse",
+        fileId,
+        inputPath,
+      }
+
+      if (inputPath === "-") {
+        const chunks: Buffer[] = []
+        for await (const chunk of process.stdin) chunks.push(Buffer.from(chunk))
+        const stdin = Buffer.concat(chunks).toString("utf-8")
+        fp.setLength(stdin.length)
+        postMsg.text = stdin
+      } else {
+        const { size } = await stat(inputPath)
+        fp.setLength(size)
+      }
+
+      const msg = await new Promise<WorkerMessage>((resolve) => {
+        pending.set(fileId, { fp, resolve })
+        workers[fileId % maxWorkers].postMessage(postMsg)
+      })
+
+      if (msg.type !== "result") return
+      if ("readError" in msg) {
+        fp.fail()
+        errcount++
+        prog.incFiles()
+        return
+      }
+      if ("parseError" in msg) {
+        fp.fail()
+        errcount++
+        prog.incFiles()
+        sem.release()
+        console.error(`Error: ${inputPath}: ${msg.error}`)
+        return
+      }
+      fp.success()
+      outputs.push({ name: msg.name, payload: msg.payload })
+      prog.incFiles()
+      sem.release()
+    }),
+  )
+
+  await Promise.all(workers.map((w) => w.terminate()))
+  prog.finish()
+
   console.error(
     `${pc.whiteBright(`Parsed`)} ${pc.cyanBright(`${inputPaths.length} files`)}` +
       ` ${pc.green(`${outputs.length} passed`)}` +

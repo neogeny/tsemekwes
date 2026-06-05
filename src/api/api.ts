@@ -40,6 +40,14 @@ export function compile(grammar: string, cfg?: Cfg): Grammar {
   return compileGrammar(tree)
 }
 
+export async function parseInputAsync(
+  parser: Grammar,
+  text: string,
+  cfg?: Cfg,
+): Promise<TreeValue> {
+  return parseInput(parser, text, cfg)
+}
+
 export function parseInput(
   parser: Grammar,
   text: string,
