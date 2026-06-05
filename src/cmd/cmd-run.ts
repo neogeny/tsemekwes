@@ -4,6 +4,8 @@ import path from "node:path"
 import { Worker } from "node:worker_threads"
 import { loadGrammar } from "@api"
 import { newCfg } from "@util"
+import { asjsons } from "@util/asjson"
+import { compress } from "@util/compress"
 import color from "picocolors"
 import type { OutputItem, OutputSet } from "./lib"
 import { Semaphore } from "./lib"
@@ -38,7 +40,8 @@ export async function cmdRun(
   const prog: ProgressUI = new UI(inputPaths.length, maxNameLen, quiet)
   const loader = prog.loading("loading grammar")
   cfg.heartbeat = loader.heartbeat()
-  await loadGrammar(grammarPath, cfg)
+  const grammar = await loadGrammar(grammarPath, cfg)
+  const grammarJson = await compress(asjsons(grammar))
   loader.finish()
 
   const maxWorkers = (options.nproc ?? 0) || availableParallelism() || 8
@@ -51,7 +54,7 @@ export async function cmdRun(
     () =>
       new Worker(new URL("./parse-worker.ts", import.meta.url), {
         workerData: {
-          grammarPath,
+          grammarJson,
           start: options.start,
           trace: options.trace,
         },

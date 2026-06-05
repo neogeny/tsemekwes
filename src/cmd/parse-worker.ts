@@ -1,11 +1,13 @@
 import { readFile } from "node:fs/promises"
 import path from "node:path"
 import { parentPort, workerData } from "node:worker_threads"
-import { loadGrammar, parseInput } from "@api"
+import { loadGrammarFromJSON, parseInput } from "@api"
 import { defaultCfg } from "@config"
 import { treeToJSONStr } from "@trees"
+import { decompress } from "@util/compress"
 
-const grammar = await loadGrammar(workerData.grammarPath as string)
+const json = await decompress(workerData.grammarJson as Uint8Array)
+const grammar = loadGrammarFromJSON(json)
 
 const baseCfg = defaultCfg()
 baseCfg.start = (workerData.start as string | undefined) ?? baseCfg.start
