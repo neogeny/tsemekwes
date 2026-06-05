@@ -1,9 +1,9 @@
-import { stat } from "node:fs/promises"
+import { readFile, stat } from "node:fs/promises"
 import { availableParallelism } from "node:os"
 import path from "node:path"
 import { Worker } from "node:worker_threads"
 import { loadGrammar } from "@api"
-import { newCfg } from "@util"
+import { newCfg, readStdin } from "@util"
 import { asjsons } from "@util/asjson"
 import { compress } from "@util/compress"
 import color from "picocolors"
@@ -40,8 +40,16 @@ export async function cmdRun(
   const prog: ProgressUI = new UI(inputPaths.length, maxNameLen, quiet)
   const loader = prog.loading("loading grammar")
   cfg.heartbeat = loader.heartbeat()
-  const grammar = await loadGrammar(grammarPath, cfg)
-  const grammarJson = await compress(asjsons(grammar))
+
+  let grammarJson: Uint8Array
+  if (path.extname(grammarPath) === ".json") {
+    const raw = await readFile(grammarPath, "utf-8")
+    grammarJson = await compress(raw)
+  } else {
+    const grammar = await loadGrammar(grammarPath, cfg)
+    grammarJson = await compress(asjsons(grammar))
+  }
+
   loader.finish()
 
   const maxWorkers = (options.nproc ?? 0) || availableParallelism() || 8
@@ -87,7 +95,6 @@ export async function cmdRun(
   await Promise.all(
     inputPaths.map(async (inputPath) => {
       await sem.acquire()
-
       const fName = path.basename(inputPath)
       const fp = prog.addFile(fName, maxNameLen)
 
@@ -99,11 +106,9 @@ export async function cmdRun(
       }
 
       if (inputPath === "-") {
-        const chunks: Buffer[] = []
-        for await (const chunk of process.stdin) chunks.push(Buffer.from(chunk))
-        const stdin = Buffer.concat(chunks).toString("utf-8")
-        fp.setLength(stdin.length)
-        postMsg.text = stdin
+        const text = await readStdin()
+        fp.setLength(text.length)
+        postMsg.text = text
       } else {
         const { size } = await stat(inputPath)
         fp.setLength(size)
@@ -113,6 +118,7 @@ export async function cmdRun(
         pending.set(fileId, { fp, resolve })
         workers[fileId % maxWorkers].postMessage(postMsg)
       })
+      sem.release()
 
       if (msg.type !== "result") return
       if ("readError" in msg) {
@@ -125,14 +131,12 @@ export async function cmdRun(
         fp.fail()
         errcount++
         prog.incFiles()
-        sem.release()
         console.error(`Error: ${inputPath}: ${msg.error}`)
         return
       }
       fp.success()
       outputs.push({ name: msg.name, payload: msg.payload })
       prog.incFiles()
-      sem.release()
     }),
   )
 
