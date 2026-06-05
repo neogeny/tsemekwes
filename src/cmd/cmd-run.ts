@@ -1,8 +1,9 @@
-import { readFile, stat } from "node:fs/promises"
+import { stat } from "node:fs/promises"
 import { availableParallelism } from "node:os"
 import path from "node:path"
 import { Worker } from "node:worker_threads"
 import { loadGrammar } from "@api"
+import type { Cfg } from "@config"
 import { newCfg, readStdin } from "@util"
 import { asjsons } from "@util/asjson"
 import { compress } from "@util/compress"
@@ -17,6 +18,14 @@ type WorkerMessage =
   | { type: "result"; fileId: number; readError: true }
   | { type: "result"; fileId: number; parseError: true; error: string }
   | { type: "result"; fileId: number; name: string; payload: string }
+
+async function getCompressedGrammarPayload(
+  grammarPath: string,
+  cfg: Cfg,
+): Promise<Uint8Array> {
+  const grammar = await loadGrammar(grammarPath, cfg)
+  return compress(asjsons(grammar))
+}
 
 export async function cmdRun(
   grammarPath: string,
@@ -38,18 +47,9 @@ export async function cmdRun(
     0,
   )
   const prog: ProgressUI = new UI(inputPaths.length, maxNameLen, quiet)
-  const loader = prog.loading("loading grammar")
+  const loader = prog.loading("loading grammar...")
   cfg.heartbeat = loader.heartbeat()
-
-  let grammarJson: Uint8Array
-  if (path.extname(grammarPath) === ".json") {
-    const raw = await readFile(grammarPath, "utf-8")
-    grammarJson = await compress(raw)
-  } else {
-    const grammar = await loadGrammar(grammarPath, cfg)
-    grammarJson = await compress(asjsons(grammar))
-  }
-
+  const grammarJson = await getCompressedGrammarPayload(grammarPath, cfg)
   loader.finish()
 
   const maxWorkers = (options.nproc ?? 0) || availableParallelism() || 8

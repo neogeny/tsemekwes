@@ -34,6 +34,7 @@ export class LoadProgress {
       },
     ) as cliProgress.SingleBar
     this.hb = new CliHeartbeat(this.bar)
+    this.bar.render()
   }
 
   heartbeat(): Heartbeat {
@@ -102,10 +103,10 @@ export class ProgressUI {
 
   constructor(total: number, maxNameLen: number, quiet: boolean) {
     if (quiet) return
-    // const barWidth = Math.max(
-    //   10,
-    //   (process.stderr.columns || 80) - maxNameLen - 16,
-    // )
+    const barWidth = Math.max(
+      10,
+      (process.stderr.columns || 80) - maxNameLen - 16,
+    )
     const pad = " ".repeat(maxNameLen + 3)
     this.p = new cliProgress.MultiBar({
       barCompleteChar: ".",
@@ -118,7 +119,7 @@ export class ProgressUI {
       { pad },
       {
         format: "{value}/{total} {bar}",
-        // barsize: barWidth,
+        barsize: barWidth,
       },
     ) as cliProgress.SingleBar
   }
