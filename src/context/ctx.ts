@@ -42,7 +42,7 @@ export interface Ctx {
   enter(name: string): void
   leave(): void
 
-  heartbeatTick(): void
+  heartbeat(): void
 
   key(name: string, canMemo: boolean): MemoKey
   memo(key: MemoKey): Memo | undefined

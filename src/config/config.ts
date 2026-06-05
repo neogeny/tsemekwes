@@ -1,5 +1,5 @@
 import type { TreeValue } from "@trees"
-import type { Heartbeat } from "@util/heartbeat"
+import type { Heart } from "@util/heartbeat"
 
 export interface Configurable {
   configure(cfg: Cfg): void
@@ -31,8 +31,8 @@ export class Cfg {
   eolComments?: string
   keywords?: string[]
   parseInfo?: boolean
+  heart?: Heart
   semantics?: SemanticsFunc | null
-  heartbeat?: Heartbeat
 
   override(other: Partial<Cfg>): Cfg {
     const c = new Cfg()
@@ -74,8 +74,7 @@ export class Cfg {
       other.parseInfo !== undefined ? other.parseInfo : this.parseInfo
     c.semantics =
       other.semantics !== undefined ? other.semantics : this.semantics
-    c.heartbeat =
-      other.heartbeat !== undefined ? other.heartbeat : this.heartbeat
+    c.heart = other.heart !== undefined ? other.heart : this.heart
 
     if (other.grammar) c.name = c.grammar
     if (c.ignoreCase && c.keywords.length > 0) {

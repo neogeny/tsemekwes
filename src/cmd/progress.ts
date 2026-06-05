@@ -1,24 +1,20 @@
-import { type Heartbeat, NullHeartbeat } from "@util/heartbeat"
+import { DeadHeart, type Heart } from "@util/heartbeat"
 import cliProgress from "cli-progress"
 
-class CliHeartbeat implements Heartbeat {
-  private lastMark = 0
-
+class ProgressHeart implements Heart {
   constructor(private bar: cliProgress.SingleBar | null) {}
 
-  beat(mark: number, total: number): void {
+  heartbeat(mark: number, total: number): void {
     if (this.bar == null) return
-    if (mark <= this.lastMark) return
-    if (total > 0) this.bar.setTotal(total)
+    this.bar.setTotal(total)
     this.bar.update(mark)
-    this.lastMark = mark
   }
 }
 
 export class LoadProgress {
   private readonly parent: cliProgress.MultiBar | null = null
   private bar: cliProgress.SingleBar | null = null
-  private readonly hb: Heartbeat | null = null
+  private readonly hb: Heart | null = null
 
   constructor(p: cliProgress.MultiBar | null, msg: string) {
     if (p == null) return
@@ -33,12 +29,12 @@ export class LoadProgress {
         barCompleteChar: "-",
       },
     ) as cliProgress.SingleBar
-    this.hb = new CliHeartbeat(this.bar)
+    this.hb = new ProgressHeart(this.bar)
     this.bar.render()
   }
 
-  heartbeat(): Heartbeat {
-    return this.hb ?? new NullHeartbeat()
+  heartbeat(): Heart {
+    return this.hb ?? new DeadHeart()
   }
 
   finish(): void {
@@ -52,7 +48,7 @@ export class LoadProgress {
 export class FileProgress {
   private readonly parent: cliProgress.MultiBar | null = null
   private bar: cliProgress.SingleBar | null = null
-  private readonly hb: Heartbeat | null = null
+  private readonly hb: Heart | null = null
   private length = 0
 
   constructor(p: cliProgress.MultiBar | null, name: string, maxLen: number) {
@@ -69,11 +65,11 @@ export class FileProgress {
         barIncompleteChar: " ",
       },
     ) as cliProgress.SingleBar
-    this.hb = new CliHeartbeat(this.bar)
+    this.hb = new ProgressHeart(this.bar)
   }
 
-  heartbeat(): Heartbeat {
-    return this.hb ?? new NullHeartbeat()
+  heartbeat(): Heart {
+    return this.hb ?? new DeadHeart()
   }
 
   setLength(length: number): void {

@@ -20,6 +20,7 @@ import type { Rule } from "../rule"
  *   • Name‑rule keyword reservation checks
  */
 export function call(ctx: Ctx, name: string, rule: Rule | null): TreeValue {
+  ctx.heartbeat()
   ctx.enter(name)
   try {
     if (rule === null) {

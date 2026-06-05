@@ -24,7 +24,7 @@ async function getCompressedGrammarPayload(
   cfg: Cfg,
   loader: LoadProgress,
 ): Promise<Uint8Array> {
-  cfg.heartbeat = loader.heartbeat()
+  cfg.heart = loader.heartbeat()
   const grammar = await loadGrammar(grammarPath, cfg)
   return compress(asjsons(grammar))
 }
@@ -86,7 +86,7 @@ export async function cmdRun(
       if (msg.type === "heartbeat") {
         const entry = pending.get(msg.fileId)
         if (!entry) return
-        entry.fp.heartbeat().beat(msg.mark, msg.total)
+        entry.fp.heartbeat().heartbeat(msg.mark, msg.total)
         return
       }
       if (msg.type !== "result") return

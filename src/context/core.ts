@@ -8,7 +8,7 @@ import {
 } from "@context"
 import type { Cursor } from "@input"
 import type { TreeValue } from "@trees"
-import { type Heartbeat, NullHeartbeat } from "@util/heartbeat"
+import { DeadHeart, type Heart } from "@util/heartbeat"
 import type Ctx from "./ctx"
 import type { CallStack } from "./ctx"
 import { ParseFailure } from "./error"
@@ -31,7 +31,7 @@ export class Core implements Ctx {
   private memoCache = new Map<string, Memo>()
   private _tracer: Tracer = new NullTracer()
   private keywords = new Set<string>()
-  private _heartbeat: Heartbeat = new NullHeartbeat()
+  private _heart: Heart = new DeadHeart()
   private _lastHeartbeat = 0
 
   constructor(cursor: Cursor, cfg?: Cfg) {
@@ -53,8 +53,8 @@ export class Core implements Ctx {
     } else {
       this._tracer = new NullTracer()
     }
-    if (cfg.heartbeat) {
-      this._heartbeat = cfg.heartbeat
+    if (cfg.heart) {
+      this._heart = cfg.heart
     }
   }
 
@@ -96,7 +96,7 @@ export class Core implements Ctx {
 
   nextToken(): void {
     this._cursor.nextToken()
-    this.heartbeatTick()
+    this.heartbeat()
   }
 
   matchToken(token: string): string {
@@ -215,9 +215,9 @@ export class Core implements Ctx {
     return s
   }
 
-  heartbeatTick(): void {
-    const hb = this._heartbeat
-    if (hb instanceof NullHeartbeat) return
+  heartbeat(): void {
+    const hb = this._heart
+    if (hb instanceof DeadHeart) return
 
     const now = Date.now()
     if (now - this._lastHeartbeat < 128) return
@@ -225,9 +225,7 @@ export class Core implements Ctx {
 
     const mark = this._cursor.mark()
     const total = this._cursor.len()
-    if (total > 0) {
-      hb.beat(mark, total)
-    }
+    hb.heartbeat(mark, total)
   }
 
   key(name: string, canMemo: boolean): MemoKey {
