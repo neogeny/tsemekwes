@@ -10,7 +10,7 @@ import { compress } from "@util/compress"
 import color from "picocolors"
 import type { OutputItem, OutputSet } from "./lib"
 import { Semaphore } from "./lib"
-import type { ProgressUI } from "./progress"
+import type { LoadProgress, ProgressUI } from "./progress"
 import { ProgressUI as UI } from "./progress"
 
 type WorkerMessage =
@@ -22,7 +22,9 @@ type WorkerMessage =
 async function getCompressedGrammarPayload(
   grammarPath: string,
   cfg: Cfg,
+  loader: LoadProgress,
 ): Promise<Uint8Array> {
+  cfg.heartbeat = loader.heartbeat()
   const grammar = await loadGrammar(grammarPath, cfg)
   return compress(asjsons(grammar))
 }
@@ -48,8 +50,11 @@ export async function cmdRun(
   )
   const prog: ProgressUI = new UI(inputPaths.length, maxNameLen, quiet)
   const loader = prog.loading("loading grammar")
-  cfg.heartbeat = loader.heartbeat()
-  const grammarJson = await getCompressedGrammarPayload(grammarPath, cfg)
+  const grammarJson = await getCompressedGrammarPayload(
+    grammarPath,
+    cfg,
+    loader,
+  )
   loader.finish()
 
   const maxWorkers = (options.nproc ?? 0) || availableParallelism() || 8

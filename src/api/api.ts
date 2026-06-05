@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises"
 import { gzipSync } from "node:zlib"
-import type { Cfg } from "@config"
+import { type Cfg, defaultCfg } from "@config"
 import {
   isParseError,
   isParseFailure,
@@ -23,13 +23,13 @@ function cacheKey(text: string): string {
 }
 
 export function parseGrammar(grammar: string, cfg?: Cfg): TreeValue {
+  const acfg = defaultCfg().override(cfg ?? {})
+
   const boot = bootGrammar()
   const cursor = new StrCursor(dedent(grammar))
-  const merged = cfg ?? undefined
-  const ctx = newCtx(cursor, merged)
-
+  const ctx = newCtx(cursor, acfg)
   try {
-    return boot.parse(ctx, merged)
+    return boot.parse(ctx, acfg)
   } catch (error) {
     if (!isParseError(error)) {
       throw error

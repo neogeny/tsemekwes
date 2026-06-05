@@ -190,12 +190,12 @@ export class Grammar extends Exp {
     return c
   }
 
-  parse(ctx: Ctx, extraCfg?: Partial<Cfg>): TreeValue {
+  parse(ctx: Ctx, cfg?: Partial<Cfg>): TreeValue {
     this.validateLeftRecursiveParse()
 
     let acfg = defaultCfg()
     acfg = acfg.override(this.cfgFromDirectives())
-    acfg = acfg.override(extraCfg ?? {})
+    acfg = acfg.override(cfg ?? {})
     acfg.keywords = this.keywords
     ctx.configure(acfg)
 
