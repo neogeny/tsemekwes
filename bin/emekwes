@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
-exec tsx "$DIR/src/cmd/cli.ts" "$@"
+# exec tsx "$DIR/src/cmd/cli.ts" "$@"
+exec bun run "$DIR/src/cmd/cli.ts" "$@" 
