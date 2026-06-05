@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises"
+import { gzipSync } from "node:zlib"
 import type { Cfg } from "@config"
 import {
   isParseError,
@@ -14,6 +15,12 @@ import type { TreeValue } from "@trees"
 import { ext, readText } from "@util"
 import { dedent } from "@util/strings"
 import { ApiError } from "./error.js"
+
+const compileCache = new Map<string, Grammar>()
+
+function cacheKey(text: string): string {
+  return gzipSync(Buffer.from(text, "utf-8")).toString("base64")
+}
 
 export function parseGrammar(grammar: string, cfg?: Cfg): TreeValue {
   const boot = bootGrammar()
@@ -36,8 +43,13 @@ export function parseGrammar(grammar: string, cfg?: Cfg): TreeValue {
 }
 
 export function compile(grammar: string, cfg?: Cfg): Grammar {
+  const key = cacheKey(grammar)
+  const cached = compileCache.get(key)
+  if (cached) return cached
   const tree = parseGrammar(grammar, cfg)
-  return compileGrammar(tree)
+  const g = compileGrammar(tree)
+  compileCache.set(key, g)
+  return g
 }
 
 export async function parseInputAsync(
@@ -83,8 +95,13 @@ export function bootGrammar(): Grammar {
 }
 
 export function loadGrammarFromJSON(json: string): Grammar {
+  const key = cacheKey(json)
+  const cached = compileCache.get(key)
+  if (cached) return cached
   const data = JSON.parse(json)
-  return loadJSON(data)
+  const g = loadJSON(data)
+  compileCache.set(key, g)
+  return g
 }
 
 export function grammarPretty(grammar: Grammar): string {
