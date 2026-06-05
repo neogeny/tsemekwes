@@ -32,9 +32,7 @@
     {
       "__class__": "Rule",
       "name": "grammar",
-      "params": [
-        "Grammar"
-      ],
+      "params": ["Grammar"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -851,9 +849,7 @@
     {
       "__class__": "Rule",
       "name": "rule",
-      "params": [
-        "Rule"
-      ],
+      "params": ["Rule"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1192,9 +1188,7 @@
     {
       "__class__": "Rule",
       "name": "choice",
-      "params": [
-        "Choice"
-      ],
+      "params": ["Choice"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1257,9 +1251,7 @@
     {
       "__class__": "Rule",
       "name": "option",
-      "params": [
-        "Option"
-      ],
+      "params": ["Option"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1277,9 +1269,7 @@
     {
       "__class__": "Rule",
       "name": "sequence",
-      "params": [
-        "Sequence"
-      ],
+      "params": ["Sequence"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1405,9 +1395,7 @@
     {
       "__class__": "Rule",
       "name": "rule_include",
-      "params": [
-        "RuleInclude"
-      ],
+      "params": ["RuleInclude"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1473,9 +1461,7 @@
     {
       "__class__": "Rule",
       "name": "named_list",
-      "params": [
-        "NamedList"
-      ],
+      "params": ["NamedList"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1517,9 +1503,7 @@
     {
       "__class__": "Rule",
       "name": "named_single",
-      "params": [
-        "Named"
-      ],
+      "params": ["Named"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1601,9 +1585,7 @@
     {
       "__class__": "Rule",
       "name": "override_list",
-      "params": [
-        "OverrideList"
-      ],
+      "params": ["OverrideList"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1636,9 +1618,7 @@
     {
       "__class__": "Rule",
       "name": "override_single",
-      "params": [
-        "Override"
-      ],
+      "params": ["Override"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1671,9 +1651,7 @@
     {
       "__class__": "Rule",
       "name": "override_single_deprecated",
-      "params": [
-        "Override"
-      ],
+      "params": ["Override"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1830,9 +1808,7 @@
     {
       "__class__": "Rule",
       "name": "group",
-      "params": [
-        "Group"
-      ],
+      "params": ["Group"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1879,9 +1855,7 @@
     {
       "__class__": "Rule",
       "name": "skip",
-      "params": [
-        "SkipGroup"
-      ],
+      "params": ["SkipGroup"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -1984,9 +1958,7 @@
     {
       "__class__": "Rule",
       "name": "positive_gather",
-      "params": [
-        "PositiveGather"
-      ],
+      "params": ["PositiveGather"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2043,9 +2015,7 @@
     {
       "__class__": "Rule",
       "name": "normal_gather",
-      "params": [
-        "Gather"
-      ],
+      "params": ["Gather"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2172,9 +2142,7 @@
     {
       "__class__": "Rule",
       "name": "positive_join",
-      "params": [
-        "PositiveJoin"
-      ],
+      "params": ["PositiveJoin"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2231,9 +2199,7 @@
     {
       "__class__": "Rule",
       "name": "normal_join",
-      "params": [
-        "Join"
-      ],
+      "params": ["Join"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2297,9 +2263,7 @@
     {
       "__class__": "Rule",
       "name": "left_join",
-      "params": [
-        "LeftJoin"
-      ],
+      "params": ["LeftJoin"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2359,9 +2323,7 @@
     {
       "__class__": "Rule",
       "name": "right_join",
-      "params": [
-        "RightJoin"
-      ],
+      "params": ["RightJoin"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2421,9 +2383,7 @@
     {
       "__class__": "Rule",
       "name": "positive_closure",
-      "params": [
-        "PositiveClosure"
-      ],
+      "params": ["PositiveClosure"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2508,9 +2468,7 @@
     {
       "__class__": "Rule",
       "name": "closure",
-      "params": [
-        "Closure"
-      ],
+      "params": ["Closure"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2584,9 +2542,7 @@
     {
       "__class__": "Rule",
       "name": "empty_closure",
-      "params": [
-        "EmptyClosure"
-      ],
+      "params": ["EmptyClosure"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2618,9 +2574,7 @@
     {
       "__class__": "Rule",
       "name": "optional",
-      "params": [
-        "Optional"
-      ],
+      "params": ["Optional"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2722,9 +2676,7 @@
     {
       "__class__": "Rule",
       "name": "lookahead",
-      "params": [
-        "Lookahead"
-      ],
+      "params": ["Lookahead"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2757,9 +2709,7 @@
     {
       "__class__": "Rule",
       "name": "negative_lookahead",
-      "params": [
-        "NegativeLookahead"
-      ],
+      "params": ["NegativeLookahead"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2792,9 +2742,7 @@
     {
       "__class__": "Rule",
       "name": "skip_to",
-      "params": [
-        "SkipTo"
-      ],
+      "params": ["SkipTo"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2916,9 +2864,7 @@
     {
       "__class__": "Rule",
       "name": "call",
-      "params": [
-        "Call"
-      ],
+      "params": ["Call"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2936,9 +2882,7 @@
     {
       "__class__": "Rule",
       "name": "void",
-      "params": [
-        "Void"
-      ],
+      "params": ["Void"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2964,9 +2908,7 @@
     {
       "__class__": "Rule",
       "name": "fail",
-      "params": [
-        "Fail"
-      ],
+      "params": ["Fail"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -2992,9 +2934,7 @@
     {
       "__class__": "Rule",
       "name": "cut",
-      "params": [
-        "Cut"
-      ],
+      "params": ["Cut"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3020,9 +2960,7 @@
     {
       "__class__": "Rule",
       "name": "cut_deprecated",
-      "params": [
-        "Cut"
-      ],
+      "params": ["Cut"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3092,9 +3030,7 @@
     {
       "__class__": "Rule",
       "name": "constant",
-      "params": [
-        "Constant"
-      ],
+      "params": ["Constant"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3165,9 +3101,7 @@
     {
       "__class__": "Rule",
       "name": "alert",
-      "params": [
-        "Alert"
-      ],
+      "params": ["Alert"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3202,9 +3136,7 @@
     {
       "__class__": "Rule",
       "name": "token",
-      "params": [
-        "Token"
-      ],
+      "params": ["Token"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3682,9 +3614,7 @@
     {
       "__class__": "Rule",
       "name": "dot",
-      "params": [
-        "Dot"
-      ],
+      "params": ["Dot"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3702,9 +3632,7 @@
     {
       "__class__": "Rule",
       "name": "pattern",
-      "params": [
-        "Pattern"
-      ],
+      "params": ["Pattern"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3921,9 +3849,7 @@
     {
       "__class__": "Rule",
       "name": "eof",
-      "params": [
-        "EOF"
-      ],
+      "params": ["EOF"],
       "kwparams": {},
       "decorators": [],
       "base": null,
@@ -3949,9 +3875,7 @@
     {
       "__class__": "Rule",
       "name": "eol",
-      "params": [
-        "EOL"
-      ],
+      "params": ["EOL"],
       "kwparams": {},
       "decorators": [],
       "base": null,
