@@ -4,6 +4,7 @@ import { asjson } from "../util/asjson"
 import { computeLA } from "./analysis/lookahead"
 import { BoxExp, type Exp, ExpKind } from "./exp.js"
 import { serializeRule } from "./json"
+import { optimizeExp } from "./optimize.js"
 
 export class Rule extends BoxExp {
   readonly kind = ExpKind.Rule
@@ -76,5 +77,22 @@ export class Rule extends BoxExp {
 
   normalize(): void {
     // No-op in TS: defaults handled by constructor params
+  }
+
+  optimized(): Rule {
+    return new Rule(
+      this.name,
+      optimizeExp(this.exp),
+      [...this.params],
+      new Map(this.kwParams),
+      [...this.decorators],
+      this.base,
+      this.isName,
+      this.isTokn,
+      this.noMemo,
+      this.noStak,
+      this.isMemo,
+      this.isLrec,
+    )
   }
 }

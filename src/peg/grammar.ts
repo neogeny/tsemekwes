@@ -14,6 +14,10 @@ import type { Rule } from "./rule"
 export class Grammar extends Exp {
   readonly kind = ExpKind.Grammar
   private _isLeftRecursive?: boolean
+  private _optrules?: Rule[]
+  private _rulemap?: Map<string, Rule>
+  private _optrulemap?: Map<string, Rule>
+
   constructor(
     public name: string,
     public rules: Rule[] = [],
@@ -26,15 +30,44 @@ export class Grammar extends Exp {
   }
 
   public ruleMap(): Map<string, Rule> {
-    const m = new Map<string, Rule>()
-    for (const rule of this.rules) {
-      m.set(rule.name, rule)
+    if (!this._rulemap) {
+      const m = new Map<string, Rule>()
+      for (const rule of this.rules) {
+        m.set(rule.name, rule)
+      }
+      this._rulemap = m
     }
-    return m
+    return this._rulemap
+  }
+
+  private optRuleMap(): Map<string, Rule> {
+    if (!this._optrulemap) {
+      if (!this._optrules) {
+        this.optimize()
+      }
+      const m = new Map<string, Rule>()
+      for (const rule of this._optrules ?? []) {
+        m.set(rule.name, rule)
+      }
+      this._optrulemap = m
+    }
+    return this._optrulemap
   }
 
   getRule(name: string): Rule | undefined {
+    const r = this.optRuleMap().get(name)
+    if (r) return r
     return this.ruleMap().get(name)
+  }
+
+  optimize(): void {
+    if (this._optrules) return
+    this._optrules = this.rules.map((r) => r.optimized())
+  }
+
+  optimized(): this {
+    this.optimize()
+    return this
   }
 
   normalize(): void {
@@ -69,6 +102,7 @@ export class Grammar extends Exp {
     this.validateLinked()
     this.markLeftRecursion()
     this.computeLA()
+    this.optimize()
     this.analyzed = true
   }
 
