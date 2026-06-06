@@ -110,13 +110,13 @@ export function grammarPretty(grammar: Grammar): string {
 export async function loadGrammarFromPath(
   path: string,
   cfg?: Cfg,
-): Promise<Grammar> {
+): Promise<[string, Grammar]> {
   const text = await readPath(path)
   if (path === "-") {
-    return compile(text, cfg)
+    return [text, compile(text, cfg)]
   }
   if (ext(path) === "json") {
-    return loadGrammarFromJSON(text)
+    return [text, loadGrammarFromJSON(text)]
   }
-  return compile(text, cfg)
+  return [text, compile(text, cfg)]
 }

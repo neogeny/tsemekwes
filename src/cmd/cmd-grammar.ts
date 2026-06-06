@@ -17,7 +17,7 @@ export async function cmdGrammar(
 ): Promise<OutputSet> {
   const cfg = newCfg(options)
   cfg.source = grammarPath
-  const g = await loadGrammarFromPath(grammarPath, cfg)
+  const [_, g] = await loadGrammarFromPath(grammarPath, cfg)
 
   let payload: string
   let lang: BundledLanguage

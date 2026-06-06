@@ -4,7 +4,7 @@ import path from "node:path"
 import { Worker } from "node:worker_threads"
 import { loadGrammarFromPath } from "@api"
 import type { Cfg } from "@config"
-import { newCfg } from "@util"
+import { countLines, newCfg } from "@util"
 import { asjsons } from "@util/asjson"
 import { compress } from "@util/compress"
 import color from "picocolors"
@@ -17,14 +17,20 @@ type WorkerMessage =
   | { type: "heartbeat"; fileId: number; mark: number; total: number }
   | { type: "result"; fileId: number; readError: true }
   | { type: "result"; fileId: number; parseError: true; error: string }
-  | { type: "result"; fileId: number; name: string; payload: string }
+  | {
+      type: "result"
+      fileId: number
+      name: string
+      text: string
+      payload: string
+    }
 
 async function loadGrammarFromPathToCompressed(
-  grammarPath: string,
+  path: string,
   cfg: Cfg,
-): Promise<Uint8Array> {
-  const grammar = await loadGrammarFromPath(grammarPath, cfg)
-  return compress(asjsons(grammar))
+): Promise<[string, Uint8Array]> {
+  const [text, grammar] = await loadGrammarFromPath(path, cfg)
+  return [text, await compress(asjsons(grammar))]
 }
 
 export async function cmdRun(
@@ -51,7 +57,7 @@ export async function cmdRun(
   const { size } = await stat(grammarPath)
   const ldprog = prog.loading("loading grammar", size)
   const loadCfg = cfg.merge({ heart: ldprog.heart() })
-  const grammarPalyload = await loadGrammarFromPathToCompressed(
+  const [_, grammarPalyload] = await loadGrammarFromPathToCompressed(
     grammarPath,
     loadCfg,
   )
@@ -96,6 +102,7 @@ export async function cmdRun(
   const sem = new Semaphore(maxWorkers)
   let nextFileId = 0
   let errcount = 0
+  let sloc = 0
   await Promise.all(
     inputPaths.map(async (inputPath) => {
       const fileId = nextFileId++
@@ -131,6 +138,7 @@ export async function cmdRun(
         }
         fp.success()
         outputs.push({ name: msg.name, payload: msg.payload })
+        sloc += countLines(msg.text).code
       } finally {
         sem.release()
       }
@@ -143,7 +151,8 @@ export async function cmdRun(
   console.error(
     `${pc.whiteBright(`Parsed`)} ${pc.cyanBright(`${inputPaths.length} files`)}` +
       ` ${pc.green(`${outputs.length} passed`)}` +
-      ` ${pc.red(`${errcount} errors`)}`,
+      ` ${pc.red(`${errcount} errors`)}` +
+      ` ${pc.yellow(`${sloc} sloc`)}`,
   )
   return { lang: "json", outputs }
 }

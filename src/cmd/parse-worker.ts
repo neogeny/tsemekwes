@@ -20,12 +20,12 @@ baseCfg.trace = (workerData.trace as boolean | undefined) ?? baseCfg.trace
 parentPort?.on("message", async (msg) => {
   const { fileId, inputPath } = msg as { fileId: number; inputPath: string }
 
-  let data: string
+  let text: string
   if (msg.text !== undefined) {
-    data = msg.text as string
+    text = msg.text as string
   } else {
     try {
-      data = await readFile(inputPath, "utf-8")
+      text = await readFile(inputPath, "utf-8")
     } catch {
       parentPort?.postMessage({ type: "result", fileId, readError: true })
       return
@@ -42,11 +42,12 @@ parentPort?.on("message", async (msg) => {
   })
 
   try {
-    const tree = parseInput(grammar, data, fileCfg)
+    const tree = parseInput(grammar, text, fileCfg)
     parentPort?.postMessage({
       type: "result",
       fileId,
       name: path.basename(inputPath),
+      text: text,
       payload: treeToJSONStr(tree),
     })
   } catch (e) {
