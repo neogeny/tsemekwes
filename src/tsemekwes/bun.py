@@ -7,6 +7,7 @@ from pathlib import Path
 from subprocess import CompletedProcess
 from typing import Any
 
+
 BUNDIST = "bundist"
 
 
@@ -29,10 +30,10 @@ def _cmd(args: list[str]) -> list[str]:
     ]
 
 
-def run(args: list[str], **kwargs: Any) -> str:
-    kwargs.setdefault("capture_output", True)
-    kwargs.setdefault("text", True)
-    cp = subprocess.run(_cmd(args), **kwargs)
+def run(args: list[str], output: str | None = None) -> str:
+    if output is not None:
+        args = ["-o", output, *args]
+    cp = subprocess.run(_cmd(args), capture_output=True, text=True)
     return check_output(cp)
 
 

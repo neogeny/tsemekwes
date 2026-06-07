@@ -16,11 +16,10 @@ from typing import Any
 
 from .abctools import rowselect
 
+__all__ = ["Version"]
 
-__all__ = ['Version']
 
-
-STRIC_VERSION_RE = r'''(?x)
+STRIC_VERSION_RE = r"""(?x)
     ^v?
     (?P<epoch>\d+!)?
     (?P<release>\d+(\.\d+)*)
@@ -29,9 +28,9 @@ STRIC_VERSION_RE = r'''(?x)
     (?P<dev>[-._]?dev\d*)?
     (?P<local>\+.*)?
     $
-'''
+"""
 
-VERSION_RE = r'''(?x)
+VERSION_RE = r"""(?x)
     ^[vV]?
     (?:(?P<epoch>\d+)!)?
     (?P<release>\d+(\.\d+)*)
@@ -40,16 +39,16 @@ VERSION_RE = r'''(?x)
     (?:[-._]?(?P<dev>dev\d+))?
     (?:\+(?P<local>[\w\.]+))?
     $
-'''
+"""
 
 LETTER_NORMALIZATION = {
-    'alpha': 'a',
-    'beta': 'b',
-    'c': 'rc',
-    'pre': 'rc',
-    'preview': 'rc',
-    'rev': 'post',
-    'r': 'post',
+    "alpha": "a",
+    "beta": "b",
+    "c": "rc",
+    "pre": "rc",
+    "preview": "rc",
+    "rev": "post",
+    "r": "post",
 }
 
 
@@ -73,40 +72,40 @@ class Version:
         notnone = {
             name: value for name, value in asdict(self).items() if value is not None
         }
-        return namedtuple('version_info', notnone.keys())(*notnone.values())  # type: ignore
+        return namedtuple("version_info", notnone.keys())(*notnone.values())  # type: ignore
 
     @staticmethod
     def parse(versionstr: str) -> Version:
         match = re.match(VERSION_RE, versionstr)
         if not match:
-            raise ValueError(f'Invalid version string: {versionstr!r}')
+            raise ValueError(f"Invalid version string: {versionstr!r}")
 
         def alphadigit_split(s: str) -> tuple[str, int | str]:
             if not s:
                 return None, None  # type: ignore
 
-            alpha = ''.join(takewhile(str.isalpha, s))
+            alpha = "".join(takewhile(str.isalpha, s))
             digits = s[len(alpha) :]
             if digits.isdigit():
                 digits = int(digits)  # type: ignore
             return alpha, digits
 
         parts = match.groupdict()
-        release = tuple(int(d) for d in parts['release'].split('.'))
-        parts['release'] = release
+        release = tuple(int(d) for d in parts["release"].split("."))
+        parts["release"] = release
 
-        pre = parts['pre'] or ''
-        pre, num = alphadigit_split(pre.lstrip('_-.'))
+        pre = parts["pre"] or ""
+        pre, num = alphadigit_split(pre.lstrip("_-."))
         pre = LETTER_NORMALIZATION.get(pre, pre)
         pre = (pre, num)
-        parts['pre'] = pre
+        parts["pre"] = pre
         level, serial = pre
         serial = int(serial) if serial else None  # type: ignore
 
         major, minor, micro, *nano = release + (None,) * 3
         nano = tuple(int(n) for n in nano if n is not None) or None  # type: ignore
 
-        for key in ('epoch', 'post', 'dev', 'local'):
+        for key in ("epoch", "post", "dev", "local"):
             parts[key] = alphadigit_split(parts[key])[1]
 
         return Version(
@@ -116,5 +115,5 @@ class Version:
             nano=nano,  # type: ignore
             level=level,
             serial=serial,
-            **rowselect({'epoch', 'post', 'dev', 'local'}, parts),
+            **rowselect({"epoch", "post", "dev", "local"}, parts),
         )

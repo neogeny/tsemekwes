@@ -33,6 +33,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "pytest>=9.0.3",
     "ruff>=0.15.16",
     "ts2python>=0.8.2",
     "vale>=3.13.0.0",
