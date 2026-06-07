@@ -61,7 +61,7 @@ def temp_path_from_text(
         yield tmp.name
 
 
-def parseGrammar(
+def parse_grammar(
     path: str,
     *,
     trace: bool = False,
@@ -71,12 +71,12 @@ def parseGrammar(
     return json.loads(result)
 
 
-def compileGrammar(path: str, *, output: str | None = None) -> Grammar:
+def compile(path: str, *, output: str | None = None) -> Grammar:
     grammar = json.loads(bun.run(["grammar", "-j", path], output=output))
     return Grammar(grammar)
 
 
-def parseInput(
+def parse_input(
     path: str,
     inputs: list[str],
     *,
@@ -92,7 +92,7 @@ def parseInput(
     return json.loads(result)
 
 
-def bootGrammar(*, output: str | None = None) -> Grammar:
+def boot_grammar(*, output: str | None = None) -> Grammar:
     if output is not None:
         result = bun.run(["boot", "--json"], output=output)
     else:
@@ -104,19 +104,19 @@ def bootGrammar(*, output: str | None = None) -> Grammar:
     return Grammar(json.loads(result))
 
 
-def bootPretty(*, output: str | None = None) -> str:
+def boot_pretty(*, output: str | None = None) -> str:
     return bun.run(["boot", "--pretty"], output=output)
 
 
-def loadGrammarFromJSON(json_str: str) -> Grammar:
+def loads_grammar(json_str: str) -> Grammar:
     return Grammar(json.loads(json_str))
 
 
-def grammarPretty(path: str, *, output: str | None = None) -> str:
+def grammar_pretty(path: str, *, output: str | None = None) -> str:
     return bun.run(["grammar", "--pretty", path], output=output)
 
 
-def loadGrammarFromPath(
+def read_grammar(
     path: str,
 ) -> Grammar:
     text = Path(path).read_text()
