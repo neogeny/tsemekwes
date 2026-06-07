@@ -10,7 +10,7 @@ import { compress } from "@util/compress"
 import color from "picocolors"
 import type { OutputItem, OutputSet } from "./lib"
 import { Semaphore } from "./lib"
-import type { ProgressUI } from "./progress"
+import type { FileProgress, LoadProgress, ProgressUI } from "./progress"
 import { ProgressUI as UI } from "./progress"
 
 type WorkerMessage =
@@ -52,22 +52,30 @@ export async function cmdRun(
     (m, p) => Math.max(m, path.basename(p).length),
     0,
   )
-  const prog: ProgressUI = new UI(inputPaths.length, maxNameLen, quiet)
+  const prog: ProgressUI | undefined = quiet
+    ? undefined
+    : new UI(inputPaths.length, maxNameLen, quiet)
 
   const { size } = await stat(grammarPath)
-  const ldprog = prog.loading("loading grammar", size)
-  const loadCfg = cfg.merge({ heart: ldprog.heart() })
+  let loadCfg: Cfg = cfg
+  let ldprog: LoadProgress | undefined
+  if (prog) {
+    ldprog = prog.loading("loading grammar", size)
+    loadCfg = cfg.merge({ heart: ldprog.heart() })
+  }
   const [_, grammarPalyload] = await loadGrammarFromPathToCompressed(
     grammarPath,
     loadCfg,
   )
-  ldprog.finish()
+  if (ldprog) {
+    ldprog.finish()
+  }
 
   const maxWorkers = (options.nproc ?? 0) || availableParallelism() || 8
   const workers = Array.from(
     { length: maxWorkers },
     () =>
-      new Worker(new URL("./cmd/parse-worker", import.meta.url), {
+      new Worker(new URL("cmd/parse-worker", import.meta.url), {
         workerData: {
           grammarJson: grammarPalyload,
           start: options.start,
@@ -76,10 +84,9 @@ export async function cmdRun(
       }),
   )
 
-  type FileProgress = ReturnType<typeof prog.addFile>
   const pending = new Map<
     number,
-    { fp: FileProgress; resolve: (msg: WorkerMessage) => void }
+    { fp: FileProgress | null; resolve: (msg: WorkerMessage) => void }
   >()
 
   for (const w of workers) {
@@ -87,7 +94,9 @@ export async function cmdRun(
       if (msg.type === "heartbeat") {
         const entry = pending.get(msg.fileId)
         if (!entry) return
-        entry.fp.heart().heartbeat(msg.mark, msg.total)
+        if (entry.fp !== null) {
+          entry.fp.heart().heartbeat(msg.mark, msg.total)
+        }
         return
       }
       if (msg.type !== "result") return
@@ -108,11 +117,12 @@ export async function cmdRun(
     inputPaths.map(async (inputPath) => {
       const fileId = nextFileId++
       const fName = path.basename(inputPath)
-      const { size } = await stat(inputPath)
 
       await sem.acquire()
-      const fp = prog.addFile(fName, maxNameLen)
-      fp.setLength(size)
+      const fp = prog ? prog.addFile(fName, maxNameLen) : null
+      if (fp) {
+        fp.setLength(size)
+      }
 
       const postMsg: Record<string, unknown> = {
         type: "parse",
@@ -125,19 +135,27 @@ export async function cmdRun(
       })
       try {
         if (msg.type !== "result") return
-        prog.incFiles()
+        if (prog) {
+          prog.incFiles()
+        }
         if ("readError" in msg) {
-          fp.fail()
+          if (fp) {
+            fp.fail()
+          }
           errcount++
           return
         }
         if ("parseError" in msg) {
-          fp.fail()
+          if (fp) {
+            fp.fail()
+          }
           errcount++
           console.error(`Error: ${inputPath}: ${msg.error}`)
           return
         }
-        fp.success()
+        if (fp) {
+          fp.success()
+        }
         outputs.push({ name: msg.name, payload: msg.payload })
         sloc += countLines(msg.text).code
       } finally {
@@ -147,7 +165,9 @@ export async function cmdRun(
   )
 
   await Promise.all(workers.map((w) => w.terminate()))
-  prog.finish()
+  if (prog) {
+    prog.finish()
+  }
 
   const elapsed = (Date.now() - startTime) / 1000
   const slocPerSec = elapsed > 0 ? (sloc / elapsed).toFixed(0) : "0"
