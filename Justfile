@@ -5,14 +5,12 @@ set shell := ["bash", "-uc"]
 dist := "./dist/"
 tsdist := "./tsdist/"
 bundist := "./bundist/"
+src := "./src"
+srcpy := "./srcpy"
 
 # Default target: lists all available workspace commands
 default:
     @just --list
-
-# Start development file-watcher mode for your CLI entry point
-dev path="src/cmd/cli.ts":
-    bun --watch run {{ path }}
 
 # Clean build artifacts
 clean:
@@ -20,12 +18,12 @@ clean:
 
 # Format code with Biome
 fmt:
-    bun x biome format src/ --write
+    bun x biome format {{ src }} --write
 
 # Check both structural code metrics and type definitions
 lint: fmt
     bun x tsc --noEmit
-    bun x biome check --write ./src
+    bun x biome check --write {{ src }}
 
 # Compile the TypeScript codebase down into a single high-performance binary artifact
 build: clean lint
@@ -33,12 +31,12 @@ build: clean lint
          --outDir {{ tsdist }} \
         --declaration --emitDeclarationOnly
     bun build \
-      ./src/tsemekwes.ts \
-      ./src/cmd/parse-worker.ts \
+      {{ src }}/tsemekwes.ts \
+      {{ src }}/cmd/parse-worker.ts \
       --outdir {{ bundist }} --target bun
     bun build \
-        ./src/tsemekwes.ts \
-        ./src/cmd/parse-worker.ts \
+        {{ src }}/tsemekwes.ts \
+        {{ src }}/cmd/parse-worker.ts \
         --compile --minify --outfile bin/emekwes
 
 # Execute a specific script file instantly through the native bun runtime engine
@@ -48,10 +46,10 @@ run script:
 # Run the entire test pipeline directly using Bun
 test: build
     bun test --only-failures --dots \
-      src/__tests__/*.test.ts \
-      src/__tests__/**/*.test.ts \
-      src/**/__tests__/*.test.ts \
-      src/**/*.test.ts
+      {{ src }}/__tests__/*.test.ts \
+      {{ src }}/__tests__/**/*.test.ts \
+      {{ src }}/**/__tests__/*.test.ts \
+      {{ src }}/**/*.test.ts
 
 prof script:
     node --prof --cpu-prof {{ script }}
@@ -64,8 +62,8 @@ tools:
     bun install biome
 
 py-types:
-    uv run ts2python src/tsemekwes/types.ts \
-      -o src/tsemekwes --compatibility 3.12
+    uv run ts2python {{ srcpy }}/tsemekwes/types.ts \
+      -o {{ srcpy }}/tsemekwes --compatibility 3.12
 
 # Build Python distribution packages (sdist + wheel)
 py-package: build py-types
