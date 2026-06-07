@@ -9,12 +9,10 @@ import { cmdInfo } from "./cmd-info"
 import { cmdRun } from "./cmd-run"
 import { writeOutput } from "./lib"
 
-async function main() {
+export async function cli_main() {
   const program = await command()
   await program.parseAsync(process.argv)
 }
-
-await main()
 
 async function command(): Promise<Command> {
   const program = new Command()

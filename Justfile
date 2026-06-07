@@ -1,4 +1,5 @@
 # Set the shell to bash and enable 'pipefail' to catch errors early
+
 set shell := ["bash", "-uc"]
 
 # Default target: lists all available workspace commands
@@ -25,7 +26,10 @@ lint: fmt
 # Compile the TypeScript codebase down into a single high-performance binary artifact
 build: clean lint
     bun tsc --declaration --emitDeclarationOnly --outDir ./dist
-    bun build ./src/cmd/cli.ts --outdir ./dist --target bun
+    bun build \
+      ./src/tsemekwes.ts \
+      ./src/cmd/parse-worker.ts \
+      --outdir ./dist --target bun
 
 # Execute a specific script file instantly through the native bun runtime engine
 run script:
@@ -40,7 +44,7 @@ test: build
       src/**/*.test.ts
 
 prof script:
-    node --prof --cpu-prof {{script}}
+    node --prof --cpu-prof {{ script }}
 
 tools:
     curl -fsSL https://bun.com/install | bash
