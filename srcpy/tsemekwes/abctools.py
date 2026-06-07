@@ -8,7 +8,6 @@ from collections.abc import Callable, Iterable
 from itertools import zip_longest
 from typing import Any, NamedTuple
 
-
 type Predicate[K, V] = Callable[[K, V], bool]
 
 
@@ -29,9 +28,9 @@ def is_namedtuple(obj) -> bool:
     return (
         len(type(obj).__bases__) == 1
         and isinstance(obj, tuple)
-        and hasattr(obj, '_asdict')
-        and hasattr(obj, '_fields')
-        and all(isinstance(f, str) for f in getattr(obj, '_fields', ()))
+        and hasattr(obj, "_asdict")
+        and hasattr(obj, "_fields")
+        and all(isinstance(f, str) for f in getattr(obj, "_fields", ()))
     )
 
 

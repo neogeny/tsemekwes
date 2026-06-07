@@ -13,6 +13,7 @@ export async function cmdGrammar(
     pretty?: boolean
     trace?: boolean
     colorize?: boolean
+    quiet?: boolean
   },
 ): Promise<OutputSet> {
   const cfg = newCfg(options)

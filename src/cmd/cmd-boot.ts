@@ -9,6 +9,7 @@ export async function cmdBoot(options: {
   pretty?: boolean
   colorize?: boolean
   output?: string
+  quiet?: boolean
 }): Promise<OutputSet> {
   const g = bootGrammar()
 

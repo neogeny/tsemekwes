@@ -33,11 +33,12 @@ build: clean lint
     bun build \
       {{ src }}/tsemekwes.ts \
       {{ src }}/cmd/parse-worker.ts \
-      --outdir {{ bundist }} --target bun
+      --sourcemap --outdir {{ bundist }} --target bun
     bun build \
         {{ src }}/tsemekwes.ts \
         {{ src }}/cmd/parse-worker.ts \
-        --compile --minify --outfile bin/emekwes
+        --compile --minify --outfile --sourcemap \
+        bin/emekwes
 
 # Execute a specific script file instantly through the native bun runtime engine
 run script:
@@ -63,18 +64,18 @@ tools:
 
 py-types:
     uv run ts2python {{ srcpy }}/tsemekwes/types.ts \
-      -o {{ srcpy }}/tsemekwes --compatibility 3.12
+      -o {{ srcpy }}/tsemekwes/ts/ --compatibility 3.12
 
 # Build Python distribution packages (sdist + wheel)
-py-package: build py-types
+py-build: build py-types
     uvx hatch build
 
 # Trigger a test publish to PyPI via GitHub Actions
-py-publish-test: py-package
+py-publish-test: py-build
     gh workflow run test_publish.yml
     gh run list --workflow=test_publish.yml
 
 # Trigger a production publish to PyPI via GitHub Actions
-py-publish: py-package
+py-publish: py-build
     gh workflow run publish.yml
     gh run list --workflow=publish.yml

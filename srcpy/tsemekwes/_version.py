@@ -1,11 +1,11 @@
 # Copyright © 2017-2026 Juancarlo Añez (apalala@gmail.com)
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: BSD-4-Clause
 
 from __future__ import annotations
 
 import importlib.metadata
 
-from .util import Version
+from .version import Version
 
 __toolname__ = "TSemekwes"
 

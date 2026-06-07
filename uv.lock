@@ -133,6 +133,7 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
     { name = "ts2python" },
+    { name = "tsemekwes" },
     { name = "vale" },
 ]
 
@@ -144,6 +145,7 @@ dev = [
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "ruff", specifier = ">=0.15.16" },
     { name = "ts2python", specifier = ">=0.8.2" },
+    { name = "tsemekwes", editable = "." },
     { name = "vale", specifier = ">=3.13.0.0" },
 ]
 

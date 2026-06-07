@@ -61,6 +61,7 @@ async function command(): Promise<Command> {
     .addOption(colorOption)
     .option("-o, --output <path>", "write output to file instead of stdout")
     .option("-t, --trace", "display a detailed trace of the parsing process")
+    .option("-q, --quiet", "suppress progress bar output")
     .version(await getProjectGitVersion())
     .action(() => {
       program.help()
@@ -71,7 +72,6 @@ async function command(): Promise<Command> {
     .description("execute a grammar against one or more input files")
     .option("-j, --json", "output the parse tree in JSON format")
     .option("-s, --start <rule>", "name of the start rule", "start")
-    .option("-q, --quiet", "suppress progress bar output")
     .option(
       "-n, --nproc <number>",
       "number of concurrent workers (default: CPU count)",

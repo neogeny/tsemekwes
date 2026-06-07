@@ -36,9 +36,23 @@ dev = [
     "pytest>=9.0.3",
     "ruff>=0.15.16",
     "ts2python>=0.8.2",
+    "tsemekwes",
     "vale>=3.13.0.0",
 ]
 
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "ERROR"
+addopts = "-q --ignore=.venv -p no:logging"
+testpaths = ["srcpy/tests"]
+norecursedirs = [
+    "*.egg",
+    ".git",
+    ".venv",
+    "build",
+    "dist",
+    "tsdist",
+]
 
 [tool.hatch.build.targets.sdist]
 exclude = [
@@ -57,3 +71,11 @@ exclude = [
 
 [tool.hatch.build.targets.wheel.force-include]
 "bundist/" = "bundist/"
+
+[tool.uv.workspace]
+members = [
+    ".",
+]
+
+[tool.uv.sources]
+tsemekwes = { workspace = true }

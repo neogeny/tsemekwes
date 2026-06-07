@@ -1,14 +1,19 @@
+# Copyright © 2017-2026 Juancarlo Añez (apalala@gmail.com)
+# SPDX-License-Identifier: Apache-2.0
 """Python interface matching src/api/api.ts, calling the CLI out-of-process."""
 
 from __future__ import annotations
 
 import json
+import tempfile
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
 from . import bun
 from .tree import Tree
-from .types import Grammar
+from .ts.types import Grammar
 
 
 def _build_grammar_args(
@@ -40,17 +45,31 @@ def _build_run_args(
     return [*args, *inputs]
 
 
+@contextmanager
+def temp_path_from_text(
+    text: str, suffix: str = ".ebnf", encoding: str = "utf-8"
+) -> Generator:
+    with tempfile.NamedTemporaryFile(
+        mode="tw",
+        suffix=suffix,
+        encoding=encoding,
+        delete=True,
+    ) as tmp:
+        tmp.write(text)
+        yield tmp.name
+
+
 def parseGrammar(
-    grammar: str,
+    path: str,
     *,
     trace: bool = False,
     output: str | None = None,
 ) -> Tree:
-    result = bun.run(_build_grammar_args(trace=trace), input=grammar, output=output)
+    result = bun.run(_build_grammar_args(trace=trace), output=output)
     return json.loads(result)
 
 
-def compile(path: str, *, output: str | None = None) -> Grammar:
+def compileGrammar(path: str, *, output: str | None = None) -> Grammar:
     grammar = json.loads(bun.run(["grammar", "-j", path], output=output))
     return Grammar(grammar)
 
@@ -73,6 +92,7 @@ def parseInput(
 
 def bootGrammar(*, output: str | None = None) -> Grammar:
     result = bun.run(["boot", "--json"], output=output)
+    print("GRAMMAR\n", result)
     return Grammar(json.loads(result))
 
 
