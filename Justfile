@@ -31,9 +31,8 @@ build: clean lint
          --outDir {{ tsdist }} \
         --declaration --emitDeclarationOnly
     bun build \
-      {{ src }}/tsemekwes.ts \
-      {{ src }}/cmd/parse-worker.ts \
-      --sourcemap --outdir {{ bundist }} --target bun
+        --sourcemap --outdir {{ bundist }} --target bun \
+        {{ src }}/tsemekwes.ts {{ src }}/cmd/parse-worker.ts
     bun build \
         {{ src }}/tsemekwes.ts \
         {{ src }}/cmd/parse-worker.ts \
