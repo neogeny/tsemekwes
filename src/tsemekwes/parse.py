@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import tempfile
+import json
 from pathlib import Path
+from typing import Any
 
 from tsemekwes import bun
 
@@ -12,23 +13,19 @@ def parse(
     *,
     start: str | None = None,
     trace: bool = False,
-) -> list[str]:
-    grammar = Path(grammar)
-    args = ["run", str(grammar), "-j"]
+) -> Any:
+    # TODO: the `run` CLI subcommand reads input files via worker threads
+    # (fs.readFile), not stdin.  Until the CLI supports "-" for input or
+    # accepts inline text, a temp file is required for the input text.
+    grammar_path = Path(grammar)
+    args = ["run", str(grammar_path), "-j"]
     if start:
         args += ["-s", start]
     if trace:
         args.append("-t")
 
-    if text:
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".txt", delete=False
-        ) as f:
-            input_path = f.name
-            f.write(text)
-        args.append(input_path)
-    try:
-        return list(bun.run_json(args))
-    finally:
-        if text:
-            Path(input_path).unlink(missing_ok=True)
+    result = bun.run(args)
+    if result.returncode != 0:
+        msg = result.stderr.strip() or f"exit {result.returncode}"
+        raise RuntimeError(f"tsemekwes error: {msg}")
+    return json.loads(result.stderr.strip())

@@ -1,4 +1,5 @@
-from tsemekwes.grammar import Grammar
+from tsemekwes.api import bootGrammar, bootJSON, bootPretty
+from tsemekwes.grammar import GrammarImpl
 from tsemekwes.parse import parse
 
 from ._version import __toolname__, __version__
@@ -6,6 +7,9 @@ from ._version import __toolname__, __version__
 __all__ = [
     "__toolname__",
     "__version__",
-    "Grammar",
+    "bootGrammar",
+    "bootJSON",
+    "bootPretty",
+    "GrammarImpl",
     "parse",
 ]
