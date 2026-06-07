@@ -16,7 +16,7 @@ dev path="src/cmd/cli.ts":
 
 # Clean build artifacts
 clean:
-    rm -rf {{ dist }} {[bundist]} {{ tsdist }}
+    rm -rf {{ dist }} {{ bundist }} {{ tsdist }}
 
 # Format code with Biome
 fmt:
@@ -64,7 +64,7 @@ tools:
     bun install biome
 
 py-types:
-    .venv/bin/ts2python src/tsemekwes/types.ts \
+    uv run ts2python src/tsemekwes/types.ts \
       -o src/tsemekwes --compatibility 3.12
 
 # Build Python distribution packages (sdist + wheel)
