@@ -10,6 +10,8 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+bundist
+tsdist
 *.local
 .tsbuildinfo
 
@@ -23,6 +25,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Documentation
+.vale/
+!.vale/styles/config/vocabularies/tsemekwes/accept.txt
 
 # Linked projects
 ogopego

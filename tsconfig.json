@@ -12,7 +12,7 @@
 
     "moduleResolution": "bundler",
     "rootDir": "./src",
-    "outDir": "./dist",
+    "outDir": "./bundist",
     "declaration": true,
     "declarationMap": true,
 
@@ -27,16 +27,16 @@
       "@api": ["./src/api"],
       "@config": ["./src/config"],
       "@config/*": ["./src/config/*"],
-      "@input": ["./src/input"],
-      "@trees": ["./src/trees"],
       "@context": ["./src/context"],
+      "@input": ["./src/input"],
+      "@json": ["./src/json"],
       "@peg": ["./src/peg"],
       "@peg/*": ["./src/peg/*"],
-      "@json": ["./src/json"],
+      "@trees": ["./src/trees"],
       "@util": ["./src/util"],
-      "@util/*": ["./src/util/*"]
-    }
+      "@util/*": ["./src/util/*"],
+    },
   },
   "include": ["src"],
-  "exclude": ["**/*.js", "**/*.d.ts"]
+  "exclude": ["**/*.js", "**/*.d.ts"],
 }

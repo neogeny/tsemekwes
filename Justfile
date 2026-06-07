@@ -2,6 +2,10 @@
 
 set shell := ["bash", "-uc"]
 
+dist := "./dist/"
+tsdist := "./tsdist/"
+bundist := "./bundist/"
+
 # Default target: lists all available workspace commands
 default:
     @just --list
@@ -12,7 +16,7 @@ dev path="src/cmd/cli.ts":
 
 # Clean build artifacts
 clean:
-    rm -rf dist/
+    rm -rf {{ dist }} {[bundist]} {{ tsdist }}
 
 # Format code with Biome
 fmt:
@@ -25,11 +29,17 @@ lint: fmt
 
 # Compile the TypeScript codebase down into a single high-performance binary artifact
 build: clean lint
-    bun tsc --declaration --emitDeclarationOnly --outDir ./dist
+    bun tsc \
+         --outDir {{ tsdist }} \
+        --declaration --emitDeclarationOnly
     bun build \
       ./src/tsemekwes.ts \
       ./src/cmd/parse-worker.ts \
-      --outdir ./dist --target bun
+      --outdir {{ bundist }} --target bun
+    bun build \
+        ./src/tsemekwes.ts \
+        ./src/cmd/parse-worker.ts \
+        --compile --minify --outfile bin/emekwes
 
 # Execute a specific script file instantly through the native bun runtime engine
 run script:
@@ -52,3 +62,21 @@ tools:
     bun npm install typescript
     bun install bun-types
     bun install biome
+
+py-types:
+    .venv/bin/ts2python src/tsemekwes/types.ts \
+      -o src/tsemekwes --compatibility 3.12
+
+# Build Python distribution packages (sdist + wheel)
+py-package: build py-types
+    uvx hatch build
+
+# Trigger a test publish to PyPI via GitHub Actions
+py-publish-test: py-package
+    gh workflow run test_publish.yml
+    gh run list --workflow=test_publish.yml
+
+# Trigger a production publish to PyPI via GitHub Actions
+py-publish: py-package
+    gh workflow run publish.yml
+    gh run list --workflow=publish.yml

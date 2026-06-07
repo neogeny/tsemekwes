@@ -3,12 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "tsemekwes": "./dist/tsemekwes.js",
-  "types": "./dist/tsemekwes.d.ts",
+  "tsemekwes": "./bundist/tsemekwes.js",
+  "types": "./bundist/tsemekwes.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/tsemekwes.d.ts",
-      "default": "./dist/tsemekwes.js"
+      "types": "./bundist/tsemekwes.d.ts",
+      "default": "./bundist/tsemekwes.js"
     }
   },
   "imports": {
@@ -16,13 +16,13 @@
     "#api/*": "./src/api/*"
   },
   "bin": {
-    "tsemekwes": "./dist/tsemekwes.js"
+    "tsemekwes": "./bundist/tsemekwes.js"
   },
   "files": [
-    "dist/*"
+    "bundist/*"
   ],
   "scripts": {
-    "build": "bun build ./src/tsemekwes.ts --outdir ./dist",
+    "build": "bun build ./src/tsemekwes.ts --outdir ./bundist",
     "dev": "bun run src/tsemekwes.ts",
     "test": "bun test"
   },

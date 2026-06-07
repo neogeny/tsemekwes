@@ -1,0 +1,47 @@
+# Adapted from tatsu/.github/workflows/test_publish.yml
+# Copyright (c) 2026 Juancarlo Añez (apalala@gmail.com)
+# SPDX-License-Identifier: BSD-4-Clause
+
+name: test publish to test.pypi
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://test.pypi.org/p/tsemekwes
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+      - uses: astral-sh/setup-uv@v7
+
+      - name: install deps
+        run: bun install
+
+      - name: build TS
+        run: bun build ./src/tsemekwes.ts ./src/cmd/parse-worker.ts --outdir ./dist --target bun
+
+      - name: sync Python deps
+        run: uv sync
+
+      - name: generate types
+        run: uv run ts2python src/tsemekwes/types.ts -o src/tsemekwes --compatibility 3.12
+
+      - name: build
+        run: uvx hatch build
+
+      - name: publish
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          verbose: true
+          print-hash: true
+          skip-existing: true

@@ -1,14 +1,20 @@
-import css from "@eslint/css"
-import js from "@eslint/js"
-import json from "@eslint/json"
-import markdown from "@eslint/markdown"
-import { defineConfig } from "eslint/config"
-import globals from "globals"
-import tseslint from "typescript-eslint"
+import css from "@eslint/css";
+import js from "@eslint/js";
+import json from "@eslint/json";
+import markdown from "@eslint/markdown";
+import { defineConfig } from "eslint/config";
+import globals from "globals";
+import tseslint from "typescript-eslint";
 
 export default defineConfig([
   {
-    ignores: ["dist/**", "package-lock.json", "**/*.md", "src/style.css"],
+    ignores: [
+      "dis/**",
+      "bundist/**",
+      "package-lock.json",
+      "**/*.md",
+      "src/style.css",
+    ],
   },
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
@@ -60,4 +66,4 @@ export default defineConfig([
     language: "css/css",
     extends: ["css/recommended"],
   },
-])
+]);
