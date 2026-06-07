@@ -31,13 +31,17 @@ build: clean lint
          --outDir {{ tsdist }} \
         --declaration --emitDeclarationOnly
     bun build \
-        --sourcemap --outdir {{ bundist }} --target bun \
-        {{ src }}/tsemekwes.ts {{ src }}/cmd/parse-worker.ts
+        {{ src }}/tsemekwes.ts {{ src }}/cmd/parse-worker.ts \
+        --outdir {{ bundist }} --target bun
+
+bundle: build
     bun build \
         {{ src }}/tsemekwes.ts \
         {{ src }}/cmd/parse-worker.ts \
-        --compile --minify --outfile --sourcemap \
-        bin/emekwes
+        --compile \
+        --outfile  bin/tsemekwes
+
+# --minify --sourcemap \
 
 # Execute a specific script file instantly through the native bun runtime engine
 run script:
