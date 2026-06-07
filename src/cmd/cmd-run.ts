@@ -171,11 +171,13 @@ export async function cmdRun(
 
   const elapsed = (Date.now() - startTime) / 1000
   const slocPerSec = elapsed > 0 ? (sloc / elapsed).toFixed(0) : "0"
-  console.error(
-    `${pc.whiteBright(`Parsed`)} ${pc.cyanBright(`${inputPaths.length} files`)}` +
-      ` ${pc.green(`${outputs.length} passed`)}` +
-      ` ${pc.red(`${errcount} errors`)}` +
-      ` ${pc.gray(`${sloc} sloc`)} ${pc.gray(`${slocPerSec} sloc/s`)}`,
-  )
+  if (!quiet) {
+    console.error(
+      `${pc.whiteBright(`Parsed`)} ${pc.cyanBright(`${inputPaths.length} files`)}` +
+        ` ${pc.green(`${outputs.length} passed`)}` +
+        ` ${pc.red(`${errcount} errors`)}` +
+        ` ${pc.gray(`${sloc} sloc`)} ${pc.gray(`${slocPerSec} sloc/s`)}`,
+    )
+  }
   return { lang: "json", outputs }
 }
