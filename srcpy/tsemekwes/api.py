@@ -17,10 +17,11 @@ from .ts.types import Grammar
 
 
 def _build_grammar_args(
+    path: str,
     *,
     trace: bool = False,
 ) -> list[str]:
-    args = ["grammar", "-", "-j"]
+    args = ["grammar", "-j", path]
     if trace:
         args.append("-t")
     return args
@@ -50,12 +51,13 @@ def temp_path_from_text(
     text: str, suffix: str = ".ebnf", encoding: str = "utf-8"
 ) -> Generator:
     with tempfile.NamedTemporaryFile(
-        mode="tw",
+        mode="w+",
         suffix=suffix,
         encoding=encoding,
         delete=True,
     ) as tmp:
         tmp.write(text)
+        tmp.flush()
         yield tmp.name
 
 
@@ -65,7 +67,7 @@ def parseGrammar(
     trace: bool = False,
     output: str | None = None,
 ) -> Tree:
-    result = bun.run(_build_grammar_args(trace=trace), output=output)
+    result = bun.run(_build_grammar_args(path, trace=trace), output=output)
     return json.loads(result)
 
 
@@ -91,8 +93,14 @@ def parseInput(
 
 
 def bootGrammar(*, output: str | None = None) -> Grammar:
-    result = bun.run(["boot", "--json"], output=output)
-    print("GRAMMAR\n", result)
+    if output is not None:
+        result = bun.run(["boot", "--json"], output=output)
+    else:
+        with tempfile.NamedTemporaryFile(
+            mode="w+", suffix=".json", encoding="utf-8", delete=True
+        ) as tmp:
+            bun.run(["boot", "--json"], output=tmp.name)
+            result = Path(tmp.name).read_text()
     return Grammar(json.loads(result))
 
 
