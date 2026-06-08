@@ -16,7 +16,7 @@ from tsemekwes.api import (
     grammar_pretty,
     loads_grammar,
     parse_grammar,
-    parse_input,
+    parse_inputs,
     read_grammar,
     temp_path_from_text,
 )
@@ -102,38 +102,42 @@ class TestCompileGrammar:
 
 
 class TestParseInput:
-    """parseInput(path, inputs, *, start=None, nproc=None, trace=False, output=None) -> Any
+    """parse_inputs(path, inputs, *, start=None, nproc=None, trace=False, output=None) -> list[Tree]
 
     Calls bun run tsemekwes.js run -j [start] [nproc] [trace] <path> <inputs...>.
 
     inputs are file paths — the CLI reads input text from those files.
+    Returns one parse Tree per input file (JSONL on stdout).
     """
 
-    def test_parse_input_returns_json(self, grammar_file: Path, tmp_path: Path):
+    def test_parse_input_returns_list(self, grammar_file: Path, tmp_path: Path):
         input_file = tmp_path / "input.txt"
         input_file.write_text("hello")
-        result = parse_input(str(grammar_file), [str(input_file)])
-        assert result is not None
+        result = parse_inputs(str(grammar_file), [str(input_file)])
+        assert isinstance(result, list)
+        assert len(result) == 1
 
     def test_parse_with_start_rule(self, grammar_file: Path, tmp_path: Path):
         input_file = tmp_path / "input.txt"
         input_file.write_text("hello")
-        result = parse_input(str(grammar_file), [str(input_file)], start="start")
-        assert result is not None
+        result = parse_inputs(str(grammar_file), [str(input_file)], start="start")
+        assert isinstance(result, list)
+        assert len(result) == 1
 
     def test_parse_invalid_input_fails(self, grammar_file: Path, tmp_path: Path):
         input_file = tmp_path / "input.txt"
         input_file.write_text("world")
         with pytest.raises((ValueError, Exception)):
-            parse_input(str(grammar_file), [str(input_file)])
+            parse_inputs(str(grammar_file), [str(input_file)])
 
     def test_parse_multiple_inputs(self, grammar_file: Path, tmp_path: Path):
         input_file = tmp_path / "input.txt"
         input_file.write_text("hello")
-        result = parse_input(
+        result = parse_inputs(
             str(grammar_file), [str(input_file), str(input_file)], nproc=1
         )
-        assert result is not None
+        assert isinstance(result, list)
+        assert len(result) == 2
 
 
 class TestLoadGrammar:

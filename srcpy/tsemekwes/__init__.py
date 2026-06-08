@@ -6,7 +6,7 @@ from tsemekwes.api import (
     compile,
     loads_grammar,
     parse_grammar,
-    parse_input,
+    parse_inputs,
     read_grammar,
 )
 
@@ -20,7 +20,7 @@ __all__ = [
     "read_grammar",
     "compile",
     "parse_grammar",
-    "parse_input",
+    "parse_inputs",
     "read_grammar",
     "loads_grammar",
 ]

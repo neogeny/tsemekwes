@@ -48,7 +48,7 @@ def check_output(cp: CompletedProcess) -> str:
     if cp.returncode != 0:
         msg = cp.stderr.strip() or f"exit {cp.returncode}"
         raise ValueError(f"tsemekwes error: {msg}")
-    return cp.stderr.strip()
+    return cp.stdout.strip()
 
 
 def run_json(args: list[str]) -> Any:

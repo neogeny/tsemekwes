@@ -9,7 +9,7 @@ import tempfile
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any
+
 
 from . import bun
 from .tree import Tree
@@ -61,6 +61,16 @@ def temp_path_from_text(
         yield tmp.name
 
 
+def parse_jsonl(s: str) -> list[Tree]:
+    result: list[Tree] = []
+    for line in s.strip().splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        result.append(json.loads(line))
+    return result
+
+
 def parse_grammar(
     path: str,
     *,
@@ -76,7 +86,7 @@ def compile(path: str, *, output: str | None = None) -> Grammar:
     return Grammar(grammar)
 
 
-def parse_input(
+def parse_inputs(
     path: str,
     inputs: list[str],
     *,
@@ -84,12 +94,17 @@ def parse_input(
     nproc: int | None = None,
     trace: bool = False,
     output: str | None = None,
-) -> Any:
+) -> list[Tree]:
     result = bun.run(
         _build_run_args(path, inputs, start=start, nproc=nproc, trace=trace),
         output=output,
     )
-    return json.loads(result)
+    trees = parse_jsonl(result)
+    if len(trees) != len(inputs):
+        raise ValueError(
+            f"parse_inputs: expected {len(inputs)} result(s), got {len(trees)}"
+        )
+    return trees
 
 
 def boot_grammar(*, output: str | None = None) -> Grammar:
