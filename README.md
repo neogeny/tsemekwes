@@ -11,14 +11,38 @@ Refer to the [竜TatSu documentation] for grammar syntax, semantics, and usage. 
 
 [竜TatSu documentation]: https://tatsu.readthedocs.io/
 
+See the [CHANGELOG](CHANGELOG.md) for a list of present and pending features.
+
 The CLI tool is a great way to explored the features offered by the library:
 
-```bash
-$ emekwes --help
-```
+  ```bash
+  $ bin/emekwes run --help
+  Usage: emekwes run [options] <grammar> [inputs...]
+  
+  execute a grammar against one or more input files
+  
+  Options:
+    -j, --json            output the parse tree in JSON format
+    -s, --start <rule>    name of the start rule (default: "start")
+    -n, --nproc <number>  number of concurrent workers (default: CPU count)
+                          (default: 0)
+    -h, --help            display help for command
+  
+  Global Options:
+    -c, --color <when>    control terminal color output (choices: "auto",
+                          "always", "never", default: "auto")
+    -o, --output <path>   write output to file instead of stdout
+    -t, --trace           display a detailed trace of the parsing process
+    -q, --quiet           suppress progress bar output
+    -V, --version         output the version number
+  ```
 
+## License
 
-## Implementation
-* The syntax for regular expressions is the one suported by [XRegExp], as **TatSu**-style grammars have normally used `(?m)` flags to make it easier to define patterns for comments, whitespace, and so on.
+Licensed under the Apache License, Version 2.0 ([LICENSE](LICENSE) or http://www.apache.org/licenses/LICENSE-2.0).
 
-[XRegExp]: https://xregexp.com/
+### Contribution
+
+Unless explicitly stated otherwise, any contribution intentionally submitted
+for inclusion in the work, as defined in the Apache-2.0 license, shall be
+licensed as above, without any additional terms or conditions.

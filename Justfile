@@ -75,7 +75,6 @@ py-doc:
     tsemekwes.tree
 
 py-build: build
-    echo HERE
     uvx hatch build --no-hooks
 
 # Trigger a test publish to PyPI via GitHub Actions

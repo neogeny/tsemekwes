@@ -23,7 +23,6 @@ async function command(): Promise<Command> {
   const baseHelp = new Help()
   baseHelp.showGlobalOptions = true
   program.configureHelp({
-    // 2. Use the clean base instance here instead of the recursive 'helper'
     formatHelp: (cmd) => {
       const regularHelp = baseHelp.formatHelp(cmd, baseHelp)
 
