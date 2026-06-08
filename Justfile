@@ -69,8 +69,14 @@ py-types:
     uv run ts2python {{ srcpy }}/tsemekwes/types.ts \
       -o {{ srcpy }}/tsemekwes/ts/ --compatibility 3.12
 
-# Build Python distribution packages (sdist + wheel)
-py-build: build py-types
+py-doc:
+    uv run -m pdoc -o doc -d markdown \
+    tsemekwes \
+    tsemekwes.api \
+    tsemekwes.peg \
+    tsemekwes.tree
+
+py-build: build py-types py-doc
     uvx hatch build
 
 # Trigger a test publish to PyPI via GitHub Actions

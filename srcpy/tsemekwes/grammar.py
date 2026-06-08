@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from .types import Grammar
+from .peg import Grammar
 
 
 class GrammarImpl:

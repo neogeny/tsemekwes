@@ -10,10 +10,9 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
-
 from . import bun
+from .peg import Grammar
 from .tree import Tree
-from .ts.types import Grammar
 
 
 def _build_grammar_args(
@@ -50,6 +49,7 @@ def _build_run_args(
 def temp_path_from_text(
     text: str, suffix: str = ".ebnf", encoding: str = "utf-8"
 ) -> Generator:
+    """Write text to a temp file and yield its path. Cleans up on exit."""
     with tempfile.NamedTemporaryFile(
         mode="w+",
         suffix=suffix,
@@ -62,6 +62,7 @@ def temp_path_from_text(
 
 
 def parse_jsonl(s: str) -> list[Tree]:
+    """Parse JSON Lines: one JSON value per line."""
     result: list[Tree] = []
     for line in s.strip().splitlines():
         line = line.strip()
@@ -77,11 +78,13 @@ def parse_grammar(
     trace: bool = False,
     output: str | None = None,
 ) -> Tree:
+    """Parse a grammar file and return the parse tree."""
     result = bun.run(_build_grammar_args(path, trace=trace), output=output)
     return json.loads(result)
 
 
 def compile(path: str, *, output: str | None = None) -> Grammar:
+    """Compile a grammar file into a Grammar TypedDict."""
     grammar = json.loads(bun.run(["grammar", "-j", path], output=output))
     return Grammar(grammar)
 
@@ -95,6 +98,7 @@ def parse_inputs(
     trace: bool = False,
     output: str | None = None,
 ) -> list[Tree]:
+    """Parse each input file against the grammar, return one Tree per input (JSONL)."""
     result = bun.run(
         _build_run_args(path, inputs, start=start, nproc=nproc, trace=trace),
         output=output,
@@ -108,6 +112,7 @@ def parse_inputs(
 
 
 def boot_grammar(*, output: str | None = None) -> Grammar:
+    """Get the bootstrapped TS'emekwes grammar as a Grammar TypedDict."""
     if output is not None:
         result = bun.run(["boot", "--json"], output=output)
     else:
@@ -120,19 +125,23 @@ def boot_grammar(*, output: str | None = None) -> Grammar:
 
 
 def boot_pretty(*, output: str | None = None) -> str:
+    """Get the bootstrapped grammar as a pretty-printed string."""
     return bun.run(["boot", "--pretty"], output=output)
 
 
 def loads_grammar(json_str: str) -> Grammar:
+    """Deserialize a JSON string into a Grammar TypedDict."""
     return Grammar(json.loads(json_str))
 
 
 def grammar_pretty(path: str, *, output: str | None = None) -> str:
+    """Pretty-print a compiled grammar file."""
     return bun.run(["grammar", "--pretty", path], output=output)
 
 
 def read_grammar(
     path: str,
 ) -> Grammar:
+    """Read a compiled grammar JSON file into a Grammar TypedDict."""
     text = Path(path).read_text()
     return Grammar(json.loads(text))

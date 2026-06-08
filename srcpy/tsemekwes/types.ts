@@ -3,58 +3,60 @@
 /// Bridge types — mirrors the serialization in src/peg/json.ts
 /// and the structure of grammar/tatsu.json.
 
-export interface Exp {}
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 
-export interface BoxExp extends Exp {
-  exp: AnyExp;
+export interface BaseExp {}
+
+export interface BoxExp extends BaseExp {
+  exp: Exp;
 }
 
 export interface NamedBoxExp extends BoxExp {
   name: string;
 }
 
-export interface NullExp extends Exp {}
+export interface NullExp extends BaseExp {}
 
-export interface CutExp extends Exp {}
+export interface CutExp extends BaseExp {}
 
-export interface VoidExp extends Exp {}
+export interface VoidExp extends BaseExp {}
 
-export interface FailExp extends Exp {}
+export interface FailExp extends BaseExp {}
 
-export interface DotExp extends Exp {}
+export interface DotExp extends BaseExp {}
 
-export interface EofExp extends Exp {}
+export interface EofExp extends BaseExp {}
 
-export interface EolExp extends Exp {}
+export interface EolExp extends BaseExp {}
 
-export interface EmptyClosureExp extends Exp {}
+export interface EmptyClosureExp extends BaseExp {}
 
 // ── Leaf: scalar payload ───────────────────────────────────────────
 
-export interface TokenExp extends Exp {
+export interface TokenExp extends BaseExp {
   token: string;
 }
 
-export interface PatternExp extends Exp {
+export interface PatternExp extends BaseExp {
   pattern: string;
 }
 
-export interface ConstantExp extends Exp {
+export interface ConstantExp extends BaseExp {
   literal: unknown;
 }
 
-export interface AlertExp extends Exp {
+export interface AlertExp extends BaseExp {
   literal: string;
   level: number;
 }
 
 // ── Call / reference ───────────────────────────────────────────────
 
-export interface CallExp extends Exp {
+export interface CallExp extends BaseExp {
   name: string;
 }
 
-export interface RuleIncludeExp extends Exp {
+export interface RuleIncludeExp extends BaseExp {
   name: string;
 }
 
@@ -91,34 +93,34 @@ export interface NamedListExp extends NamedBoxExp {}
 // ── Binary: two children ───────────────────────────────────────────
 
 export interface JoinExp extends BoxExp {
-  sep: AnyExp;
+  sep: Exp;
 }
 
 export interface PositiveJoinExp extends BoxExp {
-  sep: AnyExp;
+  sep: Exp;
 }
 
 export interface GatherExp extends BoxExp {
-  sep: AnyExp;
+  sep: Exp;
 }
 
 export interface PositiveGatherExp extends BoxExp {
-  sep: AnyExp;
+  sep: Exp;
 }
 
 // ── N-ary: array of children ───────────────────────────────────────
 
-export interface SeqExp extends Exp {
-  sequence: AnyExp[];
+export interface SeqExp extends BaseExp {
+  sequence: Exp[];
 }
 
-export interface ChoiceExp extends Exp {
-  options: AnyExp[];
+export interface ChoiceExp extends BaseExp {
+  options: Exp[];
 }
 
 // ── Discriminated union of all expression shapes ───────────────────
 
-export type AnyExp =
+export type Exp =
   | NullExp
   | CutExp
   | VoidExp
@@ -167,7 +169,7 @@ export interface Rule {
   no_stak: boolean;
   is_memo: boolean;
   is_lrec: boolean;
-  exp: AnyExp;
+  exp: Exp;
 }
 
 // ── Grammar ────────────────────────────────────────────────────────

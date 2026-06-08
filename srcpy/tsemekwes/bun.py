@@ -32,6 +32,7 @@ def _cmd(args: list[str]) -> list[str]:
 
 
 def run(args: list[str], output: str | None = None) -> str:
+    """Run the CLI with args; if output is set, write results to that file."""
     if output is not None:
         args = ["-o", output, *args]
     cp = subprocess.run(_cmd(args), capture_output=True, text=True)
@@ -39,12 +40,14 @@ def run(args: list[str], output: str | None = None) -> str:
 
 
 def exec(args: list[str]) -> int:
+    """Replace the current process with the CLI."""
     import os
 
     os.execv(sys.executable, _cmd(args))
 
 
 def check_output(cp: CompletedProcess) -> str:
+    """Return stdout on success, raise ValueError on non-zero exit."""
     if cp.returncode != 0:
         msg = cp.stderr.strip() or f"exit {cp.returncode}"
         raise ValueError(f"tsemekwes error: {msg}")
@@ -52,6 +55,7 @@ def check_output(cp: CompletedProcess) -> str:
 
 
 def run_json(args: list[str]) -> Any:
+    """Run the CLI and parse stdout as JSON."""
     result = run(args)
     if result.returncode != 0:
         msg = result.stderr.strip() or f"exit {result.returncode}"

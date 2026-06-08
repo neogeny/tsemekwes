@@ -4,10 +4,26 @@
 
 import sys
 from enum import Enum, IntEnum
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Generic,
+    Iterable,
+    Iterator,
+    List,
+    Literal,
+    NotRequired,
+    Optional,
+    Self,
+    Tuple,
+    TypeAlias,
+    TypedDict,
+    TypeVar,
+    Union,
+)
 
-from typing import Union, Optional, Any, Generic, TypeVar, Callable, List, \
-    Iterable, Iterator, Tuple, Dict, TypedDict, NotRequired, Literal, TypeAlias, \
-    Awaitable, Self
 try:
     from typing import ReadOnly
 except ImportError:
@@ -27,11 +43,11 @@ source_hash__ = "7bc2844d25206af759ebb26aec44998f"
 
 
 class Exp(TypedDict):
-    pass
+    """Base type for all PEG expression nodes in the compiled grammar."""
 
 
 class BoxExp(Exp, TypedDict):
-    exp: 'AnyExp'
+    exp: "AnyExp"
 
 
 class NamedBoxExp(BoxExp, TypedDict):
@@ -154,41 +170,77 @@ class NamedListExp(NamedBoxExp, TypedDict):
 
 
 class JoinExp(BoxExp, TypedDict):
-    sep: 'AnyExp'
+    sep: "AnyExp"
 
 
 class PositiveJoinExp(BoxExp, TypedDict):
-    sep: 'AnyExp'
+    sep: "AnyExp"
 
 
 class GatherExp(BoxExp, TypedDict):
-    sep: 'AnyExp'
+    sep: "AnyExp"
 
 
 class PositiveGatherExp(BoxExp, TypedDict):
-    sep: 'AnyExp'
+    sep: "AnyExp"
 
 
 # ── N-ary: array of children ───────────────────────────────────────
 
 
 class SeqExp(Exp, TypedDict):
-    sequence: List['AnyExp']
+    sequence: List["AnyExp"]
 
 
 class ChoiceExp(Exp, TypedDict):
-    options: List['AnyExp']
+    options: List["AnyExp"]
 
 
 # ── Discriminated union of all expression shapes ───────────────────
 
-type AnyExp = NullExp | CutExp | VoidExp | FailExp | DotExp | EofExp | EolExp | EmptyClosureExp | TokenExp | PatternExp | ConstantExp | AlertExp | CallExp | RuleIncludeExp | GroupExp | SkipGroupExp | LookaheadExp | NegativeLookaheadExp | SkipToExp | AltExp | OptionalExp | ClosureExp | PositiveClosureExp | OverrideExp | OverrideListExp | NamedExp | NamedListExp | JoinExp | PositiveJoinExp | GatherExp | PositiveGatherExp | SeqExp | ChoiceExp
+type AnyExp = (
+    NullExp
+    | CutExp
+    | VoidExp
+    | FailExp
+    | DotExp
+    | EofExp
+    | EolExp
+    | EmptyClosureExp
+    | TokenExp
+    | PatternExp
+    | ConstantExp
+    | AlertExp
+    | CallExp
+    | RuleIncludeExp
+    | GroupExp
+    | SkipGroupExp
+    | LookaheadExp
+    | NegativeLookaheadExp
+    | SkipToExp
+    | AltExp
+    | OptionalExp
+    | ClosureExp
+    | PositiveClosureExp
+    | OverrideExp
+    | OverrideListExp
+    | NamedExp
+    | NamedListExp
+    | JoinExp
+    | PositiveJoinExp
+    | GatherExp
+    | PositiveGatherExp
+    | SeqExp
+    | ChoiceExp
+)
 
 
 # ── Rule ───────────────────────────────────────────────────────────
 
 
 class Rule(TypedDict):
+    """A single PEG rule with name, params, decorators, and body expression."""
+
     name: str
     params: List[str]
     kwparams: Dict[str, str]
@@ -200,13 +252,15 @@ class Rule(TypedDict):
     no_stak: bool
     is_memo: bool
     is_lrec: bool
-    exp: 'AnyExp'
+    exp: "AnyExp"
 
 
 # ── Grammar ────────────────────────────────────────────────────────
 
 
 class Grammar(TypedDict):
+    """A compiled PEG grammar: name, directives, keywords, and rules."""
+
     name: str
     directives: Dict[str, Any]
     keywords: List[str]

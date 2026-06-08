@@ -33,6 +33,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "pdoc>=16.0.0",
     "pytest>=9.0.3",
     "ruff>=0.15.16",
     "ts2python>=0.8.2",
@@ -62,6 +63,7 @@ exclude = [
     "fragments/",
     "public/",
 ]
+targets = ["doc/"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["srcpy/tsemekwes"]
