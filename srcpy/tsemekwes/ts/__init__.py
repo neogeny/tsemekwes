@@ -3,7 +3,7 @@
 from .types import (
     AlertExp,
     AltExp,
-    AnyExp,
+    BaseExp,
     BoxExp,
     CallExp,
     ChoiceExp,
@@ -40,13 +40,12 @@ from .types import (
     SkipToExp,
     TokenExp,
     VoidExp,
-    source_hash__,
 )
 
 __all__ = [
     "AlertExp",
     "AltExp",
-    "AnyExp",
+    "BaseExp",
     "BoxExp",
     "CallExp",
     "ChoiceExp",
@@ -83,5 +82,4 @@ __all__ = [
     "SkipToExp",
     "TokenExp",
     "VoidExp",
-    "source_hash__",
 ]

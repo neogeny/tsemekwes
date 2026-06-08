@@ -63,7 +63,7 @@ exclude = [
     "fragments/",
     "public/",
 ]
-targets = ["doc/"]
+targets = ["wheel"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["srcpy/tsemekwes"]

@@ -84,7 +84,7 @@ def parse_grammar(
 
 
 def compile(path: str, *, output: str | None = None) -> Grammar:
-    """Compile a grammar file into a Grammar TypedDict."""
+    """Compile a grammar file into a Grammar."""
     grammar = json.loads(bun.run(["grammar", "-j", path], output=output))
     return Grammar(grammar)
 
@@ -112,7 +112,7 @@ def parse_inputs(
 
 
 def boot_grammar(*, output: str | None = None) -> Grammar:
-    """Get the bootstrapped TS'emekwes grammar as a Grammar TypedDict."""
+    """Get the bootstrapped TS'emekwes grammar."""
     if output is not None:
         result = bun.run(["boot", "--json"], output=output)
     else:
@@ -130,7 +130,7 @@ def boot_pretty(*, output: str | None = None) -> str:
 
 
 def loads_grammar(json_str: str) -> Grammar:
-    """Deserialize a JSON string into a Grammar TypedDict."""
+    """Deserialize a JSON string into a Grammar."""
     return Grammar(json.loads(json_str))
 
 
@@ -142,6 +142,6 @@ def grammar_pretty(path: str, *, output: str | None = None) -> str:
 def read_grammar(
     path: str,
 ) -> Grammar:
-    """Read a compiled grammar JSON file into a Grammar TypedDict."""
+    """Read a compiled grammar JSON file as a Grammar."""
     text = Path(path).read_text()
     return Grammar(json.loads(text))

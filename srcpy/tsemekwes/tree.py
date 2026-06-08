@@ -3,4 +3,11 @@
 
 """Recursive JSON-like type representing a parse tree."""
 
-type Tree = dict[str, Tree] | list[Tree] | str | int | float | bool | None
+from typing import TypedDict
+
+type Tree = dict[str, Tree] | list[Tree] | object | str | int | float | bool | None
+
+
+class TreeNode(TypedDict):
+    __class__: str  # pyright: ignore[reportIncompatibleMethodOverride]
+    ast: Tree
