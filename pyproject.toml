@@ -37,7 +37,6 @@ dev = [
     "pdoc>=16.0.0",
     "pytest>=9.0.3",
     "ruff>=0.15.16",
-    "ts2python>=0.8.2",
     "tsemekwes",
     "vale>=3.13.0.0",
 ]
