@@ -59,9 +59,8 @@ prof script:
     node --prof --cpu-prof {{ script }}
 
 tools:
-    curl -fsSL https://bun.com/install | bash
-    bun install npm
-    bun npm install typescript
+    # curl -fsSL https://bun.com/install | bash
+    bun install typescript
     bun install bun-types
     bun install biome
 
@@ -76,7 +75,7 @@ py-doc:
     tsemekwes.peg \
     tsemekwes.tree
 
-py-build:
+py-build: build py-types
     uvx hatch build
 
 # Trigger a test publish to PyPI via GitHub Actions
