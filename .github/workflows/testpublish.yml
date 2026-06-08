@@ -18,38 +18,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-
-      - name: git log --stat HEAD~2...HEAD
-        run: git log --stat HEAD~2...HEAD
-
-      - uses: oven-sh/setup-bun@v2
       - uses: astral-sh/setup-uv@v7
-
-      - name: git log --stat HEAD~2...HEAD
-        run: git log --stat HEAD~2...HEAD
+      - uses: oven-sh/setup-bun@v2
 
       - name: install just
         run: sudo apt-get update -qq && sudo apt-get install -y -qq just
 
-      - name: git log --stat HEAD~2...HEAD
-        run: git log --stat HEAD~2...HEAD
-
       - name: install tools
         run: just tools
 
-      - name: git log --stat HEAD~2...HEAD
-        run: git log --stat HEAD~2...HEAD
-
       - name: build
         run: just py-build
-
-      - name: git log --stat HEAD~2...HEAD
-        run: git log --stat HEAD~2...HEAD
 
       - name: publish
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
-          verbose: true
-          print-hash: true
+          verbose: false
+          print-hash: false
           skip-existing: true

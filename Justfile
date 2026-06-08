@@ -39,9 +39,8 @@ bundle: build
         {{ src }}/tsemekwes.ts \
         {{ src }}/cmd/parse-worker.ts \
         --compile \
+        --minify --sourcemap \
         --outfile  bin/tsemekwes
-
-# --minify --sourcemap \
 
 # Execute a specific script file instantly through the native bun runtime engine
 run script:

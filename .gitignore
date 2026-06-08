@@ -14,6 +14,7 @@ tsdist
 *.local
 .tsbuildinfo
 bin/*.map
+bin/tsemekwes
 
 # Editor directories and files
 .vscode/*
