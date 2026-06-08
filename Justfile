@@ -81,7 +81,7 @@ py-build: build py-types
 
 # Trigger a test publish to PyPI via GitHub Actions
 py-publish-test: py-build
-    gh workflow run test_publish.yml
+    gh workflow run testpublish.yml
     gh run list --workflow=testpublish.yml
 
 # Trigger a production publish to PyPI via GitHub Actions
