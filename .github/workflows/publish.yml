@@ -18,33 +18,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-
-      - name: git status after checkout
-        run: git status
-
-      - uses: oven-sh/setup-bun@v2
+        with:
+          fetch-depth: 0
+          fetch-tags: true
       - uses: astral-sh/setup-uv@v7
-
-      - name: git status after setup
-        run: git status
+      - uses: oven-sh/setup-bun@v2
 
       - name: install just
         run: sudo apt-get update -qq && sudo apt-get install -y -qq just
 
-      - name: git status after just
-        run: git status
-
       - name: install tools
         run: just tools
 
-      - name: git status after tools
-        run: git status
-
       - name: build
         run: just py-build
-
-      - name: git status after build
-        run: git status
 
       - name: publish
         uses: pypa/gh-action-pypi-publish@release/v1

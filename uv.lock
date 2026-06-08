@@ -165,6 +165,15 @@ wheels = [
 ]
 
 [[package]]
+name = "dhparser"
+version = "1.9.6"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/74/6e/d3398e9121ba78b8cc67a4e83fcffc5b19477537e8ec505596773763618f/dhparser-1.9.6.tar.gz", hash = "sha256:534ac5dc204bc501edc264f5ddd0a18cc813333affe715ff3b5d5c860d1cf291", size = 533721, upload-time = "2026-04-20T21:00:57.054Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/79/6d/c36cd50fbf500e8f935a9aee30d3c57febde965020d3a06d56e2aca99172/dhparser-1.9.6-py3-none-any.whl", hash = "sha256:46d7366f2e05a9d3bff728cc506c079a989f81bda2cdbec9c031b5cf897a8fec", size = 568541, upload-time = "2026-04-20T21:00:54.276Z" },
+]
+
+[[package]]
 name = "distlib"
 version = "0.4.1"
 source = { registry = "https://pypi.org/simple" }
@@ -722,6 +731,18 @@ wheels = [
 ]
 
 [[package]]
+name = "ts2python"
+version = "0.8.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dhparser" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e0/f5/70e89f4a5e5a43fc948597fdac342eab199079d232988e4dcd22ee053cc0/ts2python-0.8.2.tar.gz", hash = "sha256:89d15ac557a711dda5eeb01d552056c3b4875ba28586540a25781bd274695b39", size = 84348, upload-time = "2025-10-30T11:04:56.742Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bf/76/e60bc8ecb8e0d233e960761984b4d4e936d5f1c7a0229f7fe8b5443f608b/ts2python-0.8.2-py3-none-any.whl", hash = "sha256:dc05b73a9b6a0040584e282ea58c30acf9753c5b508a7343a5ecd9cda12fd4f7", size = 98454, upload-time = "2025-10-30T11:04:55.565Z" },
+]
+
+[[package]]
 name = "tsemekwes"
 source = { editable = "." }
 dependencies = [
@@ -734,6 +755,7 @@ dev = [
     { name = "pdoc" },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "ts2python" },
     { name = "tsemekwes" },
     { name = "vale" },
 ]
@@ -747,6 +769,7 @@ dev = [
     { name = "pdoc", specifier = ">=16.0.0" },
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "ruff", specifier = ">=0.15.16" },
+    { name = "ts2python", specifier = ">=0.8.2" },
     { name = "tsemekwes", editable = "." },
     { name = "vale", specifier = ">=3.13.0.0" },
 ]
