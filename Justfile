@@ -76,7 +76,7 @@ py-doc:
     tsemekwes.peg \
     tsemekwes.tree
 
-py-build: build py-types
+py-build:
     uvx hatch build
 
 # Trigger a test publish to PyPI via GitHub Actions
