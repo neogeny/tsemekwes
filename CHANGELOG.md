@@ -10,12 +10,10 @@ All notable changes to this project will be documented in this file. The format 
 
 - Initial public release, feature-complete.
 - PEG grammar parsing and compilation to JSON.
-- CLI tool with `parse`, `compile`, and `boot` subcommands.
+- CLI tool with `boot`, `grammar`, and `run` subcommands.
 - Python API (`parse_grammar`, `compile`, `parse_inputs`, `boot_grammar`, `grammar_pretty`, `read_grammar`, `loads_grammar`).
 - JSONL multi-input support with stream separation (stdout for data, stderr for diagnostics).
 - Bootstrap grammar self-compilation.
-- GitHub Actions CI/CD workflows for testing and publishing.
-- Justfile build system.
 
 [Unreleased]: https://github.com/neogeny/tsemekwes/compare/v0.1.0...HEAD
 [v0.1.0]: https://github.com/neogeny/tsemekwes/releases/tag/v0.1.0
