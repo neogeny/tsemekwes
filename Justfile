@@ -18,7 +18,7 @@ clean:
 
 # Format code with Biome
 fmt:
-    bun x biome format {{ src }} --write
+    bun x biome format --semicolons=as-needed {{ src }} --write
 
 # Check both structural code metrics and type definitions
 lint: fmt
