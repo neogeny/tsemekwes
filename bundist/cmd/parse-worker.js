@@ -20422,7 +20422,7 @@ function newPatterns(wsp, cmt, eol) {
   return new TokenizingPatterns(compileRe(wsp), compileRe(cmt), compileRe(eol));
 }
 function defaultPatterns() {
-  const pat = newPatterns(`\\s+`, `[^\\s\\S]`, `[^\\s\\S]`);
+  const pat = newPatterns("\\s+", "[^\\s\\S]", "[^\\s\\S]");
   pat.nonDefault = false;
   return pat;
 }
