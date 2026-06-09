@@ -18705,10 +18705,10 @@ function pruneMemoCache(cache, cutPoint) {
 
 // src/context/core.ts
 function newCtx(cursor, cfg) {
-  return new Core(cursor, cfg);
+  return new CoreCtx(cursor, cfg);
 }
 
-class Core {
+class CoreCtx {
   _cursor;
   _callStack = [];
   cutStack = [false];
@@ -18843,62 +18843,62 @@ class Core {
   matchName() {
     this.nextToken();
     const start = this.mark();
-    const [slice, ok] = this._cursor.matchName();
-    if (ok) {
-      this._tracer.traceMatch(this, "@name", slice);
-      return slice;
+    const slice = this._cursor.matchName();
+    if (slice === null) {
+      this._tracer.traceNoMatch(this, "@name", "");
+      return null;
     }
     this.reset(start);
-    this._tracer.traceNoMatch(this, "", "@name");
-    throw this.failure(start, new ParseError("expected @name"));
+    this._tracer.traceMatch(this, "@name", slice);
+    return slice;
   }
   matchInt() {
     this.nextToken();
     const start = this.mark();
-    const [slice, ok] = this._cursor.matchInt();
-    if (ok) {
-      this._tracer.traceMatch(this, "@int", slice);
-      return slice;
+    const slice = this._cursor.matchInt();
+    if (slice === null) {
+      this._tracer.traceNoMatch(this, "@int", "");
+      return null;
     }
     this.reset(start);
-    this._tracer.traceNoMatch(this, "", "@int");
-    throw this.failure(start, new ParseError("expected @int"));
+    this._tracer.traceMatch(this, "@int", slice.toString());
+    return slice;
   }
   matchUInt() {
     this.nextToken();
     const start = this.mark();
-    const [slice, ok] = this._cursor.matchUInt();
-    if (ok) {
-      this._tracer.traceMatch(this, "@uint", slice);
-      return slice;
+    const slice = this._cursor.matchUInt();
+    if (slice === null) {
+      this._tracer.traceNoMatch(this, "@uint", "");
+      return null;
     }
     this.reset(start);
-    this._tracer.traceNoMatch(this, "", "@uint");
-    throw this.failure(start, new ParseError("expected @uint"));
+    this._tracer.traceMatch(this, "@uint", slice.toString());
+    return slice;
   }
   matchFloat() {
     this.nextToken();
     const start = this.mark();
-    const [slice, ok] = this._cursor.matchFloat();
-    if (ok) {
-      this._tracer.traceMatch(this, "@float", slice);
-      return slice;
+    const slice = this._cursor.matchFloat();
+    if (slice === null) {
+      this._tracer.traceNoMatch(this, "@float", "");
+      return null;
     }
     this.reset(start);
-    this._tracer.traceNoMatch(this, "", "@float");
-    throw this.failure(start, new ParseError("expected @float"));
+    this._tracer.traceMatch(this, "@float", slice.toString());
+    return slice;
   }
   matchBool() {
     this.nextToken();
     const start = this.mark();
-    const [slice, ok] = this._cursor.matchBool();
-    if (ok) {
-      this._tracer.traceMatch(this, "@bool", slice);
-      return slice;
+    const slice = this._cursor.matchBool();
+    if (slice === null) {
+      this._tracer.traceNoMatch(this, "@bool", "");
+      return null;
     }
     this.reset(start);
-    this._tracer.traceNoMatch(this, "", "@bool");
-    throw this.failure(start, new ParseError("expected @bool"));
+    this._tracer.traceMatch(this, "@bool", slice.toString());
+    return slice;
   }
   mtchConstant(literal) {
     if (typeof literal === "string" || typeof literal === "number" || typeof literal === "boolean") {
@@ -20729,18 +20729,18 @@ class StrCursor {
   }
   matchName() {
     if (this.atEnd()) {
-      return ["", false];
+      return null;
     }
     const first = this.text[this.offset];
     if (first !== "_" && !isAlphabetic(first) && !this.heavy.nameChars.includes(first)) {
-      return ["", false];
+      return null;
     }
     const mark = this.offset;
     this.offset++;
     while (this.offset < this.text.length && this.isNameChar(this.text[this.offset])) {
       this.offset++;
     }
-    return [this.text.slice(mark, this.offset), true];
+    return this.text.slice(mark, this.offset);
   }
   matchInt() {
     const mark = this.offset;
@@ -20749,16 +20749,24 @@ class StrCursor {
     }
     if (!this.consumeUInt()) {
       this.offset = mark;
-      return ["", false];
+      return null;
     }
-    return [this.text.slice(mark, this.offset), true];
+    if (!this.isBoundary(this.offset)) {
+      this.offset = mark;
+      return null;
+    }
+    return Number(this.text.slice(mark, this.offset).replace(/_/g, ""));
   }
   matchUInt() {
     const mark = this.offset;
     if (!this.consumeUInt()) {
-      return ["", false];
+      return null;
     }
-    return [this.text.slice(mark, this.offset), true];
+    if (!this.isBoundary(this.offset)) {
+      this.offset = mark;
+      return null;
+    }
+    return Number(this.text.slice(mark, this.offset).replace(/_/g, ""));
   }
   matchFloat() {
     const mark = this.offset;
@@ -20767,7 +20775,7 @@ class StrCursor {
     }
     if (!this.consumeUInt()) {
       this.offset = mark;
-      return ["", false];
+      return null;
     }
     if (this.offset < this.text.length && this.text[this.offset] === ".") {
       this.offset++;
@@ -20783,21 +20791,35 @@ class StrCursor {
         this.offset = expMark;
       }
     }
-    return [this.text.slice(mark, this.offset), true];
+    if (!this.isBoundary(this.offset)) {
+      this.offset = mark;
+      return null;
+    }
+    return Number(this.text.slice(mark, this.offset).replace(/_/g, ""));
   }
   matchBool() {
     if (this.atEnd()) {
-      return ["", false];
+      return null;
     }
-    if (this.text.startsWith("true", this.offset)) {
-      this.offset += 4;
-      return ["true", true];
+    if (this.text.toLowerCase().startsWith("true", this.offset)) {
+      if (this.isBoundary(this.offset + 4)) {
+        this.offset += 4;
+        return true;
+      }
     }
-    if (this.text.startsWith("false", this.offset)) {
-      this.offset += 5;
-      return ["false", true];
+    if (this.text.toLowerCase().startsWith("false", this.offset)) {
+      if (this.isBoundary(this.offset + 5)) {
+        this.offset += 5;
+        return false;
+      }
     }
-    return ["", false];
+    return null;
+  }
+  isBoundary(offset) {
+    if (offset >= this.text.length) {
+      return true;
+    }
+    return !this.isNameChar(this.text[offset]);
   }
   nextToken() {
     const wsp = this.heavy.patterns.wsp;
@@ -27487,20 +27509,18 @@ class Grammar extends Exp {
   directives;
   keywords;
   analyzed;
-  semantics;
   kind = "Grammar" /* Grammar */;
   _isLeftRecursive;
   _optrules;
   _rulemap;
   _optrulemap;
-  constructor(name, rules = [], directives = [], keywords = [], analyzed = false, semantics) {
+  constructor(name, rules = [], directives = [], keywords = [], analyzed = false) {
     super();
     this.name = name;
     this.rules = rules;
     this.directives = directives;
     this.keywords = keywords;
     this.analyzed = analyzed;
-    this.semantics = semantics;
   }
   ruleMap() {
     if (!this._rulemap) {
@@ -27670,9 +27690,6 @@ class Grammar extends Exp {
             c.noPruneMemosOnCut = true;
           break;
       }
-    }
-    if (this.semantics) {
-      c.semantics = this.semantics;
     }
     return c;
   }
@@ -28166,21 +28183,8 @@ function bootGrammar() {
     return cached;
   const g = loadGrammarFromJSON(tatsu_default);
   g.initialize();
-  g.semantics = new BootGrammarSemantics;
   cached = g;
   return g;
-}
-
-class BootGrammarSemantics {
-  apply(node, ruleName, _params) {
-    if (ruleName === "true")
-      return [true, true];
-    if (ruleName === "false")
-      return [false, true];
-    if (ruleName === "null")
-      return [null, true];
-    return [node, false];
-  }
 }
 // src/json/jsonl.ts
 function toJSONLines(jsonBlocks) {
@@ -28318,29 +28322,9 @@ function compileGrammar(tree2) {
       }
     }
   }
-  const g = new Grammar(name, rules, directives, keywords, false, new EBNFGrammarSemantics);
+  const g = new Grammar(name, rules, directives, keywords, false);
   g.initialize();
   return g;
-}
-
-class EBNFGrammarSemantics {
-  apply(node, _ruleName, _params) {
-    if (node instanceof NodeTree && node.typeName === "Meta" && typeof node.tree === "string") {
-      switch (node.tree) {
-        case "name":
-          return [new NameMetaExp, true];
-        case "int":
-          return [new IntMetaExp, true];
-        case "uint":
-          return [new UIntMetaExp, true];
-        case "float":
-          return [new FloatMetaExp, true];
-        case "bool":
-          return [new BoolMetaExp, true];
-      }
-    }
-    return [node, false];
-  }
 }
 function compileRule(tree2) {
   const inner = nodeCheck(tree2, "Rule");
@@ -28509,6 +28493,20 @@ function compileExp(node) {
       return new TokenExp(textValue(tree2));
     case "Void":
       return new VoidExp;
+    case "Meta":
+      switch (textValue(tree2)) {
+        case "name":
+          return new NameMetaExp;
+        case "int":
+          return new IntMetaExp;
+        case "uint":
+          return new UIntMetaExp;
+        case "float":
+          return new FloatMetaExp;
+        case "bool":
+          return new BoolMetaExp;
+      }
+      throw new CompileError(`unknown meta type "${textValue(tree2)}"`);
     case "NameMeta":
       return new NameMetaExp;
     case "IntMeta":
@@ -28521,6 +28519,32 @@ function compileExp(node) {
       return new BoolMetaExp;
     default:
       throw new CompileError(`unknown expression type "${typename}"`);
+  }
+}
+// src/peg/ebnf_semantics.ts
+class EBNFGrammarSemantics {
+  apply(node, ruleName, _params) {
+    if (ruleName === "true")
+      return [true, true];
+    if (ruleName === "false")
+      return [false, true];
+    if (ruleName === "null")
+      return [null, true];
+    if (node instanceof NodeTree && node.typeName === "Meta" && typeof node.tree === "string") {
+      switch (node.tree) {
+        case "name":
+          return [new NodeTree("NameMeta", null), true];
+        case "int":
+          return [new NodeTree("IntMeta", null), true];
+        case "uint":
+          return [new NodeTree("UIntMeta", null), true];
+        case "float":
+          return [new NodeTree("FloatMeta", null), true];
+        case "bool":
+          return [new NodeTree("BoolMeta", null), true];
+      }
+    }
+    return [node, false];
   }
 }
 // src/peg/summary.ts
@@ -28567,7 +28591,9 @@ function cacheKey(text) {
   return gzipSync(Buffer.from(text, "utf-8")).toString("base64");
 }
 function parseGrammar(grammar2, cfg) {
-  const acfg = defaultCfg().merge(cfg ?? {});
+  const acfg = defaultCfg().merge({
+    semantics: new EBNFGrammarSemantics
+  }).merge(cfg ?? {});
   const boot2 = bootGrammar2();
   const cursor2 = new StrCursor(dedent(grammar2));
   const ctx2 = newCtx(cursor2, acfg);
