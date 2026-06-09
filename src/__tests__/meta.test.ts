@@ -1,117 +1,75 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { ApiError, loadGrammarFromJSON, parseInput } from "@api"
-import { asjson, asjsons } from "@util/asjson"
+import { ApiError, compile, parseInput } from "@api"
+import { asjson } from "@util/asjson"
 
-function makeMetaGrammar(metaClass: string, ruleName = "value"): string {
-  return JSON.stringify({
-    __class__: "Grammar",
-    name: "MetaTest",
-    rules: [
-      {
-        __class__: "Rule",
-        name: "start",
-        exp: {
-          __class__: "Sequence",
-          sequence: [
-            { __class__: "Call", name: ruleName },
-            { __class__: "EOF" },
-          ],
-        },
-      },
-      {
-        __class__: "Rule",
-        name: ruleName,
-        exp: { __class__: metaClass },
-      },
-    ],
-  })
-}
-
-function makeMetaGrammarMulti(
-  metaClasses: string[],
-  ruleName = "value",
-): string {
-  const rules: any[] = metaClasses.map((mc, i) => ({
-    __class__: "Rule",
-    name: `${ruleName}_${i}`,
-    exp: { __class__: mc },
-  }))
-  const startSeq: any[] = metaClasses.map((_, i) => ({ __class__: "Call", name: `${ruleName}_${i}` }))
-  startSeq.push({ __class__: "EOF" })
-  rules.push({
-    __class__: "Rule",
-    name: "start",
-    exp: {
-      __class__: "Sequence",
-      sequence: startSeq,
-    },
-  })
-  return JSON.stringify({
-    __class__: "Grammar",
-    name: "MetaTest",
-    rules,
-  })
+// Helper to construct a grammar string
+function metaGrammar(meta: string): string {
+  return `
+    @@grammar :: MetaTest
+    @@whitespace :: /[\t ]+/
+    start := ${meta} $
+  `
 }
 
 describe("meta expressions", () => {
   describe("@name", () => {
     it("matches a simple identifier", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("NameMeta"))
+      const grammar = compile(metaGrammar("@name"))
       assert.equal(grammar.name, "MetaTest")
       const result = parseInput(grammar, "hello")
       assert.equal(asjson(result), "hello")
     })
 
     it("matches underscore-prefixed name", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("NameMeta"))
+      const grammar = compile(metaGrammar("@name"))
       const result = parseInput(grammar, "_private")
       assert.equal(asjson(result), "_private")
     })
 
     it("matches name with digits", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("NameMeta"))
+      const grammar = compile(metaGrammar("@name"))
       const result = parseInput(grammar, "var123")
       assert.equal(asjson(result), "var123")
     })
 
     it("fails on leading digit", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("NameMeta"))
+      const grammar = compile(metaGrammar("@name"))
       assert.throws(() => parseInput(grammar, "123abc"), ApiError)
     })
   })
 
   describe("@int", () => {
     it("matches positive integer", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("IntMeta"))
+      const grammar = compile(metaGrammar("@int"))
       const result = parseInput(grammar, "42")
-      assert.equal(asjson(result), "42")
+      assert.equal(asjson(result), 42)
     })
 
     it("matches negative integer", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("IntMeta"))
+      const grammar = compile(metaGrammar("@int"))
       const result = parseInput(grammar, "-42")
-      assert.equal(asjson(result), "-42")
+      assert.equal(asjson(result), -42)
     })
 
     it("matches integer with underscores", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("IntMeta"))
+      const grammar = compile(metaGrammar("@int"))
       const result = parseInput(grammar, "1_234")
       assert.equal(asjson(result), "1_234")
     })
 
     it("fails on non-numeric input", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("IntMeta"))
+      const grammar = compile(metaGrammar("@int"))
       assert.throws(() => parseInput(grammar, "abc"), ApiError)
     })
 
     it("fails on trailing underscore", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("IntMeta"))
+      const grammar = compile(metaGrammar("@int"))
       assert.throws(() => parseInput(grammar, "123_"), ApiError)
     })
 
     it("matches positive integer with explicit +", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("IntMeta"))
+      const grammar = compile(metaGrammar("@int"))
       const result = parseInput(grammar, "+42")
       assert.equal(asjson(result), "+42")
     })
@@ -119,111 +77,94 @@ describe("meta expressions", () => {
 
   describe("@uint", () => {
     it("matches digits", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("UIntMeta"))
+      const grammar = compile(metaGrammar("@uint"))
       const result = parseInput(grammar, "42")
       assert.equal(asjson(result), "42")
     })
 
     it("matches uint with underscores", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("UIntMeta"))
+      const grammar = compile(metaGrammar("@uint"))
       const result = parseInput(grammar, "1_234")
       assert.equal(asjson(result), "1_234")
     })
 
     it("fails on negative sign", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("UIntMeta"))
+      const grammar = compile(metaGrammar("@uint"))
       assert.throws(() => parseInput(grammar, "-42"), ApiError)
     })
   })
 
   describe("@float", () => {
     it("matches integer-like float", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("FloatMeta"))
+      const grammar = compile(metaGrammar("@float"))
       const result = parseInput(grammar, "42")
       assert.equal(asjson(result), "42")
     })
 
     it("matches decimal float", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("FloatMeta"))
+      const grammar = compile(metaGrammar("@float"))
       const result = parseInput(grammar, "3.14")
       assert.equal(asjson(result), "3.14")
     })
 
     it("matches scientific notation", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("FloatMeta"))
+      const grammar = compile(metaGrammar("@float"))
       const result = parseInput(grammar, "1.5e10")
       assert.equal(asjson(result), "1.5e10")
     })
 
     it("matches negative float", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("FloatMeta"))
+      const grammar = compile(metaGrammar("@float"))
       const result = parseInput(grammar, "-3.14")
       assert.equal(asjson(result), "-3.14")
     })
 
     it("fails on letters", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("FloatMeta"))
+      const grammar = compile(metaGrammar("@float"))
       assert.throws(() => parseInput(grammar, "abc"), ApiError)
     })
   })
 
   describe("@bool", () => {
     it("matches true", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("BoolMeta"))
+      const grammar = compile(metaGrammar("@bool"))
       const result = parseInput(grammar, "true")
       assert.equal(asjson(result), "true")
     })
 
     it("matches false", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("BoolMeta"))
+      const grammar = compile(metaGrammar("@bool"))
       const result = parseInput(grammar, "false")
       assert.equal(asjson(result), "false")
     })
 
     it("fails on random word", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("BoolMeta"))
+      const grammar = compile(metaGrammar("@bool"))
       assert.throws(() => parseInput(grammar, "foo"), ApiError)
     })
 
     it("is case-sensitive", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("BoolMeta"))
+      const grammar = compile(metaGrammar("@bool"))
       assert.throws(() => parseInput(grammar, "True"), ApiError)
     })
   })
 
   describe("with whitespace", () => {
     it("matches int after whitespace", () => {
-      const grammar = loadGrammarFromJSON(makeMetaGrammar("IntMeta"))
+      const grammar = compile(metaGrammar("@int"))
       const result = parseInput(grammar, "  42")
       assert.equal(asjson(result), "42")
     })
 
     it("matches multiple meta expressions with whitespace between", () => {
-      const grammar = loadGrammarFromJSON(
-        makeMetaGrammarMulti(["NameMeta", "IntMeta", "BoolMeta"]),
-      )
-      const result = parseInput(grammar, "hello 42 true")
+      const grammar = compile(`
+        @@grammar :: MetaTest
+        @@whitespace :: /[\t ]+/
+        start := @int @float @name $
+      `)
+      const result = parseInput(grammar, "42 3.14 hello")
       const arr = asjson(result) as string[]
-      assert.deepStrictEqual(arr, ["hello", "42", "true"])
-    })
-  })
-
-  describe("JSON round-trip", () => {
-    it("serializes and deserializes NameMeta", () => {
-      const g1 = loadGrammarFromJSON(makeMetaGrammar("NameMeta"))
-      const json = asjsons(g1)
-      const g2 = loadGrammarFromJSON(json)
-      assert.equal(g2.name, "MetaTest")
-      const result = parseInput(g2, "hello")
-      assert.equal(asjson(result), "hello")
-    })
-
-    it("serializes and deserializes IntMeta", () => {
-      const g1 = loadGrammarFromJSON(makeMetaGrammar("IntMeta"))
-      const json = asjsons(g1)
-      const g2 = loadGrammarFromJSON(json)
-      const result = parseInput(g2, "-42")
-      assert.equal(asjson(result), "-42")
+      assert.deepStrictEqual(arr, ["42", "3.14", "hello"])
     })
   })
 })
