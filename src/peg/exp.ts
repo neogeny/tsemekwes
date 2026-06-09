@@ -327,29 +327,19 @@ export abstract class Exp implements JSONSerializable {
       }
 
       case ExpKind.NameMeta: {
-        const result = ctx.matchName()
-        if (result === null) return null
-        return result
+        return ctx.matchName()
       }
       case ExpKind.IntMeta: {
-        const result = ctx.matchInt()
-        if (result === null) return null
-        return result
+        return ctx.matchInt()
       }
       case ExpKind.UIntMeta: {
-        const result = ctx.matchUInt()
-        if (result === null) return null
-        return result
+        return ctx.matchUInt()
       }
       case ExpKind.FloatMeta: {
-        const result = ctx.matchFloat()
-        if (result === null) return null
-        return result
+        return ctx.matchFloat()
       }
       case ExpKind.BoolMeta: {
-        const result = ctx.matchBool()
-        if (result === null) return null
-        return result
+        return ctx.matchBool()
       }
 
       default:
