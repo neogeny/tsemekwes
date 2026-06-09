@@ -18611,7 +18611,7 @@ error:`)} ${this.msg}
       result += `${pc.blueBright(import_sprintf_js.sprintf("%5d", ln))} ${pc.blueBright(`|`)} ${pc.white(disp)}
 `;
     }
-    const pad = " ".repeat(Math.max(0, col));
+    const pad = " ".repeat(Math.max(0, col - 1));
     result += `${pc.blueBright(`      |`)} ${pad}${pc.redBright(`^ ${this.msg}
 `)}`;
     if (this.callStack.length > 0) {
@@ -18841,72 +18841,67 @@ class CoreCtx {
     return null;
   }
   matchName() {
-    this.nextToken();
     const start = this.mark();
+    this.nextToken();
     const slice = this._cursor.matchName();
     if (slice === null) {
       this._tracer.traceNoMatch(this, "@name", "");
-      return null;
+      throw this.failure(start, new ParseError("expected @name"));
     }
     this.reset(start);
     this._tracer.traceMatch(this, "@name", slice);
     return slice;
   }
   matchInt() {
-    this.nextToken();
     const start = this.mark();
+    this.nextToken();
     const slice = this._cursor.matchInt();
     if (slice === null) {
       this._tracer.traceNoMatch(this, "@int", "");
-      return null;
+      throw this.failure(start, new ParseError("expected @int"));
     }
     this.reset(start);
     this._tracer.traceMatch(this, "@int", slice.toString());
     return slice;
   }
   matchUInt() {
-    this.nextToken();
     const start = this.mark();
+    this.nextToken();
     const slice = this._cursor.matchUInt();
     if (slice === null) {
       this._tracer.traceNoMatch(this, "@uint", "");
-      return null;
+      throw this.failure(start, new ParseError("expected @uint"));
     }
     this.reset(start);
     this._tracer.traceMatch(this, "@uint", slice.toString());
     return slice;
   }
   matchFloat() {
-    this.nextToken();
     const start = this.mark();
+    this.nextToken();
     const slice = this._cursor.matchFloat();
     if (slice === null) {
       this._tracer.traceNoMatch(this, "@float", "");
-      return null;
+      throw this.failure(start, new ParseError("expected @float"));
     }
     this.reset(start);
     this._tracer.traceMatch(this, "@float", slice.toString());
     return slice;
   }
   matchBool() {
-    this.nextToken();
     const start = this.mark();
+    this.nextToken();
     const slice = this._cursor.matchBool();
     if (slice === null) {
       this._tracer.traceNoMatch(this, "@bool", "");
-      return null;
+      throw this.failure(start, new ParseError("expected @bool"));
     }
     this.reset(start);
     this._tracer.traceMatch(this, "@bool", slice.toString());
     return slice;
   }
-  mtchConstant(literal) {
-    if (typeof literal === "string" || typeof literal === "number" || typeof literal === "boolean") {
-      return literal;
-    }
-    if (literal === null)
-      return null;
-    return String(literal);
+  matchConstant(literal) {
+    return literal;
   }
   enter(name) {
     this._callStack.push(name);
@@ -20427,7 +20422,7 @@ function newPatterns(wsp, cmt, eol) {
   return new TokenizingPatterns(compileRe(wsp), compileRe(cmt), compileRe(eol));
 }
 function defaultPatterns() {
-  const pat = newPatterns(`\\s+`, `(?m)#.*$`, `[^\\s\\S]`);
+  const pat = newPatterns(`\\s+`, `[^\\s\\S]`, `[^\\s\\S]`);
   pat.nonDefault = false;
   return pat;
 }
@@ -20727,99 +20722,39 @@ class StrCursor {
     this.offset = mark;
     return false;
   }
-  matchName() {
-    if (this.atEnd()) {
-      return null;
-    }
-    const first = this.text[this.offset];
-    if (first !== "_" && !isAlphabetic(first) && !this.heavy.nameChars.includes(first)) {
-      return null;
-    }
-    const mark = this.offset;
-    this.offset++;
-    while (this.offset < this.text.length && this.isNameChar(this.text[this.offset])) {
-      this.offset++;
-    }
-    return this.text.slice(mark, this.offset);
-  }
-  matchInt() {
-    const mark = this.offset;
-    if (this.offset < this.text.length && (this.text[this.offset] === "+" || this.text[this.offset] === "-")) {
-      this.offset++;
-    }
-    if (!this.consumeUInt()) {
-      this.offset = mark;
-      return null;
-    }
-    if (!this.isBoundary(this.offset)) {
-      this.offset = mark;
-      return null;
-    }
-    return Number(this.text.slice(mark, this.offset).replace(/_/g, ""));
-  }
-  matchUInt() {
-    const mark = this.offset;
-    if (!this.consumeUInt()) {
-      return null;
-    }
-    if (!this.isBoundary(this.offset)) {
-      this.offset = mark;
-      return null;
-    }
-    return Number(this.text.slice(mark, this.offset).replace(/_/g, ""));
-  }
-  matchFloat() {
-    const mark = this.offset;
-    if (this.offset < this.text.length && (this.text[this.offset] === "+" || this.text[this.offset] === "-")) {
-      this.offset++;
-    }
-    if (!this.consumeUInt()) {
-      this.offset = mark;
-      return null;
-    }
-    if (this.offset < this.text.length && this.text[this.offset] === ".") {
-      this.offset++;
-      this.consumeUInt();
-    }
-    if (this.offset < this.text.length && (this.text[this.offset] === "e" || this.text[this.offset] === "E")) {
-      const expMark = this.offset;
-      this.offset++;
-      if (this.offset < this.text.length && (this.text[this.offset] === "+" || this.text[this.offset] === "-")) {
-        this.offset++;
-      }
-      if (!this.consumeUInt()) {
-        this.offset = expMark;
-      }
-    }
-    if (!this.isBoundary(this.offset)) {
-      this.offset = mark;
-      return null;
-    }
-    return Number(this.text.slice(mark, this.offset).replace(/_/g, ""));
-  }
-  matchBool() {
-    if (this.atEnd()) {
-      return null;
-    }
-    if (this.text.toLowerCase().startsWith("true", this.offset)) {
-      if (this.isBoundary(this.offset + 4)) {
-        this.offset += 4;
-        return true;
-      }
-    }
-    if (this.text.toLowerCase().startsWith("false", this.offset)) {
-      if (this.isBoundary(this.offset + 5)) {
-        this.offset += 5;
-        return false;
-      }
+  matchMetaPattern(regex) {
+    regex.lastIndex = this.offset;
+    const match = regex.exec(this.text);
+    if (match && this.isBoundary(regex.lastIndex)) {
+      this.offset = regex.lastIndex;
+      return match[0];
     }
     return null;
   }
+  matchName() {
+    return this.matchMetaPattern(/(?:[\p{XID_Start}_])[\p{XID_Continue}_]*/uy);
+  }
+  matchUInt() {
+    const raw = this.matchMetaPattern(/\p{Nd}+(?:_\p{Nd}+)*/uy);
+    return raw !== null ? Number(raw.replace(/_/g, "")) : null;
+  }
+  matchInt() {
+    const raw = this.matchMetaPattern(/[+-]?\p{Nd}+(?:_\p{Nd}+)*/uy);
+    return raw !== null ? Number(raw.replace(/_/g, "")) : null;
+  }
+  matchFloat() {
+    const raw = this.matchMetaPattern(/[+-]?\p{Nd}+(?:_\p{Nd}+)*(?:\.\p{Nd}+(?:_\p{Nd}+)*)?(?:[eE][+-]?\p{Nd}+(?:_\p{Nd}+)*)?/uy);
+    return raw !== null ? Number(raw.replace(/_/g, "")) : null;
+  }
+  matchBool() {
+    const raw = this.matchMetaPattern(/true|false/iy);
+    return raw !== null ? raw.toLowerCase() === "true" : null;
+  }
   isBoundary(offset) {
-    if (offset >= this.text.length) {
+    if (offset >= this.text.length)
       return true;
-    }
-    return !this.isNameChar(this.text[offset]);
+    const nextChar = this.text[offset];
+    return !/[\p{XID_Continue}_]/u.test(nextChar);
   }
   nextToken() {
     const wsp = this.heavy.patterns.wsp;
@@ -20910,25 +20845,6 @@ class StrCursor {
       }
     }
   }
-  consumeUInt() {
-    const start = this.offset;
-    while (this.offset < this.text.length) {
-      const ch = this.text[this.offset];
-      if (ch >= "0" && ch <= "9") {
-        this.offset++;
-      } else if (ch === "_") {
-        if (this.offset + 1 < this.text.length && this.text[this.offset + 1] >= "0" && this.text[this.offset + 1] <= "9") {
-          this.offset++;
-        } else {
-          this.offset = start;
-          return false;
-        }
-      } else {
-        break;
-      }
-    }
-    return this.offset !== start;
-  }
 }
 function isRuneStart(s, i) {
   const cp = s.charCodeAt(i);
@@ -20997,7 +20913,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "grammar",
-      params: ["Grammar"],
+      params: [
+        "Grammar"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -21024,25 +20942,19 @@ var tatsu_default = {
               __class__: "Choice",
               options: [
                 {
-                  __class__: "Option",
+                  __class__: "NamedList",
+                  name: "directives",
                   exp: {
-                    __class__: "NamedList",
-                    name: "directives",
-                    exp: {
-                      __class__: "Call",
-                      name: "directive"
-                    }
+                    __class__: "Call",
+                    name: "directive"
                   }
                 },
                 {
-                  __class__: "Option",
+                  __class__: "NamedList",
+                  name: "keywords",
                   exp: {
-                    __class__: "NamedList",
-                    name: "keywords",
-                    exp: {
-                      __class__: "Call",
-                      name: "keyword"
-                    }
+                    __class__: "Call",
+                    name: "keyword"
                   }
                 }
               ]
@@ -21062,25 +20974,19 @@ var tatsu_default = {
               __class__: "Choice",
               options: [
                 {
-                  __class__: "Option",
+                  __class__: "NamedList",
+                  name: "rules",
                   exp: {
-                    __class__: "NamedList",
-                    name: "rules",
-                    exp: {
-                      __class__: "Call",
-                      name: "rule"
-                    }
+                    __class__: "Call",
+                    name: "rule"
                   }
                 },
                 {
-                  __class__: "Option",
+                  __class__: "NamedList",
+                  name: "keywords",
                   exp: {
-                    __class__: "NamedList",
-                    name: "keywords",
-                    exp: {
-                      __class__: "Call",
-                      name: "keyword"
-                    }
+                    __class__: "Call",
+                    name: "keyword"
                   }
                 }
               ]
@@ -21123,305 +21029,233 @@ var tatsu_default = {
             __class__: "Cut"
           },
           {
-            __class__: "Group",
-            exp: {
-              __class__: "Choice",
-              options: [
-                {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Sequence",
-                    sequence: [
-                      {
-                        __class__: "Named",
-                        name: "name",
-                        exp: {
-                          __class__: "Group",
-                          exp: {
-                            __class__: "Choice",
-                            options: [
-                              {
-                                __class__: "Option",
-                                exp: {
-                                  __class__: "Token",
-                                  token: "comments"
-                                }
-                              },
-                              {
-                                __class__: "Option",
-                                exp: {
-                                  __class__: "Token",
-                                  token: "eol_comments"
-                                }
-                              }
-                            ]
-                          }
+            __class__: "Choice",
+            options: [
+              {
+                __class__: "Sequence",
+                sequence: [
+                  {
+                    __class__: "Named",
+                    name: "name",
+                    exp: {
+                      __class__: "Choice",
+                      options: [
+                        {
+                          __class__: "Token",
+                          token: "comments"
+                        },
+                        {
+                          __class__: "Token",
+                          token: "eol_comments"
                         }
-                      },
-                      {
-                        __class__: "Cut"
-                      },
-                      {
-                        __class__: "Token",
-                        token: "::"
-                      },
-                      {
-                        __class__: "Cut"
-                      },
-                      {
-                        __class__: "Named",
-                        name: "value",
-                        exp: {
+                      ]
+                    }
+                  },
+                  {
+                    __class__: "Cut"
+                  },
+                  {
+                    __class__: "Token",
+                    token: "::"
+                  },
+                  {
+                    __class__: "Cut"
+                  },
+                  {
+                    __class__: "Named",
+                    name: "value",
+                    exp: {
+                      __class__: "Call",
+                      name: "regex"
+                    }
+                  }
+                ]
+              },
+              {
+                __class__: "Sequence",
+                sequence: [
+                  {
+                    __class__: "Named",
+                    name: "name",
+                    exp: {
+                      __class__: "Token",
+                      token: "whitespace"
+                    }
+                  },
+                  {
+                    __class__: "Cut"
+                  },
+                  {
+                    __class__: "Token",
+                    token: "::"
+                  },
+                  {
+                    __class__: "Cut"
+                  },
+                  {
+                    __class__: "Named",
+                    name: "value",
+                    exp: {
+                      __class__: "Choice",
+                      options: [
+                        {
                           __class__: "Call",
                           name: "regex"
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Sequence",
-                    sequence: [
-                      {
-                        __class__: "Named",
-                        name: "name",
-                        exp: {
-                          __class__: "Token",
-                          token: "whitespace"
-                        }
-                      },
-                      {
-                        __class__: "Cut"
-                      },
-                      {
-                        __class__: "Token",
-                        token: "::"
-                      },
-                      {
-                        __class__: "Cut"
-                      },
-                      {
-                        __class__: "Named",
-                        name: "value",
-                        exp: {
-                          __class__: "Group",
-                          exp: {
-                            __class__: "Choice",
-                            options: [
-                              {
-                                __class__: "Option",
-                                exp: {
-                                  __class__: "Call",
-                                  name: "regex"
-                                }
-                              },
-                              {
-                                __class__: "Option",
-                                exp: {
-                                  __class__: "Call",
-                                  name: "string"
-                                }
-                              },
-                              {
-                                __class__: "Option",
-                                exp: {
-                                  __class__: "Token",
-                                  token: "None"
-                                }
-                              },
-                              {
-                                __class__: "Option",
-                                exp: {
-                                  __class__: "Token",
-                                  token: "False"
-                                }
-                              },
-                              {
-                                __class__: "Option",
-                                exp: {
-                                  __class__: "Constant",
-                                  literal: null
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Sequence",
-                    sequence: [
-                      {
-                        __class__: "Named",
-                        name: "name",
-                        exp: {
-                          __class__: "Group",
-                          exp: {
-                            __class__: "Choice",
-                            options: [
-                              {
-                                __class__: "Option",
-                                exp: {
-                                  __class__: "Token",
-                                  token: "nameguard"
-                                }
-                              },
-                              {
-                                __class__: "Option",
-                                exp: {
-                                  __class__: "Token",
-                                  token: "ignorecase"
-                                }
-                              },
-                              {
-                                __class__: "Option",
-                                exp: {
-                                  __class__: "Token",
-                                  token: "left_recursion"
-                                }
-                              },
-                              {
-                                __class__: "Option",
-                                exp: {
-                                  __class__: "Token",
-                                  token: "parseinfo"
-                                }
-                              },
-                              {
-                                __class__: "Option",
-                                exp: {
-                                  __class__: "Token",
-                                  token: "memoization"
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      },
-                      {
-                        __class__: "Cut"
-                      },
-                      {
-                        __class__: "Group",
-                        exp: {
-                          __class__: "Choice",
-                          options: [
-                            {
-                              __class__: "Option",
-                              exp: {
-                                __class__: "Sequence",
-                                sequence: [
-                                  {
-                                    __class__: "Token",
-                                    token: "::"
-                                  },
-                                  {
-                                    __class__: "Cut"
-                                  },
-                                  {
-                                    __class__: "Named",
-                                    name: "value",
-                                    exp: {
-                                      __class__: "Call",
-                                      name: "boolean"
-                                    }
-                                  }
-                                ]
-                              }
-                            },
-                            {
-                              __class__: "Option",
-                              exp: {
-                                __class__: "Named",
-                                name: "value",
-                                exp: {
-                                  __class__: "Constant",
-                                  literal: true
-                                }
-                              }
-                            }
-                          ]
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Sequence",
-                    sequence: [
-                      {
-                        __class__: "Named",
-                        name: "name",
-                        exp: {
-                          __class__: "Token",
-                          token: "grammar"
-                        }
-                      },
-                      {
-                        __class__: "Cut"
-                      },
-                      {
-                        __class__: "Token",
-                        token: "::"
-                      },
-                      {
-                        __class__: "Cut"
-                      },
-                      {
-                        __class__: "Named",
-                        name: "value",
-                        exp: {
-                          __class__: "Call",
-                          name: "word"
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Sequence",
-                    sequence: [
-                      {
-                        __class__: "Named",
-                        name: "name",
-                        exp: {
-                          __class__: "Token",
-                          token: "namechars"
-                        }
-                      },
-                      {
-                        __class__: "Cut"
-                      },
-                      {
-                        __class__: "Token",
-                        token: "::"
-                      },
-                      {
-                        __class__: "Cut"
-                      },
-                      {
-                        __class__: "Named",
-                        name: "value",
-                        exp: {
+                        },
+                        {
                           __class__: "Call",
                           name: "string"
+                        },
+                        {
+                          __class__: "Token",
+                          token: "None"
+                        },
+                        {
+                          __class__: "Token",
+                          token: "False"
+                        },
+                        {
+                          __class__: "Constant",
+                          literal: null
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                __class__: "Sequence",
+                sequence: [
+                  {
+                    __class__: "Named",
+                    name: "name",
+                    exp: {
+                      __class__: "Choice",
+                      options: [
+                        {
+                          __class__: "Token",
+                          token: "nameguard"
+                        },
+                        {
+                          __class__: "Token",
+                          token: "ignorecase"
+                        },
+                        {
+                          __class__: "Token",
+                          token: "left_recursion"
+                        },
+                        {
+                          __class__: "Token",
+                          token: "parseinfo"
+                        },
+                        {
+                          __class__: "Token",
+                          token: "memoization"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    __class__: "Cut"
+                  },
+                  {
+                    __class__: "Choice",
+                    options: [
+                      {
+                        __class__: "Sequence",
+                        sequence: [
+                          {
+                            __class__: "Token",
+                            token: "::"
+                          },
+                          {
+                            __class__: "Cut"
+                          },
+                          {
+                            __class__: "Named",
+                            name: "value",
+                            exp: {
+                              __class__: "Call",
+                              name: "boolean"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        __class__: "Named",
+                        name: "value",
+                        exp: {
+                          __class__: "Constant",
+                          literal: true
                         }
                       }
                     ]
                   }
-                }
-              ]
-            }
+                ]
+              },
+              {
+                __class__: "Sequence",
+                sequence: [
+                  {
+                    __class__: "Named",
+                    name: "name",
+                    exp: {
+                      __class__: "Token",
+                      token: "grammar"
+                    }
+                  },
+                  {
+                    __class__: "Cut"
+                  },
+                  {
+                    __class__: "Token",
+                    token: "::"
+                  },
+                  {
+                    __class__: "Cut"
+                  },
+                  {
+                    __class__: "Named",
+                    name: "value",
+                    exp: {
+                      __class__: "Call",
+                      name: "word"
+                    }
+                  }
+                ]
+              },
+              {
+                __class__: "Sequence",
+                sequence: [
+                  {
+                    __class__: "Named",
+                    name: "name",
+                    exp: {
+                      __class__: "Token",
+                      token: "namechars"
+                    }
+                  },
+                  {
+                    __class__: "Cut"
+                  },
+                  {
+                    __class__: "Token",
+                    token: "::"
+                  },
+                  {
+                    __class__: "Cut"
+                  },
+                  {
+                    __class__: "Named",
+                    name: "value",
+                    exp: {
+                      __class__: "Call",
+                      name: "string"
+                    }
+                  }
+                ]
+              }
+            ]
           },
           {
             __class__: "Cut"
@@ -21485,51 +21319,33 @@ var tatsu_default = {
                 {
                   __class__: "OverrideList",
                   exp: {
-                    __class__: "Group",
-                    exp: {
-                      __class__: "Choice",
-                      options: [
-                        {
-                          __class__: "Option",
-                          exp: {
-                            __class__: "Call",
-                            name: "word"
-                          }
-                        },
-                        {
-                          __class__: "Option",
-                          exp: {
-                            __class__: "Call",
-                            name: "string"
-                          }
-                        }
-                      ]
-                    }
+                    __class__: "Choice",
+                    options: [
+                      {
+                        __class__: "Call",
+                        name: "word"
+                      },
+                      {
+                        __class__: "Call",
+                        name: "string"
+                      }
+                    ]
                   }
                 },
                 {
                   __class__: "NegativeLookahead",
                   exp: {
-                    __class__: "Group",
-                    exp: {
-                      __class__: "Choice",
-                      options: [
-                        {
-                          __class__: "Option",
-                          exp: {
-                            __class__: "Token",
-                            token: ":"
-                          }
-                        },
-                        {
-                          __class__: "Option",
-                          exp: {
-                            __class__: "Token",
-                            token: "="
-                          }
-                        }
-                      ]
-                    }
+                    __class__: "Choice",
+                    options: [
+                      {
+                        __class__: "Token",
+                        token: ":"
+                      },
+                      {
+                        __class__: "Token",
+                        token: "="
+                      }
+                    ]
                   }
                 }
               ]
@@ -21610,18 +21426,12 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "path"
-            }
+            __class__: "Call",
+            name: "path"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "literal"
-            }
+            __class__: "Call",
+            name: "literal"
           }
         ]
       }
@@ -21668,56 +21478,47 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
+            __class__: "Named",
+            name: "kwparams",
             exp: {
-              __class__: "Named",
-              name: "kwparams",
-              exp: {
-                __class__: "Call",
-                name: "kwparams"
-              }
+              __class__: "Call",
+              name: "kwparams"
             }
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Sequence",
-              sequence: [
-                {
-                  __class__: "Named",
-                  name: "params",
-                  exp: {
-                    __class__: "Call",
-                    name: "params"
-                  }
-                },
-                {
-                  __class__: "Token",
-                  token: ","
-                },
-                {
-                  __class__: "Cut"
-                },
-                {
-                  __class__: "Named",
-                  name: "kwparams",
-                  exp: {
-                    __class__: "Call",
-                    name: "kwparams"
-                  }
+            __class__: "Sequence",
+            sequence: [
+              {
+                __class__: "Named",
+                name: "params",
+                exp: {
+                  __class__: "Call",
+                  name: "params"
                 }
-              ]
-            }
+              },
+              {
+                __class__: "Token",
+                token: ","
+              },
+              {
+                __class__: "Cut"
+              },
+              {
+                __class__: "Named",
+                name: "kwparams",
+                exp: {
+                  __class__: "Call",
+                  name: "kwparams"
+                }
+              }
+            ]
           },
           {
-            __class__: "Option",
+            __class__: "Named",
+            name: "params",
             exp: {
-              __class__: "Named",
-              name: "params",
-              exp: {
-                __class__: "Call",
-                name: "params"
-              }
+              __class__: "Call",
+              name: "params"
             }
           }
         ]
@@ -21740,73 +21541,64 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Sequence",
-              sequence: [
-                {
-                  __class__: "Token",
-                  token: "["
-                },
-                {
-                  __class__: "Cut"
-                },
-                {
-                  __class__: "RuleInclude",
-                  name: "the_params_at_last"
-                },
-                {
-                  __class__: "Token",
-                  token: "]"
-                }
-              ]
-            }
+            __class__: "Sequence",
+            sequence: [
+              {
+                __class__: "Token",
+                token: "["
+              },
+              {
+                __class__: "Cut"
+              },
+              {
+                __class__: "RuleInclude",
+                name: "the_params_at_last"
+              },
+              {
+                __class__: "Token",
+                token: "]"
+              }
+            ]
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Sequence",
-              sequence: [
-                {
-                  __class__: "Token",
-                  token: "("
-                },
-                {
-                  __class__: "Cut"
-                },
-                {
-                  __class__: "RuleInclude",
-                  name: "the_params_at_last"
-                },
-                {
-                  __class__: "Token",
-                  token: ")"
-                }
-              ]
-            }
+            __class__: "Sequence",
+            sequence: [
+              {
+                __class__: "Token",
+                token: "("
+              },
+              {
+                __class__: "Cut"
+              },
+              {
+                __class__: "RuleInclude",
+                name: "the_params_at_last"
+              },
+              {
+                __class__: "Token",
+                token: ")"
+              }
+            ]
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Sequence",
-              sequence: [
-                {
-                  __class__: "Token",
-                  token: "::"
-                },
-                {
-                  __class__: "Cut"
-                },
-                {
-                  __class__: "Named",
-                  name: "params",
-                  exp: {
-                    __class__: "Call",
-                    name: "params"
-                  }
+            __class__: "Sequence",
+            sequence: [
+              {
+                __class__: "Token",
+                token: "::"
+              },
+              {
+                __class__: "Cut"
+              },
+              {
+                __class__: "Named",
+                name: "params",
+                exp: {
+                  __class__: "Call",
+                  name: "params"
                 }
-              ]
-            }
+              }
+            ]
           }
         ]
       }
@@ -21814,7 +21606,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "rule",
-      params: ["Rule"],
+      params: [
+        "Rule"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -21924,31 +21718,19 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "DEDENT"
-            }
+            __class__: "Call",
+            name: "DEDENT"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "BLANK"
-            }
+            __class__: "Call",
+            name: "BLANK"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Token",
-              token: ";"
-            }
+            __class__: "Token",
+            token: ";"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "EOF"
-            }
+            __class__: "EOF"
           }
         ]
       }
@@ -22134,18 +21916,12 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "choice"
-            }
+            __class__: "Call",
+            name: "choice"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "sequence"
-            }
+            __class__: "Call",
+            name: "sequence"
           }
         ]
       }
@@ -22153,7 +21929,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "choice",
-      params: ["Choice"],
+      params: [
+        "Choice"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -22216,7 +21994,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "option",
-      params: ["Option"],
+      params: [
+        "Option"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -22234,7 +22014,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "sequence",
-      params: ["Sequence"],
+      params: [
+        "Sequence"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -22248,63 +22030,54 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
+            __class__: "Sequence",
+            sequence: [
+              {
+                __class__: "Lookahead",
+                exp: {
+                  __class__: "Sequence",
+                  sequence: [
+                    {
+                      __class__: "Call",
+                      name: "element"
+                    },
+                    {
+                      __class__: "Token",
+                      token: ","
+                    }
+                  ]
+                }
+              },
+              {
+                __class__: "PositiveGather",
+                exp: {
+                  __class__: "Call",
+                  name: "element"
+                },
+                sep: {
+                  __class__: "Token",
+                  token: ","
+                }
+              }
+            ]
+          },
+          {
+            __class__: "PositiveClosure",
             exp: {
               __class__: "Sequence",
               sequence: [
                 {
-                  __class__: "Lookahead",
+                  __class__: "NegativeLookahead",
                   exp: {
-                    __class__: "Group",
-                    exp: {
-                      __class__: "Sequence",
-                      sequence: [
-                        {
-                          __class__: "Call",
-                          name: "element"
-                        },
-                        {
-                          __class__: "Token",
-                          token: ","
-                        }
-                      ]
-                    }
+                    __class__: "Call",
+                    name: "ENDRULE"
                   }
                 },
                 {
-                  __class__: "PositiveGather",
-                  exp: {
-                    __class__: "Call",
-                    name: "element"
-                  },
-                  sep: {
-                    __class__: "Token",
-                    token: ","
-                  }
+                  __class__: "Call",
+                  name: "element"
                 }
               ]
-            }
-          },
-          {
-            __class__: "Option",
-            exp: {
-              __class__: "PositiveClosure",
-              exp: {
-                __class__: "Sequence",
-                sequence: [
-                  {
-                    __class__: "NegativeLookahead",
-                    exp: {
-                      __class__: "Call",
-                      name: "ENDRULE"
-                    }
-                  },
-                  {
-                    __class__: "Call",
-                    name: "element"
-                  }
-                ]
-              }
             }
           }
         ]
@@ -22327,32 +22100,24 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "named"
-            }
+            __class__: "Call",
+            name: "meta"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "term"
-            }
+            __class__: "Call",
+            name: "named"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "override"
-            }
+            __class__: "Call",
+            name: "term"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "rule_include"
-            }
+            __class__: "Call",
+            name: "override"
+          },
+          {
+            __class__: "Call",
+            name: "rule_include"
           }
         ]
       }
@@ -22360,7 +22125,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "rule_include",
-      params: ["RuleInclude"],
+      params: [
+        "RuleInclude"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -22407,18 +22174,12 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "named_list"
-            }
+            __class__: "Call",
+            name: "named_list"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "named_single"
-            }
+            __class__: "Call",
+            name: "named_single"
           }
         ]
       }
@@ -22426,7 +22187,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "named_list",
-      params: ["NamedList"],
+      params: [
+        "NamedList"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -22443,8 +22206,7 @@ var tatsu_default = {
             __class__: "Named",
             name: "name",
             exp: {
-              __class__: "Call",
-              name: "name"
+              __class__: "NameMeta"
             }
           },
           {
@@ -22468,7 +22230,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "named_single",
-      params: ["Named"],
+      params: [
+        "Named"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -22485,8 +22249,7 @@ var tatsu_default = {
             __class__: "Named",
             name: "name",
             exp: {
-              __class__: "Call",
-              name: "name"
+              __class__: "NameMeta"
             }
           },
           {
@@ -22524,25 +22287,12 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "override_list"
-            }
+            __class__: "Call",
+            name: "override_list"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "override_single"
-            }
-          },
-          {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "override_single_deprecated"
-            }
+            __class__: "Call",
+            name: "override_single"
           }
         ]
       }
@@ -22550,7 +22300,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "override_list",
-      params: ["OverrideList"],
+      params: [
+        "OverrideList"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -22583,7 +22335,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "override_single",
-      params: ["Override"],
+      params: [
+        "Override"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -22615,39 +22369,6 @@ var tatsu_default = {
     },
     {
       __class__: "Rule",
-      name: "override_single_deprecated",
-      params: ["Override"],
-      kwparams: {},
-      decorators: [],
-      base: null,
-      is_name: false,
-      is_tokn: false,
-      no_memo: false,
-      no_stak: false,
-      is_memo: true,
-      is_lrec: false,
-      exp: {
-        __class__: "Sequence",
-        sequence: [
-          {
-            __class__: "Token",
-            token: "@"
-          },
-          {
-            __class__: "Cut"
-          },
-          {
-            __class__: "Override",
-            exp: {
-              __class__: "Call",
-              name: "term"
-            }
-          }
-        ]
-      }
-    },
-    {
-      __class__: "Rule",
       name: "term",
       params: [],
       kwparams: {},
@@ -22663,109 +22384,64 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "gather"
-            }
+            __class__: "Call",
+            name: "gather"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "join"
-            }
+            __class__: "Call",
+            name: "join"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "left_join"
-            }
+            __class__: "Call",
+            name: "left_join"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "right_join"
-            }
+            __class__: "Call",
+            name: "right_join"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "empty_closure"
-            }
+            __class__: "Call",
+            name: "empty_closure"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "positive_closure"
-            }
+            __class__: "Call",
+            name: "positive_closure"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "closure"
-            }
+            __class__: "Call",
+            name: "closure"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "optional"
-            }
+            __class__: "Call",
+            name: "optional"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "atom"
-            }
+            __class__: "Call",
+            name: "atom"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "void"
-            }
+            __class__: "Call",
+            name: "void"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "skip_to"
-            }
+            __class__: "Call",
+            name: "skip_to"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "lookahead"
-            }
+            __class__: "Call",
+            name: "lookahead"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "negative_lookahead"
-            }
+            __class__: "Call",
+            name: "negative_lookahead"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "cut"
-            }
+            __class__: "Call",
+            name: "cut"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "cut_deprecated"
-            }
+            __class__: "Call",
+            name: "cut_deprecated"
           }
         ]
       }
@@ -22773,7 +22449,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "group",
-      params: ["Group"],
+      params: [
+        "Group"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -22820,7 +22498,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "skip",
-      params: ["SkipGroup"],
+      params: [
+        "SkipGroup"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -22876,46 +22556,34 @@ var tatsu_default = {
           {
             __class__: "Lookahead",
             exp: {
-              __class__: "Group",
-              exp: {
-                __class__: "Sequence",
-                sequence: [
-                  {
-                    __class__: "Call",
-                    name: "atom"
-                  },
-                  {
-                    __class__: "Token",
-                    token: ".{"
-                  }
-                ]
-              }
+              __class__: "Sequence",
+              sequence: [
+                {
+                  __class__: "Call",
+                  name: "atom"
+                },
+                {
+                  __class__: "Token",
+                  token: ".{"
+                }
+              ]
             }
           },
           {
             __class__: "Cut"
           },
           {
-            __class__: "Group",
-            exp: {
-              __class__: "Choice",
-              options: [
-                {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Call",
-                    name: "positive_gather"
-                  }
-                },
-                {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Call",
-                    name: "normal_gather"
-                  }
-                }
-              ]
-            }
+            __class__: "Choice",
+            options: [
+              {
+                __class__: "Call",
+                name: "positive_gather"
+              },
+              {
+                __class__: "Call",
+                name: "normal_gather"
+              }
+            ]
           }
         ]
       }
@@ -22923,7 +22591,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "positive_gather",
-      params: ["PositiveGather"],
+      params: [
+        "PositiveGather"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -22980,7 +22650,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "normal_gather",
-      params: ["Gather"],
+      params: [
+        "Gather"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23060,46 +22732,34 @@ var tatsu_default = {
           {
             __class__: "Lookahead",
             exp: {
-              __class__: "Group",
-              exp: {
-                __class__: "Sequence",
-                sequence: [
-                  {
-                    __class__: "Call",
-                    name: "atom"
-                  },
-                  {
-                    __class__: "Token",
-                    token: "%{"
-                  }
-                ]
-              }
+              __class__: "Sequence",
+              sequence: [
+                {
+                  __class__: "Call",
+                  name: "atom"
+                },
+                {
+                  __class__: "Token",
+                  token: "%{"
+                }
+              ]
             }
           },
           {
             __class__: "Cut"
           },
           {
-            __class__: "Group",
-            exp: {
-              __class__: "Choice",
-              options: [
-                {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Call",
-                    name: "positive_join"
-                  }
-                },
-                {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Call",
-                    name: "normal_join"
-                  }
-                }
-              ]
-            }
+            __class__: "Choice",
+            options: [
+              {
+                __class__: "Call",
+                name: "positive_join"
+              },
+              {
+                __class__: "Call",
+                name: "normal_join"
+              }
+            ]
           }
         ]
       }
@@ -23107,7 +22767,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "positive_join",
-      params: ["PositiveJoin"],
+      params: [
+        "PositiveJoin"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23164,7 +22826,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "normal_join",
-      params: ["Join"],
+      params: [
+        "Join"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23228,7 +22892,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "left_join",
-      params: ["LeftJoin"],
+      params: [
+        "LeftJoin"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23288,7 +22954,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "right_join",
-      params: ["RightJoin"],
+      params: [
+        "RightJoin"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23348,7 +23016,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "positive_closure",
-      params: ["PositiveClosure"],
+      params: [
+        "PositiveClosure"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23362,70 +23032,64 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Sequence",
-              sequence: [
-                {
-                  __class__: "Token",
-                  token: "{"
-                },
-                {
-                  __class__: "Override",
-                  exp: {
-                    __class__: "Call",
-                    name: "expre"
-                  }
-                },
-                {
-                  __class__: "Token",
-                  token: "}"
-                },
-                {
-                  __class__: "NegativeLookahead",
-                  exp: {
-                    __class__: "Pattern",
-                    pattern: "\\+="
-                  }
-                },
-                {
-                  __class__: "Pattern",
-                  pattern: "[+-]"
-                },
-                {
-                  __class__: "Cut"
+            __class__: "Sequence",
+            sequence: [
+              {
+                __class__: "Token",
+                token: "{"
+              },
+              {
+                __class__: "Override",
+                exp: {
+                  __class__: "Call",
+                  name: "expre"
                 }
-              ]
-            }
+              },
+              {
+                __class__: "Token",
+                token: "}"
+              },
+              {
+                __class__: "NegativeLookahead",
+                exp: {
+                  __class__: "Pattern",
+                  pattern: "\\+="
+                }
+              },
+              {
+                __class__: "Pattern",
+                pattern: "[+-]"
+              },
+              {
+                __class__: "Cut"
+              }
+            ]
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Sequence",
-              sequence: [
-                {
-                  __class__: "Override",
-                  exp: {
-                    __class__: "Call",
-                    name: "atom"
-                  }
-                },
-                {
-                  __class__: "NegativeLookahead",
-                  exp: {
-                    __class__: "Pattern",
-                    pattern: "\\+="
-                  }
-                },
-                {
-                  __class__: "Pattern",
-                  pattern: "[+]"
-                },
-                {
-                  __class__: "Cut"
+            __class__: "Sequence",
+            sequence: [
+              {
+                __class__: "Override",
+                exp: {
+                  __class__: "Call",
+                  name: "atom"
                 }
-              ]
-            }
+              },
+              {
+                __class__: "NegativeLookahead",
+                exp: {
+                  __class__: "Pattern",
+                  pattern: "\\+="
+                }
+              },
+              {
+                __class__: "Pattern",
+                pattern: "[+]"
+              },
+              {
+                __class__: "Cut"
+              }
+            ]
           }
         ]
       }
@@ -23433,7 +23097,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "closure",
-      params: ["Closure"],
+      params: [
+        "Closure"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23447,59 +23113,53 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Sequence",
-              sequence: [
-                {
-                  __class__: "Token",
-                  token: "{"
-                },
-                {
-                  __class__: "Override",
-                  exp: {
-                    __class__: "Call",
-                    name: "expre"
-                  }
-                },
-                {
-                  __class__: "Token",
-                  token: "}"
-                },
-                {
-                  __class__: "Optional",
-                  exp: {
-                    __class__: "Token",
-                    token: "*"
-                  }
-                },
-                {
-                  __class__: "Cut"
+            __class__: "Sequence",
+            sequence: [
+              {
+                __class__: "Token",
+                token: "{"
+              },
+              {
+                __class__: "Override",
+                exp: {
+                  __class__: "Call",
+                  name: "expre"
                 }
-              ]
-            }
-          },
-          {
-            __class__: "Option",
-            exp: {
-              __class__: "Sequence",
-              sequence: [
-                {
-                  __class__: "Override",
-                  exp: {
-                    __class__: "Call",
-                    name: "atom"
-                  }
-                },
-                {
+              },
+              {
+                __class__: "Token",
+                token: "}"
+              },
+              {
+                __class__: "Optional",
+                exp: {
                   __class__: "Token",
                   token: "*"
-                },
-                {
-                  __class__: "Cut"
                 }
-              ]
-            }
+              },
+              {
+                __class__: "Cut"
+              }
+            ]
+          },
+          {
+            __class__: "Sequence",
+            sequence: [
+              {
+                __class__: "Override",
+                exp: {
+                  __class__: "Call",
+                  name: "atom"
+                }
+              },
+              {
+                __class__: "Token",
+                token: "*"
+              },
+              {
+                __class__: "Cut"
+              }
+            ]
           }
         ]
       }
@@ -23507,7 +23167,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "empty_closure",
-      params: ["EmptyClosure"],
+      params: [
+        "EmptyClosure"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23539,7 +23201,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "optional",
-      params: ["Optional"],
+      params: [
+        "Optional"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23553,87 +23217,69 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Sequence",
-              sequence: [
-                {
-                  __class__: "Token",
-                  token: "["
-                },
-                {
-                  __class__: "Cut"
-                },
-                {
-                  __class__: "Override",
-                  exp: {
-                    __class__: "Call",
-                    name: "expre"
-                  }
-                },
-                {
-                  __class__: "Token",
-                  token: "]"
-                },
-                {
-                  __class__: "Cut"
+            __class__: "Sequence",
+            sequence: [
+              {
+                __class__: "Token",
+                token: "["
+              },
+              {
+                __class__: "Cut"
+              },
+              {
+                __class__: "Override",
+                exp: {
+                  __class__: "Call",
+                  name: "expre"
                 }
-              ]
-            }
+              },
+              {
+                __class__: "Token",
+                token: "]"
+              },
+              {
+                __class__: "Cut"
+              }
+            ]
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Sequence",
-              sequence: [
-                {
-                  __class__: "Override",
-                  exp: {
-                    __class__: "Call",
-                    name: "atom"
-                  }
-                },
-                {
-                  __class__: "NegativeLookahead",
-                  exp: {
-                    __class__: "Group",
-                    exp: {
-                      __class__: "Choice",
-                      options: [
-                        {
-                          __class__: "Option",
-                          exp: {
-                            __class__: "Token",
-                            token: '?"'
-                          }
-                        },
-                        {
-                          __class__: "Option",
-                          exp: {
-                            __class__: "Token",
-                            token: "?'"
-                          }
-                        },
-                        {
-                          __class__: "Option",
-                          exp: {
-                            __class__: "Token",
-                            token: "?/"
-                          }
-                        }
-                      ]
-                    }
-                  }
-                },
-                {
-                  __class__: "Token",
-                  token: "?"
-                },
-                {
-                  __class__: "Cut"
+            __class__: "Sequence",
+            sequence: [
+              {
+                __class__: "Override",
+                exp: {
+                  __class__: "Call",
+                  name: "atom"
                 }
-              ]
-            }
+              },
+              {
+                __class__: "NegativeLookahead",
+                exp: {
+                  __class__: "Choice",
+                  options: [
+                    {
+                      __class__: "Token",
+                      token: '?"'
+                    },
+                    {
+                      __class__: "Token",
+                      token: "?'"
+                    },
+                    {
+                      __class__: "Token",
+                      token: "?/"
+                    }
+                  ]
+                }
+              },
+              {
+                __class__: "Token",
+                token: "?"
+              },
+              {
+                __class__: "Cut"
+              }
+            ]
           }
         ]
       }
@@ -23641,7 +23287,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "lookahead",
-      params: ["Lookahead"],
+      params: [
+        "Lookahead"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23674,7 +23322,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "negative_lookahead",
-      params: ["NegativeLookahead"],
+      params: [
+        "NegativeLookahead"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23707,7 +23357,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "skip_to",
-      params: ["SkipTo"],
+      params: [
+        "SkipTo"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23754,73 +23406,79 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "token"
-            }
+            __class__: "Call",
+            name: "meta"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "call"
-            }
+            __class__: "Call",
+            name: "token"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "dot"
-            }
+            __class__: "Call",
+            name: "call"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "pattern"
-            }
+            __class__: "Call",
+            name: "dot"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "skip"
-            }
+            __class__: "Call",
+            name: "pattern"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "group"
-            }
+            __class__: "Call",
+            name: "skip"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "eol"
-            }
+            __class__: "Call",
+            name: "group"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "eof"
-            }
+            __class__: "Call",
+            name: "eol"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "alert"
-            }
+            __class__: "Call",
+            name: "eof"
           },
           {
-            __class__: "Option",
+            __class__: "Call",
+            name: "alert"
+          },
+          {
+            __class__: "Call",
+            name: "constant"
+          }
+        ]
+      }
+    },
+    {
+      __class__: "Rule",
+      name: "meta",
+      params: [
+        "Meta"
+      ],
+      kwparams: {},
+      decorators: [],
+      base: null,
+      is_name: false,
+      is_tokn: false,
+      no_memo: false,
+      no_stak: false,
+      is_memo: true,
+      is_lrec: false,
+      exp: {
+        __class__: "Sequence",
+        sequence: [
+          {
+            __class__: "Token",
+            token: "@"
+          },
+          {
+            __class__: "Override",
             exp: {
-              __class__: "Call",
-              name: "constant"
+              __class__: "Pattern",
+              pattern: "(name|int|uint|float|bool)\\b"
             }
           }
         ]
@@ -23829,7 +23487,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "call",
-      params: ["Call"],
+      params: [
+        "Call"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23847,7 +23507,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "void",
-      params: ["Void"],
+      params: [
+        "Void"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23873,7 +23535,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "fail",
-      params: ["Fail"],
+      params: [
+        "Fail"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23899,7 +23563,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "cut",
-      params: ["Cut"],
+      params: [
+        "Cut"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23925,7 +23591,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "cut_deprecated",
-      params: ["Cut"],
+      params: [
+        "Cut"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -23965,8 +23633,7 @@ var tatsu_default = {
         __class__: "Sequence",
         sequence: [
           {
-            __class__: "Call",
-            name: "name"
+            __class__: "NameMeta"
           },
           {
             __class__: "Cut"
@@ -23995,7 +23662,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "constant",
-      params: ["Constant"],
+      params: [
+        "Constant"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -24016,49 +23685,37 @@ var tatsu_default = {
             }
           },
           {
-            __class__: "Group",
-            exp: {
-              __class__: "Choice",
-              options: [
-                {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Pattern",
-                    pattern: "(?ms)```((?:.|\\n)*?)```"
+            __class__: "Choice",
+            options: [
+              {
+                __class__: "Pattern",
+                pattern: "(?ms)```((?:.|\\n)*?)```"
+              },
+              {
+                __class__: "Sequence",
+                sequence: [
+                  {
+                    __class__: "Token",
+                    token: "`"
+                  },
+                  {
+                    __class__: "Override",
+                    exp: {
+                      __class__: "Call",
+                      name: "literal"
+                    }
+                  },
+                  {
+                    __class__: "Token",
+                    token: "`"
                   }
-                },
-                {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Sequence",
-                    sequence: [
-                      {
-                        __class__: "Token",
-                        token: "`"
-                      },
-                      {
-                        __class__: "Override",
-                        exp: {
-                          __class__: "Call",
-                          name: "literal"
-                        }
-                      },
-                      {
-                        __class__: "Token",
-                        token: "`"
-                      }
-                    ]
-                  }
-                },
-                {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Pattern",
-                    pattern: "`(.*?)`"
-                  }
-                }
-              ]
-            }
+                ]
+              },
+              {
+                __class__: "Pattern",
+                pattern: "`(.*?)`"
+              }
+            ]
           }
         ]
       }
@@ -24066,7 +23723,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "alert",
-      params: ["Alert"],
+      params: [
+        "Alert"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -24101,7 +23760,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "token",
-      params: ["Token"],
+      params: [
+        "Token"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -24115,18 +23776,12 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "string"
-            }
+            __class__: "Call",
+            name: "string"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "raw_string"
-            }
+            __class__: "Call",
+            name: "raw_string"
           }
         ]
       }
@@ -24148,60 +23803,36 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "raw_string"
-            }
+            __class__: "Call",
+            name: "raw_string"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "value"
-            }
+            __class__: "Call",
+            name: "value"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "boolean"
-            }
+            __class__: "Call",
+            name: "boolean"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "none"
-            }
+            __class__: "Call",
+            name: "none"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "word"
-            }
+            __class__: "Call",
+            name: "word"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "hex"
-            }
+            __class__: "Call",
+            name: "hex"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "float"
-            }
+            __class__: "Call",
+            name: "float"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "int"
-            }
+            __class__: "Call",
+            name: "int"
           }
         ]
       }
@@ -24225,56 +23856,35 @@ var tatsu_default = {
           {
             __class__: "Lookahead",
             exp: {
-              __class__: "Group",
-              exp: {
-                __class__: "Choice",
-                options: [
-                  {
-                    __class__: "Option",
-                    exp: {
-                      __class__: "Token",
-                      token: '"'
-                    }
-                  },
-                  {
-                    __class__: "Option",
-                    exp: {
-                      __class__: "Token",
-                      token: "'"
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            __class__: "Group",
-            exp: {
               __class__: "Choice",
               options: [
                 {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Call",
-                    name: "multiline_string"
-                  }
+                  __class__: "Token",
+                  token: '"'
                 },
                 {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Call",
-                    name: "singlequoted"
-                  }
-                },
-                {
-                  __class__: "Option",
-                  exp: {
-                    __class__: "Call",
-                    name: "doublequoted"
-                  }
+                  __class__: "Token",
+                  token: "'"
                 }
               ]
             }
+          },
+          {
+            __class__: "Choice",
+            options: [
+              {
+                __class__: "Call",
+                name: "multiline_string"
+              },
+              {
+                __class__: "Call",
+                name: "singlequoted"
+              },
+              {
+                __class__: "Call",
+                name: "doublequoted"
+              }
+            ]
           }
         ]
       }
@@ -24369,18 +23979,12 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "SINGLEQUOTED"
-            }
+            __class__: "Call",
+            name: "SINGLEQUOTED"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "DOUBLEQUOTED"
-            }
+            __class__: "Call",
+            name: "DOUBLEQUOTED"
           }
         ]
       }
@@ -24454,34 +24058,28 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Sequence",
-              sequence: [
-                {
-                  __class__: "Pattern",
-                  pattern: "(?ms)'''((?:\\\\\\\\|\\\\.|.)*?)'''"
-                },
-                {
-                  __class__: "Cut"
-                }
-              ]
-            }
+            __class__: "Sequence",
+            sequence: [
+              {
+                __class__: "Pattern",
+                pattern: "(?ms)'''((?:\\\\\\\\|\\\\.|.)*?)'''"
+              },
+              {
+                __class__: "Cut"
+              }
+            ]
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Sequence",
-              sequence: [
-                {
-                  __class__: "Pattern",
-                  pattern: '(?ms)"""((?:\\\\\\\\|\\\\.|.)*?)"""'
-                },
-                {
-                  __class__: "Cut"
-                }
-              ]
-            }
+            __class__: "Sequence",
+            sequence: [
+              {
+                __class__: "Pattern",
+                pattern: '(?ms)"""((?:\\\\\\\\|\\\\.|.)*?)"""'
+              },
+              {
+                __class__: "Cut"
+              }
+            ]
           }
         ]
       }
@@ -24555,7 +24153,7 @@ var tatsu_default = {
       is_lrec: false,
       exp: {
         __class__: "Pattern",
-        pattern: "[_a-zA-Z]\\w*(?:::[_a-zA-Z]\\w*)+"
+        pattern: "[_\\w][_\\w\\d]*(?:::[_\\w][_\\w\\d]*)+"
       }
     },
     {
@@ -24573,13 +24171,15 @@ var tatsu_default = {
       is_lrec: false,
       exp: {
         __class__: "Pattern",
-        pattern: "[_a-zA-Z]\\w*"
+        pattern: "(?ms)\\s*([_\\w][_\\w\\d]*)\\b"
       }
     },
     {
       __class__: "Rule",
       name: "dot",
-      params: ["Dot"],
+      params: [
+        "Dot"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -24597,7 +24197,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "pattern",
-      params: ["Pattern"],
+      params: [
+        "Pattern"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -24629,60 +24231,45 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "deprecated_regex"
-            }
+            __class__: "Call",
+            name: "deprecated_regex"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Sequence",
-              sequence: [
-                {
-                  __class__: "NegativeLookahead",
-                  exp: {
-                    __class__: "Token",
-                    token: "?/"
-                  }
-                },
-                {
-                  __class__: "Group",
-                  exp: {
-                    __class__: "Choice",
-                    options: [
+            __class__: "Sequence",
+            sequence: [
+              {
+                __class__: "NegativeLookahead",
+                exp: {
+                  __class__: "Token",
+                  token: "?/"
+                }
+              },
+              {
+                __class__: "Choice",
+                options: [
+                  {
+                    __class__: "Call",
+                    name: "REGEX"
+                  },
+                  {
+                    __class__: "Sequence",
+                    sequence: [
                       {
-                        __class__: "Option",
-                        exp: {
-                          __class__: "Call",
-                          name: "REGEX"
-                        }
+                        __class__: "Token",
+                        token: "?"
                       },
                       {
-                        __class__: "Option",
+                        __class__: "Override",
                         exp: {
-                          __class__: "Sequence",
-                          sequence: [
-                            {
-                              __class__: "Token",
-                              token: "?"
-                            },
-                            {
-                              __class__: "Override",
-                              exp: {
-                                __class__: "Call",
-                                name: "STRING"
-                              }
-                            }
-                          ]
+                          __class__: "Call",
+                          name: "STRING"
                         }
                       }
                     ]
                   }
-                }
-              ]
-            }
+                ]
+              }
+            ]
           }
         ]
       }
@@ -24777,18 +24364,12 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Token",
-              token: "True"
-            }
+            __class__: "Token",
+            token: "True"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Token",
-              token: "False"
-            }
+            __class__: "Token",
+            token: "False"
           }
         ]
       }
@@ -24814,7 +24395,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "eof",
-      params: ["EOF"],
+      params: [
+        "EOF"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -24840,7 +24423,9 @@ var tatsu_default = {
     {
       __class__: "Rule",
       name: "eol",
-      params: ["EOL"],
+      params: [
+        "EOL"
+      ],
       kwparams: {},
       decorators: [],
       base: null,
@@ -24872,39 +24457,24 @@ var tatsu_default = {
         __class__: "Choice",
         options: [
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "string"
-            }
+            __class__: "Call",
+            name: "string"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "number"
-            }
+            __class__: "Call",
+            name: "number"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "true"
-            }
+            __class__: "Call",
+            name: "true"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "false"
-            }
+            __class__: "Call",
+            name: "false"
           },
           {
-            __class__: "Option",
-            exp: {
-              __class__: "Call",
-              name: "null"
-            }
+            __class__: "Call",
+            name: "null"
           }
         ]
       }
@@ -26569,7 +26139,7 @@ class Exp {
       }
       case "Constant" /* Constant */: {
         const exp = this;
-        return ctx2.mtchConstant(exp.value);
+        return ctx2.matchConstant(exp.value);
       }
       case "Alert" /* Alert */: {
         const exp = this;
@@ -26702,34 +26272,19 @@ class Exp {
         return rinc.exp.parse(ctx2);
       }
       case "NameMeta" /* NameMeta */: {
-        const result = ctx2.matchName();
-        if (result === null)
-          return null;
-        return result;
+        return ctx2.matchName();
       }
       case "IntMeta" /* IntMeta */: {
-        const result = ctx2.matchInt();
-        if (result === null)
-          return null;
-        return result;
+        return ctx2.matchInt();
       }
       case "UIntMeta" /* UIntMeta */: {
-        const result = ctx2.matchUInt();
-        if (result === null)
-          return null;
-        return result;
+        return ctx2.matchUInt();
       }
       case "FloatMeta" /* FloatMeta */: {
-        const result = ctx2.matchFloat();
-        if (result === null)
-          return null;
-        return result;
+        return ctx2.matchFloat();
       }
       case "BoolMeta" /* BoolMeta */: {
-        const result = ctx2.matchBool();
-        if (result === null)
-          return null;
-        return result;
+        return ctx2.matchBool();
       }
       default:
         throw new Error(`parse() unhandled ExpKind: ${this.kind}`);
