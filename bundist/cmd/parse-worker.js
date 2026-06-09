@@ -18845,10 +18845,10 @@ class CoreCtx {
     this.nextToken();
     const slice = this._cursor.matchName();
     if (slice === null) {
+      this.reset(start);
       this._tracer.traceNoMatch(this, "@name", "");
       throw this.failure(start, new ParseError("expected @name"));
     }
-    this.reset(start);
     this._tracer.traceMatch(this, "@name", slice);
     return slice;
   }
@@ -18857,10 +18857,10 @@ class CoreCtx {
     this.nextToken();
     const slice = this._cursor.matchInt();
     if (slice === null) {
+      this.reset(start);
       this._tracer.traceNoMatch(this, "@int", "");
       throw this.failure(start, new ParseError("expected @int"));
     }
-    this.reset(start);
     this._tracer.traceMatch(this, "@int", slice.toString());
     return slice;
   }
@@ -18869,10 +18869,10 @@ class CoreCtx {
     this.nextToken();
     const slice = this._cursor.matchUInt();
     if (slice === null) {
+      this.reset(start);
       this._tracer.traceNoMatch(this, "@uint", "");
       throw this.failure(start, new ParseError("expected @uint"));
     }
-    this.reset(start);
     this._tracer.traceMatch(this, "@uint", slice.toString());
     return slice;
   }
@@ -18881,10 +18881,10 @@ class CoreCtx {
     this.nextToken();
     const slice = this._cursor.matchFloat();
     if (slice === null) {
+      this.reset(start);
       this._tracer.traceNoMatch(this, "@float", "");
       throw this.failure(start, new ParseError("expected @float"));
     }
-    this.reset(start);
     this._tracer.traceMatch(this, "@float", slice.toString());
     return slice;
   }
@@ -18893,10 +18893,10 @@ class CoreCtx {
     this.nextToken();
     const slice = this._cursor.matchBool();
     if (slice === null) {
+      this.reset(start);
       this._tracer.traceNoMatch(this, "@bool", "");
       throw this.failure(start, new ParseError("expected @bool"));
     }
-    this.reset(start);
     this._tracer.traceMatch(this, "@bool", slice.toString());
     return slice;
   }
@@ -20722,39 +20722,72 @@ class StrCursor {
     this.offset = mark;
     return false;
   }
-  matchMetaPattern(regex) {
-    regex.lastIndex = this.offset;
-    const match = regex.exec(this.text);
-    if (match && this.isBoundary(regex.lastIndex)) {
-      this.offset = regex.lastIndex;
-      return match[0];
+  matchMetaPattern(regex, withBoundary = true) {
+    let start = this.offset;
+    const slice = this.text.slice(this.offset);
+    const match = slice.match(regex);
+    if (!match)
+      return null;
+    this.offset += match[0].length;
+    if (withBoundary && !this.isBoundary()) {
+      this.reset(start);
+      return null;
     }
-    return null;
+    return match[0];
   }
   matchName() {
-    return this.matchMetaPattern(/(?:[\p{XID_Start}_])[\p{XID_Continue}_]*/uy);
+    return this.matchMetaPattern(/[_\p{XID_Start}][_\p{XID_Continue}]*\b/u);
   }
-  matchUInt() {
-    const raw = this.matchMetaPattern(/\p{Nd}+(?:_\p{Nd}+)*/uy);
+  matchUInt(withBoundary = true) {
+    const raw = this.matchMetaPattern(/\d+(?:_?\d+)*/, withBoundary);
     return raw !== null ? Number(raw.replace(/_/g, "")) : null;
   }
-  matchInt() {
-    const raw = this.matchMetaPattern(/[+-]?\p{Nd}+(?:_\p{Nd}+)*/uy);
+  matchInt(withBoundary = true) {
+    const raw = this.matchMetaPattern(/[+-]?\d+(?:_?\d+)*/, withBoundary);
     return raw !== null ? Number(raw.replace(/_/g, "")) : null;
   }
   matchFloat() {
-    const raw = this.matchMetaPattern(/[+-]?\p{Nd}+(?:_\p{Nd}+)*(?:\.\p{Nd}+(?:_\p{Nd}+)*)?(?:[eE][+-]?\p{Nd}+(?:_\p{Nd}+)*)?/uy);
-    return raw !== null ? Number(raw.replace(/_/g, "")) : null;
+    const start = this.offset;
+    const text = this.text;
+    if (this.matchInt(false) === null) {
+      this.reset(start);
+      return null;
+    }
+    let p = this.offset;
+    if (p < text.length && text[p] === ".") {
+      this.offset++;
+      p = this.offset;
+      if (p < text.length && /\d/.test(text[p])) {
+        if (this.matchUInt(false) === null) {
+          this.reset(start);
+          return null;
+        }
+      }
+    }
+    p = this.offset;
+    if (p < text.length && (text[p] === "e" || text[p] === "E")) {
+      this.offset++;
+      if (this.matchInt(false) === null) {
+        this.reset(start);
+        return null;
+      }
+    }
+    if (!this.isBoundary()) {
+      this.reset(start);
+      return null;
+    }
+    p = this.offset;
+    return Number(text.slice(start, p).replace(/_/g, ""));
   }
   matchBool() {
-    const raw = this.matchMetaPattern(/true|false/iy);
+    const raw = this.matchMetaPattern(/true|false/i);
     return raw !== null ? raw.toLowerCase() === "true" : null;
   }
-  isBoundary(offset) {
-    if (offset >= this.text.length)
+  isBoundary() {
+    if (this.offset >= this.text.length)
       return true;
-    const nextChar = this.text[offset];
-    return !/[\p{XID_Continue}_]/u.test(nextChar);
+    const slice = this.text.slice(this.offset);
+    return /[^_\w\d\p{XID_Start}\p{XID_Continue}]/u.test(slice);
   }
   nextToken() {
     const wsp = this.heavy.patterns.wsp;
@@ -21636,8 +21669,7 @@ var tatsu_default = {
             __class__: "Named",
             name: "name",
             exp: {
-              __class__: "Call",
-              name: "name"
+              __class__: "NameMeta"
             }
           },
           {
@@ -22101,6 +22133,10 @@ var tatsu_default = {
         options: [
           {
             __class__: "Call",
+            name: "override"
+          },
+          {
+            __class__: "Call",
             name: "meta"
           },
           {
@@ -22110,10 +22146,6 @@ var tatsu_default = {
           {
             __class__: "Call",
             name: "term"
-          },
-          {
-            __class__: "Call",
-            name: "override"
           },
           {
             __class__: "Call",
@@ -23468,20 +23500,8 @@ var tatsu_default = {
       is_memo: true,
       is_lrec: false,
       exp: {
-        __class__: "Sequence",
-        sequence: [
-          {
-            __class__: "Token",
-            token: "@"
-          },
-          {
-            __class__: "Override",
-            exp: {
-              __class__: "Pattern",
-              pattern: "(name|int|uint|float|bool)\\b"
-            }
-          }
-        ]
+        __class__: "Pattern",
+        pattern: "@(name|int|uint|float|bool)\\b"
       }
     },
     {
@@ -28160,7 +28180,11 @@ function parseGrammar(grammar2, cfg) {
     }
     if (isParseFailure(error4)) {
       const failure = error4;
-      throw new ApiError(failure.memento.msg, failure);
+      const apierror = new ApiError(failure.memento.render());
+      if (Error.captureStackTrace) {
+        Error.captureStackTrace(apierror, parseGrammar);
+      }
+      throw error4;
     }
     throw new ApiError("failed to parse grammar", error4);
   }
@@ -28194,8 +28218,13 @@ function parseInput(parser, text, cfg) {
     } else {
       failure = ctx2.furthestFailure();
     }
-    if (failure !== null)
-      throw new ApiError(failure.memento.msg, failure);
+    if (failure !== null) {
+      const error5 = new ApiError(failure.memento.render());
+      if (Error.captureStackTrace) {
+        Error.captureStackTrace(error5, parseInput);
+      }
+      throw error5;
+    }
     throw new ApiError("failed to parse input", error4);
   }
 }
