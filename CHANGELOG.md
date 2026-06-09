@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+* `@name`, `@int`, `@uint`, `@float`, `@bool` meta expressions for rule expressions.
+  These yield `NameMeta`, `IntMeta`, `UIntMeta`, `FloatMeta`, and `BoolMeta` AST
+  nodes respectively.
+* `GrammarSemantics` interface replaces the `SemanticsFunc` type, giving library
+  users a clean hook to supply their own semantics for grammar compilation.
+
+### Changed
+
+* EBNF grammar semantics are now configured at the API layer via `GrammarSemantics`
+  rather than a function type deep in the parser internals.
+
 ## [v0.1.0] 2026-06-07 Release
 
 Initial public release, feature-fairly-complete.
