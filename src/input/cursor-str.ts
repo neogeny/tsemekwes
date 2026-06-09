@@ -316,111 +316,51 @@ export class StrCursor implements Cursor {
     return false
   }
 
-  matchName(): string | null {
-    if (this.atEnd()) {
-      return null
+  private matchMetaPattern(regex: RegExp): string | null {
+    regex.lastIndex = this.offset;
+    const match = regex.exec(this.text);
+
+    if (match && this.isBoundary(regex.lastIndex)) {
+      this.offset = regex.lastIndex;
+      return match[0];
     }
-    const first = this.text[this.offset]
-    if (
-      first !== "_" &&
-      !isAlphabetic(first) &&
-      !this.heavy.nameChars.includes(first)
-    ) {
-      return null
-    }
-    const mark = this.offset
-    this.offset++
-    while (this.offset < this.text.length && this.isNameChar(this.text[this.offset])) {
-      this.offset++
-    }
-    return this.text.slice(mark, this.offset)
+
+    return null;
   }
 
-  matchInt(): number | null {
-    const mark = this.offset
-    if (
-      this.offset < this.text.length &&
-      (this.text[this.offset] === "+" || this.text[this.offset] === "-")
-    ) {
-      this.offset++
-    }
-    if (!this.consumeUInt()) {
-      this.offset = mark
-      return null
-    }
-    if (!this.isBoundary(this.offset)) {
-      this.offset = mark
-      return null
-    }
-    return Number(this.text.slice(mark, this.offset).replace(/_/g, ""))
+  matchName(): string | null {
+    // XID_Start or underscore for the first character,
+    // followed by zero or more XID_Continue or underscore characters.
+    return this.matchMetaPattern(/(?:[\p{XID_Start}_])[\p{XID_Continue}_]*/uy);
   }
 
   matchUInt(): number | null {
-    const mark = this.offset
-    if (!this.consumeUInt()) {
-      return null
-    }
-    if (!this.isBoundary(this.offset)) {
-      this.offset = mark
-      return null
-    }
-    return Number(this.text.slice(mark, this.offset).replace(/_/g, ""))
+    const raw = this.matchMetaPattern(/\p{Nd}+(?:_\p{Nd}+)*/uy);
+    return raw !== null ? Number(raw.replace(/_/g, "")) : null;
+  }
+
+  matchInt(): number | null {
+    const raw = this.matchMetaPattern(/[+-]?\p{Nd}+(?:_\p{Nd}+)*/uy);
+    return raw !== null ? Number(raw.replace(/_/g, "")) : null;
   }
 
   matchFloat(): number | null {
-    const mark = this.offset
-    if (this.offset < this.text.length && (this.text[this.offset] === "+" || this.text[this.offset] === "-")) {
-      this.offset++
-    }
-    if (!this.consumeUInt()) {
-      this.offset = mark
-      return null
-    }
-    if (this.offset < this.text.length && this.text[this.offset] === ".") {
-      this.offset++
-      this.consumeUInt()
-    }
-    if (this.offset < this.text.length && (this.text[this.offset] === "e" || this.text[this.offset] === "E")) {
-      const expMark = this.offset
-      this.offset++
-      if (this.offset < this.text.length && (this.text[this.offset] === "+" || this.text[this.offset] === "-")) {
-        this.offset++
-      }
-      if (!this.consumeUInt()) {
-        this.offset = expMark
-      }
-    }
-    if (!this.isBoundary(this.offset)) {
-      this.offset = mark
-      return null
-    }
-    return Number(this.text.slice(mark, this.offset).replace(/_/g, ""))
+    // Adjusted exponent group to be optional (?), preventing compilation
+    // dead-ends when scanning standard decimals like "3.14"
+    const raw = this.matchMetaPattern(/[+-]?\p{Nd}+(?:_\p{Nd}+)*(?:\.\p{Nd}+(?:_\p{Nd}+)*)?(?:[eE][+-]?\p{Nd}+(?:_\p{Nd}+)*)?/uy);
+    return raw !== null ? Number(raw.replace(/_/g, "")) : null;
   }
 
   matchBool(): boolean | null {
-    if (this.atEnd()) {
-      return null
-    }
-    if (this.text.toLowerCase().startsWith("true", this.offset)) {
-      if (this.isBoundary(this.offset + 4)) {
-        this.offset += 4
-        return true
-      }
-    }
-    if (this.text.toLowerCase().startsWith("false", this.offset)) {
-      if (this.isBoundary(this.offset + 5)) {
-        this.offset += 5
-        return false
-      }
-    }
-    return null
+    const raw = this.matchMetaPattern(/true|false/iy);
+    return raw !== null ? raw.toLowerCase() === "true" : null;
   }
 
   private isBoundary(offset: number): boolean {
-    if (offset >= this.text.length) {
-      return true
-    }
-    return !this.isNameChar(this.text[offset])
+    if (offset >= this.text.length) return true;
+
+    const nextChar = this.text[offset];
+    return !/[\p{XID_Continue}_]/u.test(nextChar);
   }
 
   nextToken(): void {
@@ -512,7 +452,7 @@ export class StrCursor implements Cursor {
   }
 
   private eatSpacesNoNewlines(): void {
-    for (;;) {
+    for (; ;) {
       const prev = this.offset
       this.offset += takeNonNewlineWhitespaceLen(this.text, this.offset)
       if (this.eatPattern(this.heavy.patterns.eol)) {
@@ -523,26 +463,6 @@ export class StrCursor implements Cursor {
         break
       }
     }
-  }
-
-  private consumeUInt(): boolean {
-    const start = this.offset
-    while (this.offset < this.text.length) {
-      const ch = this.text[this.offset]
-      if (ch >= "0" && ch <= "9") {
-        this.offset++
-      } else if (ch === "_") {
-        if (this.offset + 1 < this.text.length && this.text[this.offset + 1] >= "0" && this.text[this.offset + 1] <= "9") {
-          this.offset++
-        } else {
-          this.offset = start
-          return false
-        }
-      } else {
-        break
-      }
-    }
-    return this.offset !== start
   }
 }
 
