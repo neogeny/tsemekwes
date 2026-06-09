@@ -31,7 +31,7 @@ build: clean lint
          --outDir {{ tsdist }} \
         --declaration --emitDeclarationOnly
     bun build \
-        {{ src }}/tsemekwes.ts {{ src }}/cmd/parse-worker.ts \
+        {{ src }}/tsemekwes.ts {{ src }}/cmd/cli.js {{ src }}/cmd/parse-worker.ts \
         --outdir {{ bundist }} --target bun
 
 bundle: build
@@ -42,13 +42,14 @@ bundle: build
         --minify --sourcemap \
         --outfile  bin/tsemekwes
 
-# Execute a specific script file instantly through the native bun runtime engine
 run script:
     bun run -- {{ script }}
 
-# Run the entire test pipeline directly using Bun
+cli *args: bundle
+    bun run ./bundist/tsemekwes {{ args }}
+
 test: build
-    bun test --only-failures --dots \
+    bun test --only-failures  \
       {{ src }}/__tests__/*.test.ts \
       {{ src }}/__tests__/**/*.test.ts \
       {{ src }}/**/__tests__/*.test.ts \
