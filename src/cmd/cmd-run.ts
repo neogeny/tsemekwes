@@ -75,7 +75,7 @@ export async function cmdRun(
   const workers = Array.from(
     { length: maxWorkers },
     () =>
-      new Worker(new URL("cmd/parse-worker", import.meta.url), {
+      new Worker(new URL("cmd/parse-worker.js", import.meta.url), {
         workerData: {
           grammarJson: grammarPalyload,
           start: options.start,
