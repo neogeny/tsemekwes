@@ -40,7 +40,11 @@ export function parseGrammar(grammar: string, cfg?: Cfg): TreeValue {
     }
     if (isParseFailure(error)) {
       const failure = error as ParseFailure;
-      throw new ApiError(failure.memento.msg, failure);
+      const apierror = new ApiError(failure.memento.render())
+      if (Error.captureStackTrace) {
+            Error.captureStackTrace(apierror, parseGrammar);
+      }
+      throw error;
     }
     throw new ApiError("failed to parse grammar", error);
   }
@@ -85,7 +89,13 @@ export function parseInput(
     } else {
       failure = ctx.furthestFailure();
     }
-    if (failure !== null) throw new ApiError(failure.memento.msg, failure);
+    if (failure !== null) {
+      const error = new ApiError(failure.memento.render())
+      if (Error.captureStackTrace) {
+            Error.captureStackTrace(error, parseInput)
+      }
+      throw error;
+    }
     throw new ApiError("failed to parse input", error);
   }
 }
