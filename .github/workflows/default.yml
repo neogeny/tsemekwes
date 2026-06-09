@@ -5,60 +5,44 @@
 name: tests default
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version:
-          - '3.15'
-          - '3.14'
-          - '3.13'
-          - '3.12'
+    environment:
+      name: pypi
+      url: https://pypi.org/p/tsemekwes
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - uses: actions/checkout@v6
-
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - uses: astral-sh/setup-uv@v7
       - uses: oven-sh/setup-bun@v2
 
-      - uses: astral-sh/setup-uv@v7
-      - uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-          allow-prereleases: true
+      - name: install just
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq just
 
-      - name: install dependencies
-        run: bun install
+      - name: install tools
+        run: just tools
 
-      - name: check formatting and types
-        run: |
-          bun x biome check src/
-          bun x tsc --noEmit
+      - name: build
+        run: just py-build
 
-      - name: build TS
-        run: bun build ./src/tsemekwes.ts ./src/cmd/parse-worker.ts --outdir ./dist --target bun
+      - name: test
+        run: just test
 
-      - name: run TS tests
-        run: bun test
+      - name: bundle
+        run: just bundle
 
-      - name: install Python deps
-        run: uv sync
+      - name: py-build
+        run: just py-build
 
-      - name: generate types
-        run: uv run ts2python src/tsemekwes/types.ts -o src/tsemekwes --compatibility 3.12
-
-      - name: verify Python wrapper
-        run: uv run python -c "
-          import tsemekwes as tw
-          r = tw.parse('grammar/calc.ebnf', '1+2')
-          assert r == ['1', '+', '2']
-          g = tw.Grammar.load('grammar/calc.ebnf')
-          assert g.info() != ''
-        "
-
-      - name: build wheel
-        run: uvx hatch build
+      - name: py-test
+        run: just py-test
