@@ -57,6 +57,11 @@ export function isNullable(exp: Exp): boolean {
     case ExpKind.Eof:
     case ExpKind.Fail:
     case ExpKind.SkipTo:
+    case ExpKind.NameMeta:
+    case ExpKind.IntMeta:
+    case ExpKind.UIntMeta:
+    case ExpKind.FloatMeta:
+    case ExpKind.BoolMeta:
       return false
     default:
       throw new Error(`isNullable: unhandled ExpKind ${exp.kind}`)

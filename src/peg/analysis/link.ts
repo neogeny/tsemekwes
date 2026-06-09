@@ -51,6 +51,11 @@ export function linkExp(exp: Exp | null, rules: Map<string, Rule>): void {
     case ExpKind.Pattern:
     case ExpKind.Constant:
     case ExpKind.Alert:
+    case ExpKind.NameMeta:
+    case ExpKind.IntMeta:
+    case ExpKind.UIntMeta:
+    case ExpKind.FloatMeta:
+    case ExpKind.BoolMeta:
       return
     // Unary — recurse into child
     case ExpKind.Named:

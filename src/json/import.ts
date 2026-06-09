@@ -1,6 +1,7 @@
 import { CallExp } from "@peg/call"
 import {
   AlertExp,
+  BoolMetaExp,
   ChoiceExp,
   ClosureExp,
   ConstantExp,
@@ -11,12 +12,15 @@ import {
   EolExp,
   type Exp,
   FailExp,
+  FloatMetaExp,
   GatherExp,
   GroupExp,
+  IntMetaExp,
   JoinExp,
   LookaheadExp,
   NamedExp,
   NamedListExp,
+  NameMetaExp,
   NegativeLookaheadExp,
   NilExp,
   OptionalExp,
@@ -31,6 +35,7 @@ import {
   SkipGroupExp,
   SkipToExp,
   TokenExp,
+  UIntMetaExp,
   VoidExp,
 } from "../peg/exp.js"
 import { Grammar } from "../peg/grammar.js"
@@ -289,6 +294,16 @@ function modelFromJSON(raw: unknown, path: string): Exp {
       const name = assertString(obj.name, `${path}.name`)
       return new RuleIncludeExp(name)
     }
+    case "NameMeta":
+      return new NameMetaExp()
+    case "IntMeta":
+      return new IntMetaExp()
+    case "UIntMeta":
+      return new UIntMetaExp()
+    case "FloatMeta":
+      return new FloatMetaExp()
+    case "BoolMeta":
+      return new BoolMetaExp()
     default:
       throw new ImportError(`${path}: unsupported expression type: ${cls}`)
   }

@@ -56,6 +56,11 @@ export function optimizeExp(exp: Exp): Exp {
     case ExpKind.Constant:
     case ExpKind.Alert:
     case ExpKind.Call:
+    case ExpKind.NameMeta:
+    case ExpKind.IntMeta:
+    case ExpKind.UIntMeta:
+    case ExpKind.FloatMeta:
+    case ExpKind.BoolMeta:
       return exp
 
     case ExpKind.Group:

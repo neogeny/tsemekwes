@@ -18840,6 +18840,66 @@ class Core {
     }
     return null;
   }
+  matchName() {
+    this.nextToken();
+    const start = this.mark();
+    const [slice, ok] = this._cursor.matchName();
+    if (ok) {
+      this._tracer.traceMatch(this, "@name", slice);
+      return slice;
+    }
+    this.reset(start);
+    this._tracer.traceNoMatch(this, "", "@name");
+    throw this.failure(start, new ParseError("expected @name"));
+  }
+  matchInt() {
+    this.nextToken();
+    const start = this.mark();
+    const [slice, ok] = this._cursor.matchInt();
+    if (ok) {
+      this._tracer.traceMatch(this, "@int", slice);
+      return slice;
+    }
+    this.reset(start);
+    this._tracer.traceNoMatch(this, "", "@int");
+    throw this.failure(start, new ParseError("expected @int"));
+  }
+  matchUInt() {
+    this.nextToken();
+    const start = this.mark();
+    const [slice, ok] = this._cursor.matchUInt();
+    if (ok) {
+      this._tracer.traceMatch(this, "@uint", slice);
+      return slice;
+    }
+    this.reset(start);
+    this._tracer.traceNoMatch(this, "", "@uint");
+    throw this.failure(start, new ParseError("expected @uint"));
+  }
+  matchFloat() {
+    this.nextToken();
+    const start = this.mark();
+    const [slice, ok] = this._cursor.matchFloat();
+    if (ok) {
+      this._tracer.traceMatch(this, "@float", slice);
+      return slice;
+    }
+    this.reset(start);
+    this._tracer.traceNoMatch(this, "", "@float");
+    throw this.failure(start, new ParseError("expected @float"));
+  }
+  matchBool() {
+    this.nextToken();
+    const start = this.mark();
+    const [slice, ok] = this._cursor.matchBool();
+    if (ok) {
+      this._tracer.traceMatch(this, "@bool", slice);
+      return slice;
+    }
+    this.reset(start);
+    this._tracer.traceNoMatch(this, "", "@bool");
+    throw this.failure(start, new ParseError("expected @bool"));
+  }
   mtchConstant(literal) {
     if (typeof literal === "string" || typeof literal === "number" || typeof literal === "boolean") {
       return literal;
@@ -18945,9 +19005,10 @@ class Core {
     this.cutStack.pop();
     return seen;
   }
-  applySemantics(node, _ruleName, _params) {
-    if (this.cfg().semantics !== null) {
-      return this.cfg().semantics?.(node, _ruleName, _params) || [node, false];
+  applySemantics(node, ruleName, params) {
+    const sem = this.cfg().semantics;
+    if (sem !== null && sem !== undefined) {
+      return sem.apply(node, ruleName, params);
     }
     return [node, false];
   }
@@ -20666,6 +20727,78 @@ class StrCursor {
     this.offset = mark;
     return false;
   }
+  matchName() {
+    if (this.atEnd()) {
+      return ["", false];
+    }
+    const first = this.text[this.offset];
+    if (first !== "_" && !isAlphabetic(first) && !this.heavy.nameChars.includes(first)) {
+      return ["", false];
+    }
+    const mark = this.offset;
+    this.offset++;
+    while (this.offset < this.text.length && this.isNameChar(this.text[this.offset])) {
+      this.offset++;
+    }
+    return [this.text.slice(mark, this.offset), true];
+  }
+  matchInt() {
+    const mark = this.offset;
+    if (this.offset < this.text.length && (this.text[this.offset] === "+" || this.text[this.offset] === "-")) {
+      this.offset++;
+    }
+    if (!this.consumeUInt()) {
+      this.offset = mark;
+      return ["", false];
+    }
+    return [this.text.slice(mark, this.offset), true];
+  }
+  matchUInt() {
+    const mark = this.offset;
+    if (!this.consumeUInt()) {
+      return ["", false];
+    }
+    return [this.text.slice(mark, this.offset), true];
+  }
+  matchFloat() {
+    const mark = this.offset;
+    if (this.offset < this.text.length && (this.text[this.offset] === "+" || this.text[this.offset] === "-")) {
+      this.offset++;
+    }
+    if (!this.consumeUInt()) {
+      this.offset = mark;
+      return ["", false];
+    }
+    if (this.offset < this.text.length && this.text[this.offset] === ".") {
+      this.offset++;
+      this.consumeUInt();
+    }
+    if (this.offset < this.text.length && (this.text[this.offset] === "e" || this.text[this.offset] === "E")) {
+      const expMark = this.offset;
+      this.offset++;
+      if (this.offset < this.text.length && (this.text[this.offset] === "+" || this.text[this.offset] === "-")) {
+        this.offset++;
+      }
+      if (!this.consumeUInt()) {
+        this.offset = expMark;
+      }
+    }
+    return [this.text.slice(mark, this.offset), true];
+  }
+  matchBool() {
+    if (this.atEnd()) {
+      return ["", false];
+    }
+    if (this.text.startsWith("true", this.offset)) {
+      this.offset += 4;
+      return ["true", true];
+    }
+    if (this.text.startsWith("false", this.offset)) {
+      this.offset += 5;
+      return ["false", true];
+    }
+    return ["", false];
+  }
   nextToken() {
     const wsp = this.heavy.patterns.wsp;
     const eol = this.heavy.patterns.eol;
@@ -20754,6 +20887,25 @@ class StrCursor {
         break;
       }
     }
+  }
+  consumeUInt() {
+    const start = this.offset;
+    while (this.offset < this.text.length) {
+      const ch = this.text[this.offset];
+      if (ch >= "0" && ch <= "9") {
+        this.offset++;
+      } else if (ch === "_") {
+        if (this.offset + 1 < this.text.length && this.text[this.offset + 1] >= "0" && this.text[this.offset + 1] <= "9") {
+          this.offset++;
+        } else {
+          this.offset = start;
+          return false;
+        }
+      } else {
+        break;
+      }
+    }
+    return this.offset !== start;
   }
 }
 function isRuneStart(s, i) {
@@ -25741,6 +25893,16 @@ function serializeExp(exp, seen) {
         "options",
         exp.options.map((item) => serializeExp(item))
       ]);
+    case "NameMeta" /* NameMeta */:
+      return mapClass("NameMeta");
+    case "IntMeta" /* IntMeta */:
+      return mapClass("IntMeta");
+    case "UIntMeta" /* UIntMeta */:
+      return mapClass("UIntMeta");
+    case "FloatMeta" /* FloatMeta */:
+      return mapClass("FloatMeta");
+    case "BoolMeta" /* BoolMeta */:
+      return mapClass("BoolMeta");
     default:
       throw new Error(`modelToJSON: unhandled ExpKind: ${exp.kind}`);
   }
@@ -26005,6 +26167,16 @@ function prettyPrintExp(exp) {
       return "()";
     case "EmptyClosure" /* EmptyClosure */:
       return "{}";
+    case "NameMeta" /* NameMeta */:
+      return "@name";
+    case "IntMeta" /* IntMeta */:
+      return "@int";
+    case "UIntMeta" /* UIntMeta */:
+      return "@uint";
+    case "FloatMeta" /* FloatMeta */:
+      return "@float";
+    case "BoolMeta" /* BoolMeta */:
+      return "@bool";
     case "Alt" /* Alt */: {
       const e = exp;
       return prettyPrintExp(e.exp);
@@ -26243,6 +26415,11 @@ var ExpKind;
   ExpKind2["Eof"] = "Eof";
   ExpKind2["Eol"] = "Eol";
   ExpKind2["EmptyClosure"] = "EmptyClosure";
+  ExpKind2["NameMeta"] = "NameMeta";
+  ExpKind2["IntMeta"] = "IntMeta";
+  ExpKind2["UIntMeta"] = "UIntMeta";
+  ExpKind2["FloatMeta"] = "FloatMeta";
+  ExpKind2["BoolMeta"] = "BoolMeta";
   ExpKind2["Token"] = "Token";
   ExpKind2["Pattern"] = "Pattern";
   ExpKind2["Constant"] = "Constant";
@@ -26284,6 +26461,11 @@ class Exp {
       case "Eof" /* Eof */:
       case "Eol" /* Eol */:
       case "EmptyClosure" /* EmptyClosure */:
+      case "NameMeta" /* NameMeta */:
+      case "IntMeta" /* IntMeta */:
+      case "UIntMeta" /* UIntMeta */:
+      case "FloatMeta" /* FloatMeta */:
+      case "BoolMeta" /* BoolMeta */:
       case "Token" /* Token */:
       case "Pattern" /* Pattern */:
       case "Constant" /* Constant */:
@@ -26497,6 +26679,36 @@ class Exp {
         }
         return rinc.exp.parse(ctx2);
       }
+      case "NameMeta" /* NameMeta */: {
+        const result = ctx2.matchName();
+        if (result === null)
+          return null;
+        return result;
+      }
+      case "IntMeta" /* IntMeta */: {
+        const result = ctx2.matchInt();
+        if (result === null)
+          return null;
+        return result;
+      }
+      case "UIntMeta" /* UIntMeta */: {
+        const result = ctx2.matchUInt();
+        if (result === null)
+          return null;
+        return result;
+      }
+      case "FloatMeta" /* FloatMeta */: {
+        const result = ctx2.matchFloat();
+        if (result === null)
+          return null;
+        return result;
+      }
+      case "BoolMeta" /* BoolMeta */: {
+        const result = ctx2.matchBool();
+        if (result === null)
+          return null;
+        return result;
+      }
       default:
         throw new Error(`parse() unhandled ExpKind: ${this.kind}`);
     }
@@ -26576,6 +26788,26 @@ class EolExp extends Exp {
 
 class EmptyClosureExp extends Exp {
   kind = "EmptyClosure" /* EmptyClosure */;
+}
+
+class NameMetaExp extends Exp {
+  kind = "NameMeta" /* NameMeta */;
+}
+
+class IntMetaExp extends Exp {
+  kind = "IntMeta" /* IntMeta */;
+}
+
+class UIntMetaExp extends Exp {
+  kind = "UIntMeta" /* UIntMeta */;
+}
+
+class FloatMetaExp extends Exp {
+  kind = "FloatMeta" /* FloatMeta */;
+}
+
+class BoolMetaExp extends Exp {
+  kind = "BoolMeta" /* BoolMeta */;
 }
 
 class TokenExp extends Exp {
@@ -26900,6 +27132,11 @@ function isNullable(exp) {
     case "Eof" /* Eof */:
     case "Fail" /* Fail */:
     case "SkipTo" /* SkipTo */:
+    case "NameMeta" /* NameMeta */:
+    case "IntMeta" /* IntMeta */:
+    case "UIntMeta" /* UIntMeta */:
+    case "FloatMeta" /* FloatMeta */:
+    case "BoolMeta" /* BoolMeta */:
       return false;
     default:
       throw new Error(`isNullable: unhandled ExpKind ${exp.kind}`);
@@ -26997,6 +27234,11 @@ function callableRuleIDs(exp, ruleIndex) {
     case "Cut" /* Cut */:
     case "Constant" /* Constant */:
     case "Alert" /* Alert */:
+    case "NameMeta" /* NameMeta */:
+    case "IntMeta" /* IntMeta */:
+    case "UIntMeta" /* UIntMeta */:
+    case "FloatMeta" /* FloatMeta */:
+    case "BoolMeta" /* BoolMeta */:
       return [];
     default:
       throw new Error(`callableRuleIDs: unhandled ExpKind ${exp.kind}`);
@@ -27181,6 +27423,11 @@ ${asjsons(rules)}
     case "Pattern" /* Pattern */:
     case "Constant" /* Constant */:
     case "Alert" /* Alert */:
+    case "NameMeta" /* NameMeta */:
+    case "IntMeta" /* IntMeta */:
+    case "UIntMeta" /* UIntMeta */:
+    case "FloatMeta" /* FloatMeta */:
+    case "BoolMeta" /* BoolMeta */:
       return;
     case "Named" /* Named */:
     case "NamedList" /* NamedList */:
@@ -27514,6 +27761,21 @@ function computeLA(exp) {
       la = cs.length > 0 ? computeLA(cs[0]) : [];
       break;
     }
+    case "NameMeta" /* NameMeta */:
+      la = ["@name"];
+      break;
+    case "IntMeta" /* IntMeta */:
+      la = ["@int"];
+      break;
+    case "UIntMeta" /* UIntMeta */:
+      la = ["@uint"];
+      break;
+    case "FloatMeta" /* FloatMeta */:
+      la = ["@float"];
+      break;
+    case "BoolMeta" /* BoolMeta */:
+      la = ["@bool"];
+      break;
     default:
       la = [];
       break;
@@ -27552,6 +27814,11 @@ function optimizeExp(exp) {
     case "Constant" /* Constant */:
     case "Alert" /* Alert */:
     case "Call" /* Call */:
+    case "NameMeta" /* NameMeta */:
+    case "IntMeta" /* IntMeta */:
+    case "UIntMeta" /* UIntMeta */:
+    case "FloatMeta" /* FloatMeta */:
+    case "BoolMeta" /* BoolMeta */:
       return exp;
     case "Group" /* Group */:
       return optimizeExp(exp.exp);
@@ -27877,6 +28144,16 @@ function modelFromJSON(raw, path) {
       const name = assertString(obj.name, `${path}.name`);
       return new RuleIncludeExp(name);
     }
+    case "NameMeta":
+      return new NameMetaExp;
+    case "IntMeta":
+      return new IntMetaExp;
+    case "UIntMeta":
+      return new UIntMetaExp;
+    case "FloatMeta":
+      return new FloatMetaExp;
+    case "BoolMeta":
+      return new BoolMetaExp;
     default:
       throw new ImportError(`${path}: unsupported expression type: ${cls}`);
   }
@@ -27889,18 +28166,21 @@ function bootGrammar() {
     return cached;
   const g = loadGrammarFromJSON(tatsu_default);
   g.initialize();
-  g.semantics = grammarParserSemantics;
+  g.semantics = new BootGrammarSemantics;
   cached = g;
   return g;
 }
-function grammarParserSemantics(node, ruleName, _params) {
-  if (ruleName === "true")
-    return [true, true];
-  if (ruleName === "false")
-    return [false, true];
-  if (ruleName === "null")
-    return [null, true];
-  return [node, false];
+
+class BootGrammarSemantics {
+  apply(node, ruleName, _params) {
+    if (ruleName === "true")
+      return [true, true];
+    if (ruleName === "false")
+      return [false, true];
+    if (ruleName === "null")
+      return [null, true];
+    return [node, false];
+  }
 }
 // src/json/jsonl.ts
 function toJSONLines(jsonBlocks) {
@@ -28038,9 +28318,29 @@ function compileGrammar(tree2) {
       }
     }
   }
-  const g = new Grammar(name, rules, directives, keywords);
+  const g = new Grammar(name, rules, directives, keywords, false, new EBNFGrammarSemantics);
   g.initialize();
   return g;
+}
+
+class EBNFGrammarSemantics {
+  apply(node, _ruleName, _params) {
+    if (node instanceof NodeTree && node.typeName === "Meta" && typeof node.tree === "string") {
+      switch (node.tree) {
+        case "name":
+          return [new NameMetaExp, true];
+        case "int":
+          return [new IntMetaExp, true];
+        case "uint":
+          return [new UIntMetaExp, true];
+        case "float":
+          return [new FloatMetaExp, true];
+        case "bool":
+          return [new BoolMetaExp, true];
+      }
+    }
+    return [node, false];
+  }
 }
 function compileRule(tree2) {
   const inner = nodeCheck(tree2, "Rule");
@@ -28209,6 +28509,16 @@ function compileExp(node) {
       return new TokenExp(textValue(tree2));
     case "Void":
       return new VoidExp;
+    case "NameMeta":
+      return new NameMetaExp;
+    case "IntMeta":
+      return new IntMetaExp;
+    case "UIntMeta":
+      return new UIntMetaExp;
+    case "FloatMeta":
+      return new FloatMetaExp;
+    case "BoolMeta":
+      return new BoolMetaExp;
     default:
       throw new CompileError(`unknown expression type "${typename}"`);
   }

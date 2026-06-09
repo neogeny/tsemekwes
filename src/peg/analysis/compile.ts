@@ -35,7 +35,15 @@ import {
   TokenExp,
   VoidExp,
 } from "../exp"
+import type { GrammarSemantics } from "../../config/config.js"
 import { Grammar } from "../grammar"
+import {
+  BoolMetaExp,
+  FloatMetaExp,
+  IntMetaExp,
+  NameMetaExp,
+  UIntMetaExp,
+} from "../exp"
 import { Rule } from "../rule"
 
 class CompileError extends Error {
@@ -173,9 +181,33 @@ export function compileGrammar(tree: TreeValue): Grammar {
     }
   }
 
-  const g = new Grammar(name, rules, directives, keywords)
+  const g = new Grammar(name, rules, directives, keywords, false, new EBNFGrammarSemantics())
   g.initialize()
   return g
+}
+
+export class EBNFGrammarSemantics implements GrammarSemantics {
+  apply(node: TreeValue, _ruleName: string, _params: string[]): [TreeValue, boolean] {
+    if (
+      node instanceof NodeTree &&
+      node.typeName === "Meta" &&
+      typeof node.tree === "string"
+    ) {
+      switch (node.tree) {
+        case "name":
+          return [new NameMetaExp(), true]
+        case "int":
+          return [new IntMetaExp(), true]
+        case "uint":
+          return [new UIntMetaExp(), true]
+        case "float":
+          return [new FloatMetaExp(), true]
+        case "bool":
+          return [new BoolMetaExp(), true]
+      }
+    }
+    return [node, false]
+  }
 }
 
 function compileRule(tree: TreeValue): Rule {
@@ -395,6 +427,17 @@ function compileExp(node: TreeValue): Exp {
 
     case "Void":
       return new VoidExp()
+
+    case "NameMeta":
+      return new NameMetaExp()
+    case "IntMeta":
+      return new IntMetaExp()
+    case "UIntMeta":
+      return new UIntMetaExp()
+    case "FloatMeta":
+      return new FloatMetaExp()
+    case "BoolMeta":
+      return new BoolMetaExp()
 
     default:
       throw new CompileError(`unknown expression type "${typename}"`)

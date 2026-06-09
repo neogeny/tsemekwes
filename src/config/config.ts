@@ -5,11 +5,9 @@ export interface Configurable {
   configure(cfg: Cfg): void
 }
 
-export type SemanticsFunc = (
-  node: TreeValue,
-  ruleName: string,
-  params: string[],
-) => [TreeValue, boolean]
+export interface GrammarSemantics {
+  apply(node: TreeValue, ruleName: string, params: string[]): [TreeValue, boolean]
+}
 
 export class Cfg {
   name?: string
@@ -32,7 +30,7 @@ export class Cfg {
   keywords?: string[]
   parseInfo?: boolean
   heart?: Heart
-  semantics?: SemanticsFunc | null
+  semantics?: GrammarSemantics | null
 
   merge(other: Partial<Cfg>): Cfg {
     const c = new Cfg()

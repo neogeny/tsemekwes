@@ -168,6 +168,71 @@ export class Core implements Ctx {
     return null
   }
 
+  matchName(): string | null {
+    this.nextToken()
+    const start = this.mark()
+    const [slice, ok] = this._cursor.matchName()
+    if (ok) {
+      this._tracer.traceMatch(this, "@name", slice)
+      return slice
+    }
+    this.reset(start)
+    this._tracer.traceNoMatch(this, "", "@name")
+    throw this.failure(start, new ParseError("expected @name"))
+  }
+
+  matchInt(): string | null {
+    this.nextToken()
+    const start = this.mark()
+    const [slice, ok] = this._cursor.matchInt()
+    if (ok) {
+      this._tracer.traceMatch(this, "@int", slice)
+      return slice
+    }
+    this.reset(start)
+    this._tracer.traceNoMatch(this, "", "@int")
+    throw this.failure(start, new ParseError("expected @int"))
+  }
+
+  matchUInt(): string | null {
+    this.nextToken()
+    const start = this.mark()
+    const [slice, ok] = this._cursor.matchUInt()
+    if (ok) {
+      this._tracer.traceMatch(this, "@uint", slice)
+      return slice
+    }
+    this.reset(start)
+    this._tracer.traceNoMatch(this, "", "@uint")
+    throw this.failure(start, new ParseError("expected @uint"))
+  }
+
+  matchFloat(): string | null {
+    this.nextToken()
+    const start = this.mark()
+    const [slice, ok] = this._cursor.matchFloat()
+    if (ok) {
+      this._tracer.traceMatch(this, "@float", slice)
+      return slice
+    }
+    this.reset(start)
+    this._tracer.traceNoMatch(this, "", "@float")
+    throw this.failure(start, new ParseError("expected @float"))
+  }
+
+  matchBool(): string | null {
+    this.nextToken()
+    const start = this.mark()
+    const [slice, ok] = this._cursor.matchBool()
+    if (ok) {
+      this._tracer.traceMatch(this, "@bool", slice)
+      return slice
+    }
+    this.reset(start)
+    this._tracer.traceNoMatch(this, "", "@bool")
+    throw this.failure(start, new ParseError("expected @bool"))
+  }
+
   mtchConstant(literal: unknown): TreeValue {
     if (
       typeof literal === "string" ||
@@ -303,11 +368,12 @@ export class Core implements Ctx {
 
   applySemantics(
     node: TreeValue,
-    _ruleName: string,
-    _params: string[],
+    ruleName: string,
+    params: string[],
   ): [TreeValue, boolean] {
-    if (this.cfg().semantics !== null) {
-      return this.cfg().semantics?.(node, _ruleName, _params) || [node, false]
+    const sem = this.cfg().semantics
+    if (sem !== null && sem !== undefined) {
+      return sem.apply(node, ruleName, params)
     }
     return [node, false]
   }

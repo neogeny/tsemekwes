@@ -24,6 +24,11 @@ export interface Ctx {
   matchEOL(): null
   matchToken(token: string): string
   matchPattern(pattern: string): string
+  matchName(): string | null
+  matchInt(): string | null
+  matchUInt(): string | null
+  matchFloat(): string | null
+  matchBool(): string | null
   mtchConstant(literal: unknown): TreeValue
 
   enterLookahead(): void

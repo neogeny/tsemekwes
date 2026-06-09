@@ -126,6 +126,17 @@ export function prettyPrintExp(exp: Exp): string {
     case ExpKind.EmptyClosure:
       return "{}"
 
+    case ExpKind.NameMeta:
+      return "@name"
+    case ExpKind.IntMeta:
+      return "@int"
+    case ExpKind.UIntMeta:
+      return "@uint"
+    case ExpKind.FloatMeta:
+      return "@float"
+    case ExpKind.BoolMeta:
+      return "@bool"
+
     case ExpKind.Alt: {
       const e = exp as OverrideExp
       return prettyPrintExp(e.exp)

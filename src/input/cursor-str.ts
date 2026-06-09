@@ -316,6 +316,87 @@ export class StrCursor implements Cursor {
     return false
   }
 
+  matchName(): [string, boolean] {
+    if (this.atEnd()) {
+      return ["", false]
+    }
+    const first = this.text[this.offset]
+    if (
+      first !== "_" &&
+      !isAlphabetic(first) &&
+      !this.heavy.nameChars.includes(first)
+    ) {
+      return ["", false]
+    }
+    const mark = this.offset
+    this.offset++
+    while (this.offset < this.text.length && this.isNameChar(this.text[this.offset])) {
+      this.offset++
+    }
+    return [this.text.slice(mark, this.offset), true]
+  }
+
+  matchInt(): [string, boolean] {
+    const mark = this.offset
+    if (this.offset < this.text.length && (this.text[this.offset] === "+" || this.text[this.offset] === "-")) {
+      this.offset++
+    }
+    if (!this.consumeUInt()) {
+      this.offset = mark
+      return ["", false]
+    }
+    return [this.text.slice(mark, this.offset), true]
+  }
+
+  matchUInt(): [string, boolean] {
+    const mark = this.offset
+    if (!this.consumeUInt()) {
+      return ["", false]
+    }
+    return [this.text.slice(mark, this.offset), true]
+  }
+
+  matchFloat(): [string, boolean] {
+    const mark = this.offset
+    if (this.offset < this.text.length && (this.text[this.offset] === "+" || this.text[this.offset] === "-")) {
+      this.offset++
+    }
+    if (!this.consumeUInt()) {
+      this.offset = mark
+      return ["", false]
+    }
+    if (this.offset < this.text.length && this.text[this.offset] === ".") {
+      this.offset++
+      this.consumeUInt()
+    }
+    if (this.offset < this.text.length && (this.text[this.offset] === "e" || this.text[this.offset] === "E")) {
+      const expMark = this.offset
+      this.offset++
+      if (this.offset < this.text.length && (this.text[this.offset] === "+" || this.text[this.offset] === "-")) {
+        this.offset++
+      }
+      if (!this.consumeUInt()) {
+        this.offset = expMark
+      }
+    }
+    return [this.text.slice(mark, this.offset), true]
+  }
+
+  matchBool(): [string, boolean] {
+    if (this.atEnd()) {
+      return ["", false]
+    }
+    if (this.text.startsWith("true", this.offset)) {
+      this.offset += 4
+      return ["true", true]
+    }
+    if (this.text.startsWith("false", this.offset)) {
+      this.offset += 5
+      return ["false", true]
+    }
+    return ["", false]
+  }
+
   nextToken(): void {
     const wsp = this.heavy.patterns.wsp
     const eol = this.heavy.patterns.eol
@@ -416,6 +497,26 @@ export class StrCursor implements Cursor {
         break
       }
     }
+  }
+
+  private consumeUInt(): boolean {
+    const start = this.offset
+    while (this.offset < this.text.length) {
+      const ch = this.text[this.offset]
+      if (ch >= "0" && ch <= "9") {
+        this.offset++
+      } else if (ch === "_") {
+        if (this.offset + 1 < this.text.length && this.text[this.offset + 1] >= "0" && this.text[this.offset + 1] <= "9") {
+          this.offset++
+        } else {
+          this.offset = start
+          return false
+        }
+      } else {
+        break
+      }
+    }
+    return this.offset !== start
   }
 }
 

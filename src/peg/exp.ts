@@ -23,6 +23,11 @@ export enum ExpKind {
   Eof = "Eof",
   Eol = "Eol",
   EmptyClosure = "EmptyClosure",
+  NameMeta = "NameMeta",
+  IntMeta = "IntMeta",
+  UIntMeta = "UIntMeta",
+  FloatMeta = "FloatMeta",
+  BoolMeta = "BoolMeta",
   Token = "Token",
   Pattern = "Pattern",
   Constant = "Constant",
@@ -67,6 +72,11 @@ export abstract class Exp implements JSONSerializable {
       case ExpKind.Eof:
       case ExpKind.Eol:
       case ExpKind.EmptyClosure:
+      case ExpKind.NameMeta:
+      case ExpKind.IntMeta:
+      case ExpKind.UIntMeta:
+      case ExpKind.FloatMeta:
+      case ExpKind.BoolMeta:
       case ExpKind.Token:
       case ExpKind.Pattern:
       case ExpKind.Constant:
@@ -316,6 +326,32 @@ export abstract class Exp implements JSONSerializable {
         return rinc.exp.parse(ctx)
       }
 
+      case ExpKind.NameMeta: {
+        const result = ctx.matchName()
+        if (result === null) return null
+        return result
+      }
+      case ExpKind.IntMeta: {
+        const result = ctx.matchInt()
+        if (result === null) return null
+        return result
+      }
+      case ExpKind.UIntMeta: {
+        const result = ctx.matchUInt()
+        if (result === null) return null
+        return result
+      }
+      case ExpKind.FloatMeta: {
+        const result = ctx.matchFloat()
+        if (result === null) return null
+        return result
+      }
+      case ExpKind.BoolMeta: {
+        const result = ctx.matchBool()
+        if (result === null) return null
+        return result
+      }
+
       default:
         throw new Error(`parse() unhandled ExpKind: ${this.kind}`)
     }
@@ -396,6 +432,26 @@ export class EolExp extends Exp {
 
 export class EmptyClosureExp extends Exp {
   readonly kind = ExpKind.EmptyClosure
+}
+
+export class NameMetaExp extends Exp {
+  readonly kind = ExpKind.NameMeta
+}
+
+export class IntMetaExp extends Exp {
+  readonly kind = ExpKind.IntMeta
+}
+
+export class UIntMetaExp extends Exp {
+  readonly kind = ExpKind.UIntMeta
+}
+
+export class FloatMetaExp extends Exp {
+  readonly kind = ExpKind.FloatMeta
+}
+
+export class BoolMetaExp extends Exp {
+  readonly kind = ExpKind.BoolMeta
 }
 
 // Leaf: one data field

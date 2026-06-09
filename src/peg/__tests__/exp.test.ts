@@ -3,6 +3,7 @@ import { describe, it } from "node:test"
 import { CallExp } from "../call"
 import {
   AlertExp,
+  BoolMetaExp,
   ChoiceExp,
   ClosureExp,
   ConstantExp,
@@ -14,9 +15,12 @@ import {
   type Exp,
   ExpKind,
   FailExp,
+  FloatMetaExp,
   GroupExp,
+  IntMetaExp,
   JoinExp,
   LookaheadExp,
+  NameMetaExp,
   NamedExp,
   NilExp,
   OptionalExp,
@@ -25,13 +29,14 @@ import {
   RuleIncludeExp,
   SeqExp,
   TokenExp,
+  UIntMetaExp,
   VoidExp,
 } from "../exp.js"
 
 describe("ExpKind", () => {
-  it("has 33 variants", () => {
+  it("has 38 variants", () => {
     const keys = Object.keys(ExpKind).filter((k) => Number.isNaN(Number(k)))
-    assert.equal(keys.length, 35) // added Rule and Grammar
+    assert.equal(keys.length, 40) // added Rule, Grammar, NameMeta, IntMeta, UIntMeta, FloatMeta, BoolMeta
   })
 })
 
@@ -129,6 +134,11 @@ describe("children()", () => {
       new ConstantExp(1),
       new AlertExp("x", 0),
       new CallExp("name"),
+      new NameMetaExp(),
+      new IntMetaExp(),
+      new UIntMetaExp(),
+      new FloatMetaExp(),
+      new BoolMetaExp(),
     ]
     for (const exp of leafKinds) {
       assert.equal(

@@ -176,6 +176,16 @@ export function serializeExp(
         "options",
         (exp as ChoiceExp).options.map((item) => serializeExp(item)),
       ])
+    case ExpKind.NameMeta:
+      return mapClass("NameMeta")
+    case ExpKind.IntMeta:
+      return mapClass("IntMeta")
+    case ExpKind.UIntMeta:
+      return mapClass("UIntMeta")
+    case ExpKind.FloatMeta:
+      return mapClass("FloatMeta")
+    case ExpKind.BoolMeta:
+      return mapClass("BoolMeta")
     default:
       throw new Error(`modelToJSON: unhandled ExpKind: ${exp.kind}`)
   }

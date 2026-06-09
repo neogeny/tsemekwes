@@ -65,6 +65,11 @@ function callableRuleIDs(exp: Exp, ruleIndex: Map<Rule, number>): number[] {
     case ExpKind.Cut:
     case ExpKind.Constant:
     case ExpKind.Alert:
+    case ExpKind.NameMeta:
+    case ExpKind.IntMeta:
+    case ExpKind.UIntMeta:
+    case ExpKind.FloatMeta:
+    case ExpKind.BoolMeta:
       return []
     default:
       throw new Error(`callableRuleIDs: unhandled ExpKind ${exp.kind}`)

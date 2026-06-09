@@ -83,6 +83,22 @@ export function computeLA(exp: Exp): string[] {
       break
     }
 
+    case ExpKind.NameMeta:
+      la = ["@name"]
+      break
+    case ExpKind.IntMeta:
+      la = ["@int"]
+      break
+    case ExpKind.UIntMeta:
+      la = ["@uint"]
+      break
+    case ExpKind.FloatMeta:
+      la = ["@float"]
+      break
+    case ExpKind.BoolMeta:
+      la = ["@bool"]
+      break
+
     default:
       la = []
       break
