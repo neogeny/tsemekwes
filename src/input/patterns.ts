@@ -27,7 +27,7 @@ export function newPatterns(
 }
 
 export function defaultPatterns(): TokenizingPatterns {
-  const pat = newPatterns(`\\s+`, `(?m)#.*$`, `[^\\s\\S]`)
+  const pat = newPatterns("\\s+", "[^\\s\\S]", "[^\\s\\S]")
   pat.nonDefault = false
   return pat
 }
