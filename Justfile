@@ -78,12 +78,13 @@ py-doc:
 py-build: build
     uvx hatch build --no-hooks
 
-# Trigger a test publish to PyPI via GitHub Actions
+py-test: py-build
+    uv run pytest -vv
+
 py-publish-test: py-build
     gh workflow run testpublish.yml
     gh run list --workflow=testpublish.yml
 
-# Trigger a production publish to PyPI via GitHub Actions
 py-publish: py-build
     gh workflow run publish.yml
     gh run list --workflow=publish.yml
