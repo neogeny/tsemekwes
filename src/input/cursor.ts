@@ -32,11 +32,11 @@ export interface Cursor extends Configurable {
   isNameChar(c: string): boolean
   isName(s: string): boolean
   matchEOL(): boolean
-  matchName(): [string, boolean]
-  matchInt(): [string, boolean]
-  matchUInt(): [string, boolean]
-  matchFloat(): [string, boolean]
-  matchBool(): [string, boolean]
+  matchName(): string | null
+  matchInt(): number | null
+  matchUInt(): number | null
+  matchFloat(): number | null
+  matchBool(): boolean | null
   nextToken(): void
   pos(): [number, number]
   posAt(mark: number): [number, number]

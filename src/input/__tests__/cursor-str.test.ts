@@ -370,161 +370,143 @@ describe("StrCursor", () => {
 
   it("MatchName consumes a valid name", () => {
     const s = new StrCursor("hello_world")
-    const [m, ok] = s.matchName()
-    assert.equal(ok, true)
+    const m = s.matchName()
+    assert(m)
     assert.equal(m, "hello_world")
     assert.equal(s.mark(), 11)
   })
 
   it("MatchName fails on leading digit", () => {
     const s = new StrCursor("123abc")
-    const [m, ok] = s.matchName()
-    assert.equal(ok, false)
-    assert.equal(m, "")
+    const m = s.matchName()
+    assert(!m)
     assert.equal(s.mark(), 0)
   })
 
   it("MatchName fails on empty input", () => {
     const s = new StrCursor("")
-    const [m, ok] = s.matchName()
-    assert.equal(ok, false)
-    assert.equal(m, "")
+    const m = s.matchName()
+    assert(!m)
   })
 
-  it("MatchInt consumes positive integer", () => {
-    const s = new StrCursor("123abc")
-    const [m, ok] = s.matchInt()
-    assert.equal(ok, true)
-    assert.equal(m, "123")
-    assert.equal(s.mark(), 3)
+  it("MatchInt fails on trailing underscore", () => {
+    const s = new StrCursor("123_")
+    const m = s.matchInt()
+    assert(!m)
   })
 
   it("MatchInt consumes negative integer", () => {
     const s = new StrCursor("-42")
-    const [m, ok] = s.matchInt()
-    assert.equal(ok, true)
-    assert.equal(m, "-42")
+    const m = s.matchInt()
+    assert(m)
+    assert.equal(m, -42)
     assert.equal(s.mark(), 3)
   })
 
   it("MatchInt consumes integer with underscores", () => {
     const s = new StrCursor("1_234")
-    const [m, ok] = s.matchInt()
-    assert.equal(ok, true)
-    assert.equal(m, "1_234")
+    const m = s.matchInt()
+    assert(m)
+    assert.equal(m, 1_234)
     assert.equal(s.mark(), 5)
   })
 
   it("MatchInt fails on non-numeric input", () => {
     const s = new StrCursor("abc")
-    const [m, ok] = s.matchInt()
-    assert.equal(ok, false)
-    assert.equal(m, "")
+    const m = s.matchInt()
+    assert(!m)
   })
 
   it("MatchInt fails on trailing underscore", () => {
     const s = new StrCursor("123_")
-    const [m, ok] = s.matchInt()
-    assert.equal(ok, false)
-    assert.equal(m, "")
+    const m = s.matchInt()
+    assert(!m)
   })
 
-  it("MatchUInt consumes digits only", () => {
+  it("MatchUInt fails on trailing alphabetic character", () => {
     const s = new StrCursor("42abc")
-    const [m, ok] = s.matchUInt()
-    assert.equal(ok, true)
-    assert.equal(m, "42")
-    assert.equal(s.mark(), 2)
+    const m = s.matchUInt()
+    assert(!m)
   })
 
   it("MatchUInt fails on sign", () => {
     const s = new StrCursor("-42")
-    const [m, ok] = s.matchUInt()
-    assert.equal(ok, false)
-    assert.equal(m, "")
+    const m = s.matchUInt()
+    assert(!m)
   })
 
   it("MatchUInt with underscores", () => {
     const s = new StrCursor("1_234")
-    const [m, ok] = s.matchUInt()
-    assert.equal(ok, true)
-    assert.equal(m, "1_234")
+    const m = s.matchUInt()
+    assert(m)
+    assert.equal(m, 1_234)
     assert.equal(s.mark(), 5)
   })
 
-  it("MatchFloat consumes integer", () => {
+  it("MatchFloat fails on trailing alphabetic character", () => {
     const s = new StrCursor("42abc")
-    const [m, ok] = s.matchFloat()
-    assert.equal(ok, true)
-    assert.equal(m, "42")
-    assert.equal(s.mark(), 2)
+    const m = s.matchFloat()
+    assert(!m)
   })
 
-  it("MatchFloat consumes decimal", () => {
+  it("MatchFloat fails on trailing alphabetic character", () => {
     const s = new StrCursor("3.14abc")
-    const [m, ok] = s.matchFloat()
-    assert.equal(ok, true)
-    assert.equal(m, "3.14")
-    assert.equal(s.mark(), 4)
+    const m = s.matchFloat()
+    assert(m === null)
   })
 
   it("MatchFloat consumes scientific notation", () => {
     const s = new StrCursor("1.5e10")
-    const [m, ok] = s.matchFloat()
-    assert.equal(ok, true)
-    assert.equal(m, "1.5e10")
+    const m = s.matchFloat()
+    assert(m)
+    assert.equal(m, 1.5e10)
     assert.equal(s.mark(), 6)
   })
 
   it("MatchFloat consumes negative float", () => {
     const s = new StrCursor("-3.14")
-    const [m, ok] = s.matchFloat()
-    assert.equal(ok, true)
-    assert.equal(m, "-3.14")
+    const m = s.matchFloat()
+    assert(m)
+    assert.equal(m, -3.14)
     assert.equal(s.mark(), 5)
   })
 
   it("MatchFloat fails on letters", () => {
     const s = new StrCursor("abc")
-    const [m, ok] = s.matchFloat()
-    assert.equal(ok, false)
-    assert.equal(m, "")
+    const m = s.matchFloat()
+    assert(!m)
   })
 
   it("MatchBool matches true", () => {
     const s = new StrCursor("true")
-    const [m, ok] = s.matchBool()
-    assert.equal(ok, true)
-    assert.equal(m, "true")
+    const m = s.matchBool()
+    assert(m)
+    assert.equal(m, true)
     assert.equal(s.mark(), 4)
   })
 
   it("MatchBool matches false", () => {
     const s = new StrCursor("false")
-    const [m, ok] = s.matchBool()
-    assert.equal(ok, true)
-    assert.equal(m, "false")
+    const m = s.matchBool()
+    assert.equal(m, false)
     assert.equal(s.mark(), 5)
   })
 
   it("MatchBool fails on random word", () => {
     const s = new StrCursor("foo")
-    const [m, ok] = s.matchBool()
-    assert.equal(ok, false)
-    assert.equal(m, "")
+    const m = s.matchBool()
+    assert(!m)
   })
 
   it("MatchBool fails on empty input", () => {
     const s = new StrCursor("")
-    const [m, ok] = s.matchBool()
-    assert.equal(ok, false)
-    assert.equal(m, "")
+    const m = s.matchBool()
+    assert(!m)
   })
 
-  it("MatchBool is case-sensitive", () => {
+  it("MatchBool is case-insensitive", () => {
     const s = new StrCursor("True")
-    const [m, ok] = s.matchBool()
-    assert.equal(ok, false)
-    assert.equal(m, "")
+    const m = s.matchBool()
+    assert(m)
   })
 })

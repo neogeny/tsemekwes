@@ -171,66 +171,66 @@ export class CoreCtx implements Ctx {
   matchName(): string | null {
     this.nextToken()
     const start = this.mark()
-    const [slice, ok] = this._cursor.matchName()
-    if (ok) {
-      this._tracer.traceMatch(this, "@name", slice)
-      return slice
+    const slice = this._cursor.matchName()
+    if (slice === null) {
+      this._tracer.traceNoMatch(this, "@name", "")
+      return null
     }
     this.reset(start)
-    this._tracer.traceNoMatch(this, "", "@name")
-    throw this.failure(start, new ParseError("expected @name"))
+    this._tracer.traceMatch(this, "@name", slice)
+    return slice
   }
 
-  matchInt(): string | null {
+  matchInt(): number | null {
     this.nextToken()
     const start = this.mark()
-    const [slice, ok] = this._cursor.matchInt()
-    if (ok) {
-      this._tracer.traceMatch(this, "@int", slice)
-      return slice
+    const slice = this._cursor.matchInt()
+    if (slice === null) {
+      this._tracer.traceNoMatch(this, "@int", "")
+      return null
     }
     this.reset(start)
-    this._tracer.traceNoMatch(this, "", "@int")
-    throw this.failure(start, new ParseError("expected @int"))
+    this._tracer.traceMatch(this, "@int", slice.toString())
+    return slice
   }
 
-  matchUInt(): string | null {
+  matchUInt(): number | null {
     this.nextToken()
     const start = this.mark()
-    const [slice, ok] = this._cursor.matchUInt()
-    if (ok) {
-      this._tracer.traceMatch(this, "@uint", slice)
-      return slice
+    const slice = this._cursor.matchUInt()
+    if (slice === null) {
+      this._tracer.traceNoMatch(this, "@uint", "")
+      return null
     }
     this.reset(start)
-    this._tracer.traceNoMatch(this, "", "@uint")
-    throw this.failure(start, new ParseError("expected @uint"))
+    this._tracer.traceMatch(this, "@uint", slice.toString())
+    return slice
   }
 
-  matchFloat(): string | null {
+  matchFloat(): number | null {
     this.nextToken()
     const start = this.mark()
-    const [slice, ok] = this._cursor.matchFloat()
-    if (ok) {
-      this._tracer.traceMatch(this, "@float", slice)
-      return slice
+    const slice = this._cursor.matchFloat()
+    if (slice === null) {
+      this._tracer.traceNoMatch(this, "@float", "")
+      return null
     }
     this.reset(start)
-    this._tracer.traceNoMatch(this, "", "@float")
-    throw this.failure(start, new ParseError("expected @float"))
+    this._tracer.traceMatch(this, "@float", slice.toString())
+    return slice
   }
 
-  matchBool(): string | null {
+  matchBool(): boolean | null {
     this.nextToken()
     const start = this.mark()
-    const [slice, ok] = this._cursor.matchBool()
-    if (ok) {
-      this._tracer.traceMatch(this, "@bool", slice)
-      return slice
+    const slice = this._cursor.matchBool()
+    if (slice === null) {
+      this._tracer.traceNoMatch(this, "@bool", "")
+      return null
     }
     this.reset(start)
-    this._tracer.traceNoMatch(this, "", "@bool")
-    throw this.failure(start, new ParseError("expected @bool"))
+    this._tracer.traceMatch(this, "@bool", slice.toString())
+    return slice
   }
 
   mtchConstant(literal: unknown): TreeValue {

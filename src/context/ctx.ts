@@ -25,10 +25,10 @@ export interface Ctx {
   matchToken(token: string): string
   matchPattern(pattern: string): string
   matchName(): string | null
-  matchInt(): string | null
-  matchUInt(): string | null
-  matchFloat(): string | null
-  matchBool(): string | null
+  matchInt(): number | null
+  matchUInt(): number | null
+  matchFloat(): number | null
+  matchBool(): boolean | null
   mtchConstant(literal: unknown): TreeValue
 
   enterLookahead(): void

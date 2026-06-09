@@ -316,9 +316,9 @@ export class StrCursor implements Cursor {
     return false
   }
 
-  matchName(): [string, boolean] {
+  matchName(): string | null {
     if (this.atEnd()) {
-      return ["", false]
+      return null
     }
     const first = this.text[this.offset]
     if (
@@ -326,44 +326,52 @@ export class StrCursor implements Cursor {
       !isAlphabetic(first) &&
       !this.heavy.nameChars.includes(first)
     ) {
-      return ["", false]
+      return null
     }
     const mark = this.offset
     this.offset++
     while (this.offset < this.text.length && this.isNameChar(this.text[this.offset])) {
       this.offset++
     }
-    return [this.text.slice(mark, this.offset), true]
+    return this.text.slice(mark, this.offset)
   }
 
-  matchInt(): [string, boolean] {
+  matchInt(): number | null {
     const mark = this.offset
     if (this.offset < this.text.length && (this.text[this.offset] === "+" || this.text[this.offset] === "-")) {
       this.offset++
     }
     if (!this.consumeUInt()) {
       this.offset = mark
-      return ["", false]
+      return null
     }
-    return [this.text.slice(mark, this.offset), true]
+    if (!this.isBoundary(this.offset)) {
+      this.offset = mark
+      return null
+    }
+    return Number(this.text.slice(mark, this.offset).replace(/_/g, ""))
   }
 
-  matchUInt(): [string, boolean] {
+  matchUInt(): number | null {
     const mark = this.offset
     if (!this.consumeUInt()) {
-      return ["", false]
+      return null
     }
-    return [this.text.slice(mark, this.offset), true]
+    if (!this.isBoundary(this.offset)) {
+      this.offset = mark
+      return null
+    }
+    return Number(this.text.slice(mark, this.offset).replace(/_/g, ""))
   }
 
-  matchFloat(): [string, boolean] {
+  matchFloat(): number | null {
     const mark = this.offset
     if (this.offset < this.text.length && (this.text[this.offset] === "+" || this.text[this.offset] === "-")) {
       this.offset++
     }
     if (!this.consumeUInt()) {
       this.offset = mark
-      return ["", false]
+      return null
     }
     if (this.offset < this.text.length && this.text[this.offset] === ".") {
       this.offset++
@@ -379,22 +387,37 @@ export class StrCursor implements Cursor {
         this.offset = expMark
       }
     }
-    return [this.text.slice(mark, this.offset), true]
+    if (!this.isBoundary(this.offset)) {
+      this.offset = mark
+      return null
+    }
+    return Number(this.text.slice(mark, this.offset).replace(/_/g, ""))
   }
 
-  matchBool(): [string, boolean] {
+  matchBool(): boolean | null {
     if (this.atEnd()) {
-      return ["", false]
+      return null
     }
-    if (this.text.startsWith("true", this.offset)) {
-      this.offset += 4
-      return ["true", true]
+    if (this.text.toLowerCase().startsWith("true", this.offset)) {
+      if (this.isBoundary(this.offset + 4)) {
+        this.offset += 4
+        return true
+      }
     }
-    if (this.text.startsWith("false", this.offset)) {
-      this.offset += 5
-      return ["false", true]
+    if (this.text.toLowerCase().startsWith("false", this.offset)) {
+      if (this.isBoundary(this.offset + 5)) {
+        this.offset += 5
+        return false
+      }
     }
-    return ["", false]
+    return null
+  }
+
+  private isBoundary(offset: number): boolean {
+    if (offset >= this.text.length) {
+      return true
+    }
+    return !this.isNameChar(this.text[offset])
   }
 
   nextToken(): void {
