@@ -1,4 +1,4 @@
-import { Cfg, defaultCfg, type GrammarSemantics } from "@config"
+import { Cfg, defaultCfg } from "@config"
 import { type Ctx, ParseError } from "@context"
 import type { TreeValue } from "@trees"
 import { markLeftRecursion } from "./analysis/leftrec"
@@ -24,7 +24,6 @@ export class Grammar extends Exp {
     public directives: string[][] = [],
     public keywords: string[] = [],
     public analyzed: boolean = false,
-    public semantics?: GrammarSemantics,
   ) {
     super()
   }
@@ -217,9 +216,6 @@ export class Grammar extends Exp {
             c.noPruneMemosOnCut = true
           break
       }
-    }
-    if (this.semantics) {
-      c.semantics = this.semantics
     }
     return c
   }

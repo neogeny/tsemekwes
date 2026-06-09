@@ -35,8 +35,6 @@ import {
   TokenExp,
   VoidExp,
 } from "../exp"
-import type { GrammarSemantics } from "../../config/config.js"
-import { Grammar } from "../grammar"
 import {
   BoolMetaExp,
   FloatMetaExp,
@@ -44,6 +42,7 @@ import {
   NameMetaExp,
   UIntMetaExp,
 } from "../exp"
+import { Grammar } from "../grammar"
 import { Rule } from "../rule"
 
 class CompileError extends Error {
@@ -181,34 +180,11 @@ export function compileGrammar(tree: TreeValue): Grammar {
     }
   }
 
-  const g = new Grammar(name, rules, directives, keywords, false, new EBNFGrammarSemantics())
+  const g = new Grammar(name, rules, directives, keywords, false)
   g.initialize()
   return g
 }
 
-export class EBNFGrammarSemantics implements GrammarSemantics {
-  apply(node: TreeValue, _ruleName: string, _params: string[]): [TreeValue, boolean] {
-    if (
-      node instanceof NodeTree &&
-      node.typeName === "Meta" &&
-      typeof node.tree === "string"
-    ) {
-      switch (node.tree) {
-        case "name":
-          return [new NameMetaExp(), true]
-        case "int":
-          return [new IntMetaExp(), true]
-        case "uint":
-          return [new UIntMetaExp(), true]
-        case "float":
-          return [new FloatMetaExp(), true]
-        case "bool":
-          return [new BoolMetaExp(), true]
-      }
-    }
-    return [node, false]
-  }
-}
 
 function compileRule(tree: TreeValue): Rule {
   const inner = nodeCheck(tree, "Rule")
@@ -427,6 +403,21 @@ function compileExp(node: TreeValue): Exp {
 
     case "Void":
       return new VoidExp()
+
+    case "Meta":
+      switch (textValue(tree)) {
+        case "name":
+          return new NameMetaExp()
+        case "int":
+          return new IntMetaExp()
+        case "uint":
+          return new UIntMetaExp()
+        case "float":
+          return new FloatMetaExp()
+        case "bool":
+          return new BoolMetaExp()
+      }
+      throw new CompileError(`unknown meta type "${textValue(tree)}"`)
 
     case "NameMeta":
       return new NameMetaExp()

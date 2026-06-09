@@ -10,6 +10,7 @@ import { StrCursor } from "@input"
 import { bootGrammar as boot, loadGrammarFromJSON as loadJSON } from "@json"
 import type { Grammar } from "@peg"
 import { compileGrammar } from "@peg"
+import { EBNFGrammarSemantics } from "@peg/ebnf_semantics.js"
 import type { TreeValue } from "@trees"
 import { ext, readPath } from "@util"
 import { dedent } from "@util/strings"
@@ -22,7 +23,9 @@ function cacheKey(text: string): string {
 }
 
 export function parseGrammar(grammar: string, cfg?: Cfg): TreeValue {
-  const acfg = defaultCfg().merge(cfg ?? {})
+  const acfg = defaultCfg().merge({
+    semantics: new EBNFGrammarSemantics(),
+  }).merge(cfg ?? {})
 
   const boot = bootGrammar()
   const cursor = new StrCursor(dedent(grammar))

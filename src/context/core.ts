@@ -14,10 +14,10 @@ import type { CallStack } from "./ctx"
 import { ParseFailure } from "./error"
 import { type Memo, type MemoKey, pruneMemoCache } from "./memo"
 
-export function newCtx(cursor: Cursor, cfg?: Cfg): Core {
-  return new Core(cursor, cfg)
+export function newCtx(cursor: Cursor, cfg?: Cfg): CoreCtx {
+  return new CoreCtx(cursor, cfg)
 }
-export class Core implements Ctx {
+export class CoreCtx implements Ctx {
   private readonly _cursor: Cursor
   private _callStack: CallStack = []
   private cutStack: boolean[] = [false]
