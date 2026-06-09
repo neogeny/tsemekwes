@@ -173,10 +173,10 @@ export class CoreCtx implements Ctx {
     this.nextToken()
     const slice = this._cursor.matchName()
     if (slice === null) {
+      this.reset(start)
       this._tracer.traceNoMatch(this, "@name", "")
       throw this.failure(start, new ParseError("expected @name"))
     }
-    this.reset(start)
     this._tracer.traceMatch(this, "@name", slice)
     return slice
   }
@@ -186,10 +186,10 @@ export class CoreCtx implements Ctx {
     this.nextToken()
     const slice = this._cursor.matchInt()
     if (slice === null) {
+      this.reset(start)
       this._tracer.traceNoMatch(this, "@int", "")
       throw this.failure(start, new ParseError("expected @int"))
     }
-    this.reset(start)
     this._tracer.traceMatch(this, "@int", slice.toString())
     return slice
   }
@@ -199,10 +199,10 @@ export class CoreCtx implements Ctx {
     this.nextToken()
     const slice = this._cursor.matchUInt()
     if (slice === null) {
+      this.reset(start)
       this._tracer.traceNoMatch(this, "@uint", "")
       throw this.failure(start, new ParseError("expected @uint"))
     }
-    this.reset(start)
     this._tracer.traceMatch(this, "@uint", slice.toString())
     return slice
   }
@@ -212,10 +212,10 @@ export class CoreCtx implements Ctx {
     this.nextToken()
     const slice = this._cursor.matchFloat()
     if (slice === null) {
+      this.reset(start)
       this._tracer.traceNoMatch(this, "@float", "")
       throw this.failure(start, new ParseError("expected @float"))
     }
-    this.reset(start)
     this._tracer.traceMatch(this, "@float", slice.toString())
     return slice
   }
@@ -225,10 +225,10 @@ export class CoreCtx implements Ctx {
     this.nextToken()
     const slice = this._cursor.matchBool()
     if (slice === null) {
+      this.reset(start)
       this._tracer.traceNoMatch(this, "@bool", "")
       throw this.failure(start, new ParseError("expected @bool"))
     }
-    this.reset(start)
     this._tracer.traceMatch(this, "@bool", slice.toString())
     return slice
   }
