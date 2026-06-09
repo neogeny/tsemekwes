@@ -169,7 +169,7 @@ export abstract class Exp implements JSONSerializable {
 
       case ExpKind.Constant: {
         const exp = this as unknown as ConstantExp
-        return ctx.mtchConstant(exp.value)
+        return ctx.matchConstant(exp.value)
       }
 
       case ExpKind.Alert: {
@@ -471,7 +471,7 @@ export class PatternExp extends Exp {
 
 export class ConstantExp extends Exp {
   readonly kind = ExpKind.Constant
-  constructor(public value: unknown) {
+  constructor(public value: string) {
     super()
   }
 }

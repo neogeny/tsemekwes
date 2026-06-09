@@ -29,7 +29,7 @@ export interface Ctx {
   matchUInt(): number | null
   matchFloat(): number | null
   matchBool(): boolean | null
-  mtchConstant(literal: unknown): TreeValue
+  matchConstant(literal: string): TreeValue
 
   enterLookahead(): void
   leaveLookahead(): void

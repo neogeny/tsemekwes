@@ -338,7 +338,10 @@ export class StrCursor implements Cursor {
 
   matchInt(): number | null {
     const mark = this.offset
-    if (this.offset < this.text.length && (this.text[this.offset] === "+" || this.text[this.offset] === "-")) {
+    if (
+      this.offset < this.text.length &&
+      (this.text[this.offset] === "+" || this.text[this.offset] === "-")
+    ) {
       this.offset++
     }
     if (!this.consumeUInt()) {

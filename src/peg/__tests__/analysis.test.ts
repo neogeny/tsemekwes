@@ -157,7 +157,7 @@ describe("isNullable", () => {
       new NilExp(),
       new EmptyClosureExp(),
       new CutExp(),
-      new ConstantExp(null),
+      new ConstantExp(""),
       new AlertExp("msg", 1),
     ]
     for (const exp of trivial) {

@@ -169,12 +169,12 @@ export class CoreCtx implements Ctx {
   }
 
   matchName(): string | null {
-    this.nextToken()
     const start = this.mark()
+    this.nextToken()
     const slice = this._cursor.matchName()
     if (slice === null) {
       this._tracer.traceNoMatch(this, "@name", "")
-      return null
+      throw this.failure(start, new ParseError("expected @name"))
     }
     this.reset(start)
     this._tracer.traceMatch(this, "@name", slice)
@@ -182,12 +182,12 @@ export class CoreCtx implements Ctx {
   }
 
   matchInt(): number | null {
-    this.nextToken()
     const start = this.mark()
+    this.nextToken()
     const slice = this._cursor.matchInt()
     if (slice === null) {
       this._tracer.traceNoMatch(this, "@int", "")
-      return null
+      throw this.failure(start, new ParseError("expected @int"))
     }
     this.reset(start)
     this._tracer.traceMatch(this, "@int", slice.toString())
@@ -195,12 +195,12 @@ export class CoreCtx implements Ctx {
   }
 
   matchUInt(): number | null {
-    this.nextToken()
     const start = this.mark()
+    this.nextToken()
     const slice = this._cursor.matchUInt()
     if (slice === null) {
       this._tracer.traceNoMatch(this, "@uint", "")
-      return null
+      throw this.failure(start, new ParseError("expected @uint"))
     }
     this.reset(start)
     this._tracer.traceMatch(this, "@uint", slice.toString())
@@ -208,12 +208,12 @@ export class CoreCtx implements Ctx {
   }
 
   matchFloat(): number | null {
-    this.nextToken()
     const start = this.mark()
+    this.nextToken()
     const slice = this._cursor.matchFloat()
     if (slice === null) {
       this._tracer.traceNoMatch(this, "@float", "")
-      return null
+      throw this.failure(start, new ParseError("expected @float"))
     }
     this.reset(start)
     this._tracer.traceMatch(this, "@float", slice.toString())
@@ -221,28 +221,20 @@ export class CoreCtx implements Ctx {
   }
 
   matchBool(): boolean | null {
-    this.nextToken()
     const start = this.mark()
+    this.nextToken()
     const slice = this._cursor.matchBool()
     if (slice === null) {
       this._tracer.traceNoMatch(this, "@bool", "")
-      return null
+      throw this.failure(start, new ParseError("expected @bool"))
     }
     this.reset(start)
     this._tracer.traceMatch(this, "@bool", slice.toString())
     return slice
   }
 
-  mtchConstant(literal: unknown): TreeValue {
-    if (
-      typeof literal === "string" ||
-      typeof literal === "number" ||
-      typeof literal === "boolean"
-    ) {
-      return literal
-    }
-    if (literal === null) return null
-    return String(literal)
+  matchConstant(literal: string): TreeValue {
+    return literal
   }
 
   enter(name: string): void {

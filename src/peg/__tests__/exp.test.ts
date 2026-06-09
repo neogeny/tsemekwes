@@ -66,9 +66,9 @@ describe("Exp subclasses", () => {
   })
 
   it("ConstantExp stores value", () => {
-    const exp = new ConstantExp(42)
+    const exp = new ConstantExp("42")
     assert.equal(exp.kind, ExpKind.Constant)
-    assert.equal(exp.value, 42)
+    assert.equal(exp.value, "42")
   })
 
   it("AlertExp stores value and level", () => {
@@ -131,7 +131,7 @@ describe("children()", () => {
       new EmptyClosureExp(),
       new TokenExp("a"),
       new PatternExp("b"),
-      new ConstantExp(1),
+      new ConstantExp("1"),
       new AlertExp("x", 0),
       new CallExp("name"),
       new NameMetaExp(),

@@ -54,7 +54,7 @@ export class Memento extends Error {
       const disp = lines[i].replace(/\t/g, "  ").replace(/[\r\n]$/, "")
       result += `${pc.blueBright(sprintf("%5d", ln))} ${pc.blueBright(`|`)} ${pc.white(disp)}\n`
     }
-    const pad = " ".repeat(Math.max(0, col))
+    const pad = " ".repeat(Math.max(0, col-1))
     result += `${pc.blueBright(`      |`)} ${pad}${pc.redBright(`^ ${this.msg}\n`)}`
 
     if (this.callStack.length > 0) {
