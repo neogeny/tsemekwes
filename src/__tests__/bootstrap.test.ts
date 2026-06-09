@@ -131,7 +131,7 @@ describe("bootstrap :: parse naming", () => {
     const grammar = `@@grammar :: N start: name='a'`
     const tree = parseGrammar(grammar)
     const str = asjsons(tree)
-    assert.ok(str.includes("Named"))
+    assert.ok(str.includes("Named"), str)
     assert.ok(str.includes("name"))
   })
 

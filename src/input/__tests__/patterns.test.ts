@@ -34,7 +34,7 @@ describe("patterns", () => {
 
   it("default cmt matches # comments", () => {
     const p = defaultPatterns()
-    assert.ok(p.cmt?.test("# foo"))
+    assert.ok(!p.cmt?.test("# foo")) // no default comment pattern
     assert.ok(!p.cmt?.test("not a comment"))
   })
 

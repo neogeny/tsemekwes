@@ -456,11 +456,11 @@ describe("StrCursor", () => {
   })
 
   it("MatchFloat consumes scientific notation", () => {
-    const s = new StrCursor("1.5e10")
+    const s = new StrCursor("1.57e10")
     const m = s.matchFloat()
     assert(m)
-    assert.equal(m, 1.5e10)
-    assert.equal(s.mark(), 6)
+    assert.equal(s.mark(), 7)
+    assert.equal(m, 1.57e10)
   })
 
   it("MatchFloat consumes negative float", () => {

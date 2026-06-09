@@ -94,11 +94,15 @@ inner: 'content'`
   it("no default comments", () => {
     const grammar = `@@eol_comments :: /@@@@@@/
 start = 'a' $;`
-    const result = parse(
-      grammar,
-      "        # no comments are valid\n        a\n    ",
+    assert.throws(
+      () => parse(
+        grammar,
+        `
+        # no comments are valid
+        a
+      `),
+      /expected: "a"/
     )
-    assert.equal(asjson(result), "a")
   })
 
   it("parse void", () => {

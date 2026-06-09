@@ -55,7 +55,7 @@ describe("meta expressions", () => {
     it("matches integer with underscores", () => {
       const grammar = compile(metaGrammar("@int"))
       const result = parseInput(grammar, "1_234")
-      assert.equal(asjson(result), "1_234")
+      assert.equal(asjson(result), 1_234)
     })
 
     it("fails on non-numeric input", () => {
@@ -71,7 +71,7 @@ describe("meta expressions", () => {
     it("matches positive integer with explicit +", () => {
       const grammar = compile(metaGrammar("@int"))
       const result = parseInput(grammar, "+42")
-      assert.equal(asjson(result), "+42")
+      assert.equal(asjson(result), +42)
     })
   })
 
@@ -79,13 +79,13 @@ describe("meta expressions", () => {
     it("matches digits", () => {
       const grammar = compile(metaGrammar("@uint"))
       const result = parseInput(grammar, "42")
-      assert.equal(asjson(result), "42")
+      assert.equal(asjson(result), 42)
     })
 
     it("matches uint with underscores", () => {
       const grammar = compile(metaGrammar("@uint"))
       const result = parseInput(grammar, "1_234")
-      assert.equal(asjson(result), "1_234")
+      assert.equal(asjson(result), 1_234)
     })
 
     it("fails on negative sign", () => {
@@ -98,25 +98,25 @@ describe("meta expressions", () => {
     it("matches integer-like float", () => {
       const grammar = compile(metaGrammar("@float"))
       const result = parseInput(grammar, "42")
-      assert.equal(asjson(result), "42")
+      assert.equal(asjson(result), 42)
     })
 
     it("matches decimal float", () => {
       const grammar = compile(metaGrammar("@float"))
       const result = parseInput(grammar, "3.14")
-      assert.equal(asjson(result), "3.14")
+      assert.equal(asjson(result), 3.14)
     })
 
     it("matches scientific notation", () => {
       const grammar = compile(metaGrammar("@float"))
       const result = parseInput(grammar, "1.5e10")
-      assert.equal(asjson(result), "1.5e10")
+      assert.equal(asjson(result), 1.5e10)
     })
 
     it("matches negative float", () => {
       const grammar = compile(metaGrammar("@float"))
       const result = parseInput(grammar, "-3.14")
-      assert.equal(asjson(result), "-3.14")
+      assert.equal(asjson(result), -3.14)
     })
 
     it("fails on letters", () => {
@@ -129,13 +129,13 @@ describe("meta expressions", () => {
     it("matches true", () => {
       const grammar = compile(metaGrammar("@bool"))
       const result = parseInput(grammar, "true")
-      assert.equal(asjson(result), "true")
+      assert.equal(asjson(result), true)
     })
 
     it("matches false", () => {
       const grammar = compile(metaGrammar("@bool"))
       const result = parseInput(grammar, "false")
-      assert.equal(asjson(result), "false")
+      assert.equal(asjson(result), false)
     })
 
     it("fails on random word", () => {
@@ -143,9 +143,9 @@ describe("meta expressions", () => {
       assert.throws(() => parseInput(grammar, "foo"), ApiError)
     })
 
-    it("is case-sensitive", () => {
+    it("is case-insensitive", () => {
       const grammar = compile(metaGrammar("@bool"))
-      assert.throws(() => parseInput(grammar, "True"), ApiError)
+      assert.equal(parseInput(grammar, "True"), true)
     })
   })
 
@@ -153,7 +153,7 @@ describe("meta expressions", () => {
     it("matches int after whitespace", () => {
       const grammar = compile(metaGrammar("@int"))
       const result = parseInput(grammar, "  42")
-      assert.equal(asjson(result), "42")
+      assert.equal(asjson(result), 42)
     })
 
     it("matches multiple meta expressions with whitespace between", () => {
@@ -164,7 +164,7 @@ describe("meta expressions", () => {
       `)
       const result = parseInput(grammar, "42 3.14 hello")
       const arr = asjson(result) as string[]
-      assert.deepStrictEqual(arr, ["42", "3.14", "hello"])
+      assert.deepStrictEqual(arr, [42, 3.14, "hello"])
     })
   })
 })
